@@ -1,0 +1,3941 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>نظام إدارة البيانات</title>
+
+<style>
+:root{
+    --primary:#0f172a;
+    --primary-light:#1e293b;
+    --accent:#f59e0b;
+    --success:#16a34a;
+    --danger:#dc2626;
+    --info:#2563eb;
+    --bg:#f1f5f9;
+    --card:#ffffff;
+    --border:#e2e8f0;
+    --text:#0f172a;
+    --muted:#64748b;
+    --radius:14px;
+    --shadow:0 5px 20px rgba(15,23,42,.08);
+}
+
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    padding:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:
+        Tahoma,
+        Arial,
+        "Segoe UI",
+        sans-serif;
+}
+
+button,
+input,
+select,
+textarea{
+    font-family:inherit;
+}
+
+button{
+    cursor:pointer;
+}
+
+/* =========================
+   HEADER
+========================= */
+
+.header{
+    background:linear-gradient(
+        135deg,
+        var(--primary),
+        var(--primary-light)
+    );
+    color:#fff;
+    padding:22px 18px;
+    box-shadow:var(--shadow);
+}
+
+.header-inner{
+    max-width:1400px;
+    margin:auto;
+}
+
+.header-title{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    font-size:24px;
+    font-weight:800;
+}
+
+.header-subtitle{
+    margin-top:6px;
+    color:#cbd5e1;
+    font-size:13px;
+}
+
+/* =========================
+   MAIN
+========================= */
+
+.container{
+    width:min(1400px, calc(100% - 24px));
+    margin:18px auto 40px;
+}
+
+/* =========================
+   CARDS
+========================= */
+
+.card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:18px;
+    margin-bottom:18px;
+}
+
+.card-title{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-size:18px;
+    font-weight:800;
+    margin-bottom:15px;
+}
+
+.card-title .icon{
+    width:38px;
+    height:38px;
+    border-radius:10px;
+    background:#f8fafc;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:21px;
+}
+
+/* =========================
+   TABLE SELECTOR
+========================= */
+
+.tables-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(190px,1fr));
+    gap:12px;
+}
+
+.table-button{
+    border:1px solid var(--border);
+    background:#fff;
+    border-radius:12px;
+    padding:15px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    text-align:right;
+    transition:.2s;
+    min-height:72px;
+}
+
+.table-button:hover{
+    border-color:var(--accent);
+    transform:translateY(-2px);
+    box-shadow:0 5px 15px rgba(0,0,0,.07);
+}
+
+.table-button.active{
+    border-color:var(--accent);
+    background:#fffbeb;
+}
+
+.table-icon{
+    width:42px;
+    height:42px;
+    flex-shrink:0;
+    border-radius:11px;
+    background:#f8fafc;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:23px;
+}
+
+.table-name{
+    font-weight:800;
+    font-size:15px;
+}
+
+.table-status{
+    margin-top:4px;
+    color:var(--success);
+    font-size:12px;
+}
+
+/* =========================
+   TOOLBAR
+========================= */
+
+.toolbar{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:space-between;
+}
+
+.toolbar-right,
+.toolbar-left{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    align-items:center;
+}
+
+.search-box{
+    min-width:250px;
+    flex:1;
+}
+
+.search-box input{
+    width:100%;
+}
+
+/* =========================
+   FORMS
+========================= */
+
+.form-grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:15px;
+}
+
+.field{
+    display:flex;
+    flex-direction:column;
+    gap:7px;
+}
+
+.field.full{
+    grid-column:1 / -1;
+}
+
+.field label{
+    font-weight:700;
+    font-size:14px;
+}
+
+.required-mark{
+    color:var(--danger);
+    margin-right:3px;
+}
+
+input,
+select,
+textarea{
+    width:100%;
+    border:1px solid #cbd5e1;
+    background:#fff;
+    border-radius:10px;
+    padding:11px 12px;
+    outline:none;
+    font-size:14px;
+    color:var(--text);
+    transition:.2s;
+}
+
+textarea{
+    min-height:100px;
+    resize:vertical;
+}
+
+input:focus,
+select:focus,
+textarea:focus{
+    border-color:var(--info);
+    box-shadow:0 0 0 3px rgba(37,99,235,.1);
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled{
+    background:#f8fafc;
+    cursor:not-allowed;
+}
+
+.field-error{
+    color:var(--danger);
+    font-size:12px;
+    display:none;
+}
+
+.field.invalid input,
+.field.invalid select,
+.field.invalid textarea{
+    border-color:var(--danger);
+    background:#fff7f7;
+}
+
+.field.invalid .field-error{
+    display:block;
+}
+
+/* =========================
+   BUTTONS
+========================= */
+
+.btn{
+    border:0;
+    border-radius:10px;
+    padding:10px 15px;
+    font-weight:700;
+    font-size:14px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
+    transition:.2s;
+}
+
+.btn:hover{
+    transform:translateY(-1px);
+}
+
+.btn-primary{
+    background:var(--primary);
+    color:#fff;
+}
+
+.btn-primary:hover{
+    background:#020617;
+}
+
+.btn-success{
+    background:var(--success);
+    color:#fff;
+}
+
+.btn-danger{
+    background:var(--danger);
+    color:#fff;
+}
+
+.btn-info{
+    background:var(--info);
+    color:#fff;
+}
+
+.btn-secondary{
+    background:#e2e8f0;
+    color:#0f172a;
+}
+
+.btn-warning{
+    background:var(--accent);
+    color:#fff;
+}
+
+.btn-small{
+    padding:7px 10px;
+    font-size:12px;
+}
+
+/* =========================
+   DATA TABLE
+========================= */
+
+.table-wrapper{
+    width:100%;
+    overflow:auto;
+    border:1px solid var(--border);
+    border-radius:12px;
+}
+
+.data-table{
+    width:100%;
+    min-width:700px;
+    border-collapse:collapse;
+    background:#fff;
+}
+
+.data-table th,
+.data-table td{
+    border-bottom:1px solid var(--border);
+    padding:11px 10px;
+    text-align:right;
+    white-space:nowrap;
+}
+
+.data-table th{
+    background:#f8fafc;
+    font-weight:800;
+    position:sticky;
+    top:0;
+    z-index:1;
+}
+
+.data-table tr:hover td{
+    background:#fafafa;
+}
+
+.actions{
+    display:flex;
+    gap:5px;
+    flex-wrap:wrap;
+}
+
+/* =========================
+   EMPTY / LOADING
+========================= */
+
+.empty{
+    text-align:center;
+    padding:40px 20px;
+    color:var(--muted);
+}
+
+.empty-icon{
+    font-size:42px;
+    margin-bottom:10px;
+}
+
+.loading{
+    text-align:center;
+    padding:35px;
+    color:var(--muted);
+}
+
+.spinner{
+    width:35px;
+    height:35px;
+    border:4px solid #e2e8f0;
+    border-top-color:var(--accent);
+    border-radius:50%;
+    animation:spin .8s linear infinite;
+    margin:0 auto 12px;
+}
+
+@keyframes spin{
+    to{
+        transform:rotate(360deg);
+    }
+}
+
+/* =========================
+   MODAL
+========================= */
+
+.modal{
+    position:fixed;
+    inset:0;
+    background:rgba(15,23,42,.55);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:15px;
+    z-index:1000;
+}
+
+.modal.show{
+    display:flex;
+}
+
+.modal-content{
+    background:#fff;
+    width:min(900px,100%);
+    max-height:92vh;
+    overflow:auto;
+    border-radius:16px;
+    box-shadow:0 20px 50px rgba(0,0,0,.25);
+}
+
+.modal-header{
+    padding:18px;
+    border-bottom:1px solid var(--border);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+}
+
+.modal-title{
+    font-size:18px;
+    font-weight:800;
+}
+
+.modal-close{
+    border:0;
+    background:#f1f5f9;
+    width:38px;
+    height:38px;
+    border-radius:10px;
+    font-size:20px;
+}
+
+.modal-body{
+    padding:18px;
+}
+
+.modal-footer{
+    padding:15px 18px;
+    border-top:1px solid var(--border);
+    display:flex;
+    justify-content:flex-start;
+    gap:8px;
+}
+
+/* =========================
+   TOAST
+========================= */
+
+.toast-container{
+    position:fixed;
+    left:18px;
+    bottom:18px;
+    z-index:3000;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+.toast{
+    min-width:280px;
+    max-width:420px;
+    padding:13px 15px;
+    border-radius:11px;
+    background:#0f172a;
+    color:#fff;
+    box-shadow:0 10px 30px rgba(0,0,0,.2);
+    animation:toastIn .25s ease;
+    font-size:14px;
+}
+
+.toast.success{
+    background:#15803d;
+}
+
+.toast.error{
+    background:#b91c1c;
+}
+
+.toast.info{
+    background:#1d4ed8;
+}
+
+@keyframes toastIn{
+    from{
+        opacity:0;
+        transform:translateY(10px);
+    }
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+
+/* =========================
+   BADGES
+========================= */
+
+.badge{
+    display:inline-flex;
+    padding:4px 8px;
+    border-radius:999px;
+    font-size:11px;
+    font-weight:700;
+}
+
+.badge-success{
+    background:#dcfce7;
+    color:#166534;
+}
+
+.badge-danger{
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+.badge-info{
+    background:#dbeafe;
+    color:#1e40af;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media(max-width:700px){
+
+    .container{
+        width:min(100% - 14px,1400px);
+        margin-top:10px;
+    }
+
+    .header{
+        padding:17px 12px;
+    }
+
+    .header-title{
+        font-size:20px;
+    }
+
+    .card{
+        padding:13px;
+        border-radius:12px;
+    }
+
+    .form-grid{
+        grid-template-columns:1fr;
+    }
+
+    .field.full{
+        grid-column:auto;
+    }
+
+    .tables-grid{
+        grid-template-columns:1fr 1fr;
+    }
+
+    .table-button{
+        min-height:65px;
+        padding:10px;
+    }
+
+    .table-name{
+        font-size:13px;
+    }
+
+    .search-box{
+        min-width:100%;
+    }
+
+    .toolbar{
+        align-items:stretch;
+    }
+
+    .toolbar-right,
+    .toolbar-left{
+        width:100%;
+    }
+
+    .toolbar .btn{
+        flex:1;
+    }
+
+}
+
+@media(max-width:420px){
+
+    .tables-grid{
+        grid-template-columns:1fr;
+    }
+
+}
+</style>
+</head>
+
+<body>
+
+<!-- =========================
+     HEADER
+========================= -->
+
+<header class="header">
+    <div class="header-inner">
+
+        <div class="header-title">
+            <span>📊</span>
+            <span>نظام إدارة البيانات</span>
+        </div>
+
+        <div class="header-subtitle">
+            إدارة الجداول والبيانات بشكل ديناميكي
+        </div>
+
+    </div>
+</header>
+
+
+<main class="container">
+
+    <!-- =========================
+         TABLES
+    ========================= -->
+
+    <section class="card">
+
+        <div class="card-title">
+            <div class="icon">🗂️</div>
+            <div>الجداول</div>
+        </div>
+
+        <div id="tablesContainer">
+            <div class="loading">
+                <div class="spinner"></div>
+                جاري تحميل الجداول...
+            </div>
+        </div>
+
+    </section>
+
+
+    <!-- =========================
+         CURRENT TABLE
+    ========================= -->
+
+    <section class="card" id="tableSection" style="display:none;">
+
+        <div class="toolbar">
+
+            <div class="toolbar-right">
+
+                <div>
+                    <strong id="currentTableTitle">
+                        الجدول
+                    </strong>
+
+                    <div
+                        id="currentTableName"
+                        style="font-size:12px;color:#64748b;margin-top:3px;">
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="toolbar-left">
+
+                <button
+                    class="btn btn-primary"
+                    onclick="openAddModal()">
+                    ➕ إضافة
+                </button>
+
+                <button
+                    class="btn btn-secondary"
+                    onclick="refreshCurrentTable()">
+                    🔄 تحديث
+                </button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================
+         SEARCH
+    ========================= -->
+
+    <section
+        class="card"
+        id="searchSection"
+        style="display:none;">
+
+        <div class="toolbar">
+
+            <div class="search-box">
+                <input
+                    id="searchInput"
+                    type="search"
+                    placeholder="ابحث في الجدول..."
+                    oninput="handleSearchInput()">
+            </div>
+
+            <div class="toolbar-left">
+
+                <button
+                    class="btn btn-info"
+                    onclick="performSearch()">
+                    🔎 بحث
+                </button>
+
+                <button
+                    class="btn btn-secondary"
+                    onclick="clearSearch()">
+                    مسح
+                </button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================
+         DATA
+    ========================= -->
+
+    <section
+        class="card"
+        id="dataSection"
+        style="display:none;">
+
+        <div
+            id="dataContainer">
+        </div>
+
+    </section>
+
+</main>
+
+
+<!-- =========================
+     RECORD MODAL
+========================= -->
+
+<div
+    class="modal"
+    id="recordModal">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <div
+                class="modal-title"
+                id="modalTitle">
+                إضافة سجل
+            </div>
+
+            <button
+                class="modal-close"
+                onclick="closeModal()">
+                ×
+            </button>
+
+        </div>
+
+        <div class="modal-body">
+
+            <form id="recordForm">
+
+                <div
+                    class="form-grid"
+                    id="formFields">
+                </div>
+
+            </form>
+
+        </div>
+
+        <div class="modal-footer">
+
+            <button
+                class="btn btn-success"
+                onclick="saveRecord()">
+                💾 حفظ
+            </button>
+
+            <button
+                class="btn btn-secondary"
+                onclick="closeModal()">
+                إلغاء
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================
+     CONFIRM MODAL
+========================= -->
+
+<div
+    class="modal"
+    id="confirmModal">
+
+    <div class="modal-content" style="max-width:430px;">
+
+        <div class="modal-header">
+
+            <div
+                class="modal-title"
+                id="confirmTitle">
+                تأكيد
+            </div>
+
+            <button
+                class="modal-close"
+                onclick="closeConfirmModal()">
+                ×
+            </button>
+
+        </div>
+
+        <div class="modal-body">
+
+            <div id="confirmMessage">
+                هل أنت متأكد؟
+            </div>
+
+        </div>
+
+        <div class="modal-footer">
+
+            <button
+                class="btn btn-danger"
+                id="confirmYes">
+                نعم
+            </button>
+
+            <button
+                class="btn btn-secondary"
+                onclick="closeConfirmModal()">
+                إلغاء
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================
+     TOAST
+========================= -->
+
+<div
+    class="toast-container"
+    id="toastContainer">
+</div>
+
+
+<script>
+
+/* =========================================================
+   إعداد الاتصال مع Google Apps Script
+========================================================= */
+
+const API_URL =
+    "https://script.google.com/macros/s/AKfycbw2FA_As7StLELc0xApapxVDYNa1dcYJT8dxQe06JBMp_fd8OsyLOq57KAECkG3MuxaGA/exec";
+
+
+/* =========================================================
+   حالة التطبيق
+========================================================= */
+
+const state = {
+
+    tables: [],
+
+    currentTable: null,
+
+    currentColumns: [],
+
+    currentRows: [],
+
+    currentDropdowns: {},
+
+    editingRow: null,
+
+    searchTimer: null
+
+};
+
+
+/* =========================================================
+   بدء التطبيق
+========================================================= */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function(){
+
+        loadTables();
+
+    }
+);
+
+
+/* =========================================================
+   API GET
+========================================================= */
+
+async function apiGet(params){
+
+    const query =
+        new URLSearchParams(params).toString();
+
+    const response =
+        await fetch(API_URL + "?" + query, {
+            method:"GET",
+            redirect:"follow"
+        });
+
+    if(!response.ok){
+
+        throw new Error(
+            "فشل الاتصال بالخادم"
+        );
+
+    }
+
+    const data =
+        await response.json();
+
+    if(
+        data &&
+        data.success === false
+    ){
+
+        throw new Error(
+            data.message ||
+            "حدث خطأ في الخادم"
+        );
+
+    }
+
+    return data;
+
+}
+
+
+/* =========================================================
+   API POST
+========================================================= */
+
+async function apiPost(payload){
+
+    const response =
+        await fetch(API_URL, {
+
+            method:"POST",
+
+            headers:{
+                "Content-Type":
+                    "text/plain;charset=utf-8"
+            },
+
+            body:JSON.stringify(payload),
+
+            redirect:"follow"
+
+        });
+
+    if(!response.ok){
+
+        throw new Error(
+            "فشل الاتصال بالخادم"
+        );
+
+    }
+
+    const data =
+        await response.json();
+
+    if(
+        data &&
+        data.success === false
+    ){
+
+        throw new Error(
+            data.message ||
+            "حدث خطأ في الخادم"
+        );
+
+    }
+
+    return data;
+
+}
+
+
+/* =========================================================
+   تحميل الجداول
+========================================================= */
+
+async function loadTables(){
+
+    showTablesLoading();
+
+    try{
+
+        const result =
+            await apiGet({
+                action:"tables"
+            });
+
+        state.tables =
+            normalizeTables(result);
+
+        renderTables();
+
+    }
+    catch(error){
+
+        showTablesError(
+            error.message
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   معالجة نتيجة الجداول
+========================================================= */
+
+function normalizeTables(result){
+
+    if(Array.isArray(result)){
+        return result;
+    }
+
+    if(
+        result &&
+        Array.isArray(result.tables)
+    ){
+        return result.tables;
+    }
+
+    if(
+        result &&
+        Array.isArray(result.data)
+    ){
+        return result.data;
+    }
+
+    return [];
+
+}
+
+
+/* =========================================================
+   عرض تحميل الجداول
+========================================================= */
+
+function showTablesLoading(){
+
+    document.getElementById(
+        "tablesContainer"
+    ).innerHTML = `
+
+        <div class="loading">
+
+            <div class="spinner"></div>
+
+            جاري تحميل الجداول...
+
+        </div>
+
+    `;
+
+}
+
+
+/* =========================================================
+   خطأ الجداول
+========================================================= */
+
+function showTablesError(message){
+
+    document.getElementById(
+        "tablesContainer"
+    ).innerHTML = `
+
+        <div class="empty">
+
+            <div class="empty-icon">
+                ⚠️
+            </div>
+
+            <div>
+                تعذر تحميل الجداول
+            </div>
+
+            <div style="
+                margin-top:8px;
+                font-size:12px;
+                color:#dc2626;">
+                ${escapeHtml(message || "")}
+            </div>
+
+            <button
+                class="btn btn-primary"
+                style="margin-top:15px;"
+                onclick="loadTables()">
+                🔄 إعادة المحاولة
+            </button>
+
+        </div>
+
+    `;
+
+}
+
+
+/* =========================================================
+   عرض الجداول
+========================================================= */
+
+function renderTables(){
+
+    const container =
+        document.getElementById(
+            "tablesContainer"
+        );
+
+    if(!state.tables.length){
+
+        container.innerHTML = `
+
+            <div class="empty">
+
+                <div class="empty-icon">
+                    🗂️
+                </div>
+
+                لا توجد جداول فعالة
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+    const grid =
+        document.createElement("div");
+
+    grid.className =
+        "tables-grid";
+
+    state.tables.forEach(
+        function(table){
+
+            const button =
+                document.createElement("button");
+
+            button.className =
+                "table-button";
+
+            button.type =
+                "button";
+
+            const icon =
+                table.Icon ||
+                table.icon ||
+                "📋";
+
+            const title =
+                table.Table_Title ||
+                table.tableTitle ||
+                table.Table_Name ||
+                table.tableName ||
+                "جدول";
+
+            const name =
+                table.Table_Name ||
+                table.tableName ||
+                "";
+
+            button.innerHTML = `
+
+                <div class="table-icon">
+                    ${escapeHtml(icon)}
+                </div>
+
+                <div style="flex:1;min-width:0;">
+
+                    <div class="table-name">
+                        ${escapeHtml(title)}
+                    </div>
+
+                    <div class="table-status">
+                        فعال
+                    </div>
+
+                </div>
+
+            `;
+
+            button.addEventListener(
+                "click",
+                function(){
+
+                    selectTable(
+                        table,
+                        button
+                    );
+
+                }
+            );
+
+            grid.appendChild(button);
+
+        }
+    );
+
+    container.innerHTML = "";
+
+    container.appendChild(grid);
+
+}
+
+
+/* =========================================================
+   اختيار جدول
+========================================================= */
+
+async function selectTable(
+    table,
+    button
+){
+
+    document
+        .querySelectorAll(".table-button")
+        .forEach(
+            b => b.classList.remove("active")
+        );
+
+    if(button){
+        button.classList.add("active");
+    }
+
+    state.currentTable =
+        table;
+
+    const tableName =
+        getTableName(table);
+
+    document.getElementById(
+        "tableSection"
+    ).style.display = "block";
+
+    document.getElementById(
+        "searchSection"
+    ).style.display = "block";
+
+    document.getElementById(
+        "dataSection"
+    ).style.display = "block";
+
+    document.getElementById(
+        "currentTableTitle"
+    ).textContent =
+        getTableTitle(table);
+
+    document.getElementById(
+        "currentTableName"
+    ).textContent =
+        tableName;
+
+    await loadCurrentTable();
+
+}
+
+
+/* =========================================================
+   اسم الجدول
+========================================================= */
+
+function getTableName(table){
+
+    return (
+        table.Table_Name ||
+        table.tableName ||
+        table.name ||
+        ""
+    );
+
+}
+
+
+/* =========================================================
+   عنوان الجدول
+========================================================= */
+
+function getTableTitle(table){
+
+    return (
+        table.Table_Title ||
+        table.tableTitle ||
+        table.Table_Name ||
+        table.tableName ||
+        "الجدول"
+    );
+
+}
+
+
+/* =========================================================
+   تحميل بيانات الجدول
+========================================================= */
+
+async function loadCurrentTable(){
+
+    if(!state.currentTable){
+
+        return;
+
+    }
+
+    showDataLoading();
+
+    try{
+
+        const tableId =
+            getTableId(
+                state.currentTable
+            );
+
+        const result =
+            await apiGet({
+
+                action:"table",
+
+                tableId:tableId
+
+            });
+
+        processTableResult(
+            result
+        );
+
+        await loadDropdowns();
+
+    }
+    catch(error){
+
+        document.getElementById(
+            "dataContainer"
+        ).innerHTML = `
+
+            <div class="empty">
+
+                <div class="empty-icon">
+                    ⚠️
+                </div>
+
+                تعذر تحميل بيانات الجدول
+
+                <div style="
+                    margin-top:8px;
+                    color:#dc2626;
+                    font-size:12px;">
+                    ${escapeHtml(error.message || "")}
+                </div>
+
+            </div>
+
+        `;
+
+    }
+
+}
+
+
+/* =========================================================
+   رقم الجدول
+========================================================= */
+
+function getTableId(table){
+
+    return (
+        table.Table_ID ??
+        table.tableId ??
+        table.id ??
+        ""
+    );
+
+}
+
+
+/* =========================================================
+   معالجة بيانات الجدول
+========================================================= */
+
+function processTableResult(result){
+
+    let columns = [];
+    let rows = [];
+
+    if(
+        result &&
+        Array.isArray(result.columns)
+    ){
+
+        columns =
+            result.columns;
+
+    }
+
+    if(
+        result &&
+        Array.isArray(result.rows)
+    ){
+
+        rows =
+            result.rows;
+
+    }
+
+    if(
+        result &&
+        result.data
+    ){
+
+        if(
+            Array.isArray(result.data.columns)
+        ){
+
+            columns =
+                result.data.columns;
+
+        }
+
+        if(
+            Array.isArray(result.data.rows)
+        ){
+
+            rows =
+                result.data.rows;
+
+        }
+
+        if(
+            Array.isArray(result.data)
+        ){
+
+            rows =
+                result.data;
+
+        }
+
+    }
+
+    state.currentColumns =
+        normalizeColumns(columns);
+
+    state.currentRows =
+        rows || [];
+
+    renderDataTable();
+
+}
+
+
+/* =========================================================
+   الأعمدة
+========================================================= */
+
+function normalizeColumns(columns){
+
+    return (columns || []).map(
+        function(column, index){
+
+            if(typeof column === "string"){
+
+                return {
+                    name:column,
+                    key:"C" + (index + 1),
+                    no:index + 1,
+                    type:"نص",
+                    required:"اختياري",
+                    visible:"ظاهر"
+                };
+
+            }
+
+            return {
+
+                name:
+                    column.Column_Name ||
+                    column.columnName ||
+                    column.name ||
+                    column.Name ||
+                    "",
+
+                key:
+                    column.key ||
+                    column.Key ||
+                    column.System_Name ||
+                    column.systemName ||
+                    ("C" + (index + 1)),
+
+                no:
+                    column.Column_No ||
+                    column.columnNo ||
+                    column.no ||
+                    index + 1,
+
+                type:
+                    column.Data_Type ||
+                    column.dataType ||
+                    column.type ||
+                    "نص",
+
+                required:
+                    column.Required ||
+                    column.required ||
+                    "اختياري",
+
+                visible:
+                    column.Visible ||
+                    column.visible ||
+                    "ظاهر",
+
+                allowNewOption:
+                    column.Allow_New_Option ||
+                    column.allowNewOption ||
+                    "لا",
+
+                condition:
+                    column.Input_Condition ||
+                    column.inputCondition ||
+                    "",
+
+                conditionMessage:
+                    column.Condition_Message ||
+                    column.conditionMessage ||
+                    "",
+
+                defaultValue:
+                    column.Default_Value ||
+                    column.defaultValue ||
+                    "",
+
+                sequenceStart:
+                    column.Sequence_Start ||
+                    column.sequenceStart ||
+                    ""
+
+            };
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   تحميل القوائم المنسدلة
+========================================================= */
+
+async function loadDropdowns(){
+
+    if(!state.currentTable){
+
+        return;
+
+    }
+
+    try{
+
+        const result =
+            await apiGet({
+
+                action:"dropdowns",
+
+                tableId:
+                    getTableId(
+                        state.currentTable
+                    )
+
+            });
+
+        if(
+            result &&
+            result.dropdowns
+        ){
+
+            state.currentDropdowns =
+                result.dropdowns;
+
+        }
+        else if(
+            result &&
+            result.data
+        ){
+
+            state.currentDropdowns =
+                result.data;
+
+        }
+        else{
+
+            state.currentDropdowns =
+                {};
+
+        }
+
+    }
+    catch(error){
+
+        state.currentDropdowns =
+            {};
+
+    }
+
+}
+
+
+/* =========================================================
+   عرض جدول البيانات
+========================================================= */
+
+function renderDataTable(){
+
+    const container =
+        document.getElementById(
+            "dataContainer"
+        );
+
+    const visibleColumns =
+        state.currentColumns.filter(
+            function(column){
+
+                return (
+                    column.visible !== "مخفي"
+                );
+
+            }
+        );
+
+    if(!visibleColumns.length){
+
+        container.innerHTML = `
+
+            <div class="empty">
+                لا توجد أعمدة ظاهرة في هذا الجدول
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+    if(!state.currentRows.length){
+
+        container.innerHTML = `
+
+            <div class="empty">
+
+                <div class="empty-icon">
+                    📄
+                </div>
+
+                لا توجد بيانات حاليًا
+
+                <br>
+
+                <button
+                    class="btn btn-primary"
+                    style="margin-top:15px;"
+                    onclick="openAddModal()">
+                    ➕ إضافة أول سجل
+                </button>
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+    let html = `
+
+        <div class="table-wrapper">
+
+        <table class="data-table">
+
+            <thead>
+                <tr>
+    `;
+
+    visibleColumns.forEach(
+        function(column){
+
+            html += `
+                <th>
+                    ${escapeHtml(column.name)}
+                </th>
+            `;
+
+        }
+    );
+
+    html += `
+                    <th>الإجراءات</th>
+                </tr>
+            </thead>
+
+            <tbody>
+    `;
+
+    state.currentRows.forEach(
+        function(row, rowIndex){
+
+            html += "<tr>";
+
+            visibleColumns.forEach(
+                function(column){
+
+                    const value =
+                        getRowValue(
+                            row,
+                            column
+                        );
+
+                    html += `
+                        <td>
+                            ${formatCellValue(
+                                value,
+                                column
+                            )}
+                        </td>
+                    `;
+
+                }
+            );
+
+            html += `
+
+                <td>
+
+                    <div class="actions">
+
+                        <button
+                            class="btn btn-small btn-info"
+                            onclick="openEditModal(${rowIndex})">
+                            ✏️ تعديل
+                        </button>
+
+                        <button
+                            class="btn btn-small btn-danger"
+                            onclick="confirmDelete(${rowIndex})">
+                            🗑️ حذف
+                        </button>
+
+                    </div>
+
+                </td>
+
+            `;
+
+            html += "</tr>";
+
+        }
+    );
+
+    html += `
+
+            </tbody>
+
+        </table>
+
+        </div>
+
+        <div style="
+            margin-top:10px;
+            color:#64748b;
+            font-size:12px;">
+            عدد السجلات: ${state.currentRows.length}
+        </div>
+
+    `;
+
+    container.innerHTML =
+        html;
+
+}
+
+
+/* =========================================================
+   قيمة الخلية
+========================================================= */
+
+function getRowValue(
+    row,
+    column
+){
+
+    if(row == null){
+
+        return "";
+
+    }
+
+    if(typeof row !== "object"){
+
+        return "";
+
+    }
+
+    if(
+        Object.prototype.hasOwnProperty.call(
+            row,
+            column.key
+        )
+    ){
+
+        return row[column.key];
+
+    }
+
+    if(
+        Object.prototype.hasOwnProperty.call(
+            row,
+            column.name
+        )
+    ){
+
+        return row[column.name];
+
+    }
+
+    if(
+        Object.prototype.hasOwnProperty.call(
+            row,
+            "values"
+        ) &&
+        Array.isArray(row.values)
+    ){
+
+        const index =
+            Number(column.no) - 1;
+
+        return (
+            row.values[index] ?? ""
+        );
+
+    }
+
+    return "";
+
+}
+
+
+/* =========================================================
+   تنسيق الخلية
+========================================================= */
+
+function formatCellValue(
+    value,
+    column
+){
+
+    if(
+        value === null ||
+        value === undefined ||
+        value === ""
+    ){
+
+        return "—";
+
+    }
+
+    const type =
+        column.type;
+
+    if(type === "True / False"){
+
+        const normalized =
+            String(value).toLowerCase();
+
+        if(
+            normalized === "true" ||
+            normalized === "نعم"
+        ){
+
+            return `
+                <span class="badge badge-success">
+                    نعم
+                </span>
+            `;
+
+        }
+
+        return `
+            <span class="badge badge-danger">
+                لا
+            </span>
+        `;
+
+    }
+
+    if(type === "رابط"){
+
+        const safe =
+            escapeHtml(String(value));
+
+        return `
+            <a
+                href="${safe}"
+                target="_blank"
+                rel="noopener">
+                فتح الرابط
+            </a>
+        `;
+
+    }
+
+    if(type === "مبلغ مالي"){
+
+        return escapeHtml(
+            formatNumber(value) + " ريال"
+        );
+
+    }
+
+    if(type === "نسبة مئوية"){
+
+        return escapeHtml(
+            formatNumber(value) + "%"
+        );
+
+    }
+
+    return escapeHtml(
+        String(value)
+    );
+
+}
+
+
+/* =========================================================
+   فتح إضافة
+========================================================= */
+
+async function openAddModal(){
+
+    if(!state.currentTable){
+
+        showToast(
+            "اختر جدولًا أولًا",
+            "error"
+        );
+
+        return;
+
+    }
+
+    state.editingRow =
+        null;
+
+    document.getElementById(
+        "modalTitle"
+    ).textContent =
+        "إضافة سجل جديد";
+
+    await buildForm();
+
+    document.getElementById(
+        "recordModal"
+    ).classList.add("show");
+
+}
+
+
+/* =========================================================
+   فتح تعديل
+========================================================= */
+
+async function openEditModal(rowIndex){
+
+    if(
+        rowIndex < 0 ||
+        rowIndex >= state.currentRows.length
+    ){
+
+        return;
+
+    }
+
+    state.editingRow =
+        rowIndex;
+
+    document.getElementById(
+        "modalTitle"
+    ).textContent =
+        "تعديل السجل";
+
+    await buildForm(
+        state.currentRows[rowIndex]
+    );
+
+    document.getElementById(
+        "recordModal"
+    ).classList.add("show");
+
+}
+
+
+/* =========================================================
+   بناء النموذج
+========================================================= */
+
+async function buildForm(row){
+
+    const container =
+        document.getElementById(
+            "formFields"
+        );
+
+    container.innerHTML = "";
+
+    const visibleColumns =
+        state.currentColumns.filter(
+            function(column){
+
+                return (
+                    column.visible !== "مخفي"
+                );
+
+            }
+        );
+
+    visibleColumns.forEach(
+        function(column){
+
+            const field =
+                createField(
+                    column,
+                    row
+                );
+
+            container.appendChild(
+                field
+            );
+
+        }
+    );
+
+    applyConditionalLogic();
+
+}
+
+
+/* =========================================================
+   إنشاء حقل
+========================================================= */
+
+function createField(
+    column,
+    row
+){
+
+    const wrapper =
+        document.createElement("div");
+
+    wrapper.className =
+        "field";
+
+    wrapper.dataset.columnKey =
+        column.key;
+
+    const label =
+        document.createElement("label");
+
+    label.innerHTML =
+        escapeHtml(
+            column.name
+        );
+
+    if(
+        column.required === "إلزامي"
+    ){
+
+        label.innerHTML +=
+            `<span class="required-mark">*</span>`;
+
+    }
+
+    wrapper.appendChild(
+        label
+    );
+
+    let input;
+
+    const currentValue =
+        row ?
+        getRowValue(row,column) :
+        getDefaultValue(column);
+
+    /* =====================
+       رقم تسلسلي
+    ===================== */
+
+    if(column.type === "رقم تسلسلي"){
+
+        input =
+            document.createElement("input");
+
+        input.type =
+            "text";
+
+        input.readOnly =
+            true;
+
+        input.placeholder =
+            "يتم إنشاؤه تلقائيًا";
+
+        if(currentValue !== ""){
+
+            input.value =
+                currentValue;
+
+        }
+
+    }
+
+    /* =====================
+       قائمة منسدلة
+    ===================== */
+
+    else if(
+        column.type === "قائمة منسدلة"
+    ){
+
+        input =
+            document.createElement("select");
+
+        input.dataset.allowNew =
+            column.allowNewOption === "نعم"
+                ? "true"
+                : "false";
+
+        const blank =
+            document.createElement("option");
+
+        blank.value =
+            "";
+
+        blank.textContent =
+            "اختر...";
+
+        input.appendChild(
+            blank
+        );
+
+        const options =
+            getDropdownOptionsForColumn(
+                column
+            );
+
+        options.forEach(
+            function(option){
+
+                const item =
+                    document.createElement(
+                        "option"
+                    );
+
+                item.value =
+                    option;
+
+                item.textContent =
+                    option;
+
+                input.appendChild(
+                    item
+                );
+
+            }
+        );
+
+        if(
+            column.allowNewOption === "نعم"
+        ){
+
+            const newOption =
+                document.createElement(
+                    "option"
+                );
+
+            newOption.value =
+                "__NEW_OPTION__";
+
+            newOption.textContent =
+                "➕ إدخال قيمة جديدة";
+
+            input.appendChild(
+                newOption
+            );
+
+            input.addEventListener(
+                "change",
+                function(){
+
+                    if(
+                        input.value ===
+                        "__NEW_OPTION__"
+                    ){
+
+                        const value =
+                            prompt(
+                                "أدخل القيمة الجديدة:"
+                            );
+
+                        if(
+                            value &&
+                            value.trim()
+                        ){
+
+                            const custom =
+                                value.trim();
+
+                            let exists =
+                                false;
+
+                            Array.from(
+                                input.options
+                            ).forEach(
+                                function(opt){
+
+                                    if(
+                                        opt.value ===
+                                        custom
+                                    ){
+
+                                        exists = true;
+
+                                    }
+
+                                }
+                            );
+
+                            if(!exists){
+
+                                const opt =
+                                    document.createElement(
+                                        "option"
+                                    );
+
+                                opt.value =
+                                    custom;
+
+                                opt.textContent =
+                                    custom;
+
+                                input.insertBefore(
+                                    opt,
+                                    newOption
+                                );
+
+                            }
+
+                            input.value =
+                                custom;
+
+                        }
+                        else{
+
+                            input.value =
+                                "";
+
+                        }
+
+                    }
+
+                }
+            );
+
+        }
+
+    }
+
+    /* =====================
+       True / False
+    ===================== */
+
+    else if(
+        column.type === "True / False"
+    ){
+
+        input =
+            document.createElement("select");
+
+        const options = [
+            ["","اختر..."],
+            ["true","نعم"],
+            ["false","لا"]
+        ];
+
+        options.forEach(
+            function(item){
+
+                const option =
+                    document.createElement(
+                        "option"
+                    );
+
+                option.value =
+                    item[0];
+
+                option.textContent =
+                    item[1];
+
+                input.appendChild(
+                    option
+                );
+
+            }
+        );
+
+    }
+
+    /* =====================
+       تاريخ
+    ===================== */
+
+    else if(column.type === "تاريخ"){
+
+        input =
+            document.createElement("input");
+
+        input.type =
+            "date";
+
+    }
+
+    /* =====================
+       وقت
+    ===================== */
+
+    else if(column.type === "وقت"){
+
+        input =
+            document.createElement("input");
+
+        input.type =
+            "time";
+
+    }
+
+    /* =====================
+       رقم
+    ===================== */
+
+    else if(
+        column.type === "رقم" ||
+        column.type === "مبلغ مالي" ||
+        column.type === "نسبة مئوية"
+    ){
+
+        input =
+            document.createElement("input");
+
+        input.type =
+            "number";
+
+        input.step =
+            "any";
+
+    }
+
+    /* =====================
+       رقم جوال
+    ===================== */
+
+    else if(
+        column.type === "رقم جوال"
+    ){
+
+        input =
+            document.createElement("input");
+
+        input.type =
+            "tel";
+
+        input.inputMode =
+            "numeric";
+
+        input.placeholder =
+            "05xxxxxxxx";
+
+    }
+
+    /* =====================
+       رابط
+    ===================== */
+
+    else if(column.type === "رابط"){
+
+        input =
+            document.createElement("input");
+
+        input.type =
+            "url";
+
+        input.placeholder =
+            "https://";
+
+    }
+
+    /* =====================
+       صورة
+    ===================== */
+
+    else if(column.type === "صورة"){
+
+        input =
+            document.createElement("input");
+
+        input.type =
+            "file";
+
+        input.accept =
+            "image/*";
+
+    }
+
+    /* =====================
+       نص
+    ===================== */
+
+    else{
+
+        input =
+            document.createElement("input");
+
+        input.type =
+            "text";
+
+    }
+
+
+    input.dataset.columnKey =
+        column.key;
+
+    input.dataset.columnName =
+        column.name;
+
+    input.dataset.columnType =
+        column.type;
+
+    input.dataset.required =
+        column.required;
+
+    input.dataset.condition =
+        column.condition || "";
+
+    input.dataset.conditionMessage =
+        column.conditionMessage || "";
+
+    input.dataset.defaultValue =
+        column.defaultValue || "";
+
+    input.addEventListener(
+        "input",
+        function(){
+
+            validateSingleField(
+                input,
+                column
+            );
+
+        }
+    );
+
+    input.addEventListener(
+        "change",
+        function(){
+
+            validateSingleField(
+                input,
+                column
+            );
+
+            applyConditionalLogic();
+
+        }
+    );
+
+
+    /* =====================
+       تعيين القيمة
+    ===================== */
+
+    if(
+        column.type !== "صورة" &&
+        column.type !== "رقم تسلسلي"
+    ){
+
+        if(
+            currentValue !== "" &&
+            currentValue !== null &&
+            currentValue !== undefined
+        ){
+
+            input.value =
+                normalizeInputValue(
+                    currentValue,
+                    column
+                );
+
+        }
+        else if(
+            !row &&
+            column.defaultValue
+        ){
+
+            input.value =
+                normalizeInputValue(
+                    column.defaultValue,
+                    column
+                );
+
+        }
+
+    }
+
+
+    /* =====================
+       رقم تسلسلي
+    ===================== */
+
+    if(
+        column.type === "رقم تسلسلي"
+    ){
+
+        input.disabled =
+            true;
+
+    }
+
+
+    /* =====================
+       رسالة الخطأ
+    ===================== */
+
+    const error =
+        document.createElement("div");
+
+    error.className =
+        "field-error";
+
+    error.textContent =
+        column.conditionMessage ||
+        (
+            column.required === "إلزامي"
+                ? "هذا الحقل مطلوب"
+                : "القيمة غير صحيحة"
+        );
+
+    wrapper.appendChild(
+        input
+    );
+
+    wrapper.appendChild(
+        error
+    );
+
+    return wrapper;
+
+}
+
+
+/* =========================================================
+   القيم الافتراضية
+========================================================= */
+
+function getDefaultValue(column){
+
+    if(column.defaultValue){
+
+        return column.defaultValue;
+
+    }
+
+    if(column.type === "تاريخ"){
+
+        const d =
+            new Date();
+
+        const y =
+            d.getFullYear();
+
+        const m =
+            String(
+                d.getMonth()+1
+            ).padStart(2,"0");
+
+        const day =
+            String(
+                d.getDate()
+            ).padStart(2,"0");
+
+        return `${y}-${m}-${day}`;
+
+    }
+
+    if(column.type === "وقت"){
+
+        const d =
+            new Date();
+
+        const h =
+            String(
+                d.getHours()
+            ).padStart(2,"0");
+
+        const m =
+            String(
+                d.getMinutes()
+            ).padStart(2,"0");
+
+        return `${h}:${m}`;
+
+    }
+
+    return "";
+
+}
+
+
+/* =========================================================
+   خيارات القائمة
+========================================================= */
+
+function getDropdownOptionsForColumn(
+    column
+){
+
+    const dropdowns =
+        state.currentDropdowns ||
+        {};
+
+    let options =
+        dropdowns[column.key] ||
+        dropdowns[column.name] ||
+        [];
+
+    if(!Array.isArray(options)){
+
+        options =
+            [];
+
+    }
+
+    return [
+        ...new Set(
+            options
+                .filter(
+                    x =>
+                        x !== null &&
+                        x !== undefined &&
+                        String(x).trim() !== ""
+                )
+                .map(
+                    x => String(x)
+                )
+        )
+    ];
+
+}
+
+
+/* =========================================================
+   التحقق من الحقل
+========================================================= */
+
+function validateSingleField(
+    input,
+    column
+){
+
+    const wrapper =
+        input.closest(".field");
+
+    if(!wrapper){
+
+        return true;
+
+    }
+
+    let valid =
+        true;
+
+    let message =
+        "";
+
+    const value =
+        input.value.trim();
+
+
+    /* =====================
+       إلزامي
+    ===================== */
+
+    if(
+        column.required === "إلزامي" &&
+        !value
+    ){
+
+        valid =
+            false;
+
+        message =
+            "هذا الحقل مطلوب";
+
+    }
+
+
+    /* =====================
+       الشرط
+    ===================== */
+
+    if(
+        valid &&
+        value &&
+        column.condition
+    ){
+
+        const check =
+            evaluateCondition(
+                value,
+                column.condition,
+                column.type
+            );
+
+        if(!check){
+
+            valid =
+                false;
+
+            message =
+                column.conditionMessage ||
+                "القيمة لا تحقق الشرط";
+
+        }
+
+    }
+
+
+    /* =====================
+       رقم الجوال
+    ===================== */
+
+    if(
+        valid &&
+        value &&
+        column.type === "رقم جوال"
+    ){
+
+        const phone =
+            normalizeArabicNumbers(
+                value
+            );
+
+        if(
+            !/^05\d{8}$/.test(phone)
+        ){
+
+            valid =
+                false;
+
+            message =
+                column.conditionMessage ||
+                "أدخل رقم جوال صحيح مثل 05xxxxxxxx";
+
+        }
+
+    }
+
+
+    wrapper.classList.toggle(
+        "invalid",
+        !valid
+    );
+
+    const error =
+        wrapper.querySelector(
+            ".field-error"
+        );
+
+    if(error){
+
+        error.textContent =
+            message ||
+            column.conditionMessage ||
+            (
+                column.required === "إلزامي"
+                    ? "هذا الحقل مطلوب"
+                    : "القيمة غير صحيحة"
+            );
+
+    }
+
+    return valid;
+
+}
+
+
+/* =========================================================
+   تطبيق الشروط
+========================================================= */
+
+function applyConditionalLogic(){
+
+    document
+        .querySelectorAll(
+            "#formFields .field"
+        )
+        .forEach(
+            function(wrapper){
+
+                const input =
+                    wrapper.querySelector(
+                        "input,select,textarea"
+                    );
+
+                if(!input){
+
+                    return;
+
+                }
+
+                const column =
+                    state.currentColumns.find(
+                        c =>
+                            c.key ===
+                            input.dataset.columnKey
+                    );
+
+                if(column){
+
+                    validateSingleField(
+                        input,
+                        column
+                    );
+
+                }
+
+            }
+        );
+
+}
+
+
+/* =========================================================
+   تقييم الشرط
+========================================================= */
+
+function evaluateCondition(
+    value,
+    condition,
+    type
+){
+
+    const normalizedValue =
+        normalizeArabicNumbers(
+            String(value)
+        ).trim();
+
+    if(
+        type === "رقم جوال"
+    ){
+
+        return /^05\d{8}$/.test(
+            normalizedValue
+        );
+
+    }
+
+    if(
+        condition === "رقم موجب"
+    ){
+
+        const number =
+            Number(normalizedValue);
+
+        return (
+            Number.isFinite(number) &&
+            number > 0
+        );
+
+    }
+
+    if(
+        condition === "0-100"
+    ){
+
+        const number =
+            Number(normalizedValue);
+
+        return (
+            Number.isFinite(number) &&
+            number >= 0 &&
+            number <= 100
+        );
+
+    }
+
+    const match =
+        normalizedCondition(
+            condition
+        );
+
+    if(!match){
+
+        return true;
+
+    }
+
+    const operator =
+        match.operator;
+
+    const target =
+        Number(match.value);
+
+    const actual =
+        Number(normalizedValue);
+
+    if(
+        !Number.isFinite(actual) ||
+        !Number.isFinite(target)
+    ){
+
+        return false;
+
+    }
+
+    switch(operator){
+
+        case "<":
+            return actual < target;
+
+        case ">":
+            return actual > target;
+
+        case "<=":
+            return actual <= target;
+
+        case ">=":
+            return actual >= target;
+
+        case "=":
+        case "==":
+            return actual === target;
+
+        case "!=":
+            return actual !== target;
+
+        default:
+            return true;
+
+    }
+
+}
+
+
+/* =========================================================
+   تحليل الشرط
+========================================================= */
+
+function normalizedCondition(
+    condition
+){
+
+    if(!condition){
+
+        return null;
+
+    }
+
+    const value =
+        String(condition)
+            .trim()
+            .replace(
+                /≤/g,
+                "<="
+            )
+            .replace(
+                /≥/g,
+                ">="
+            );
+
+    const match =
+        value.match(
+            /^(<=|>=|==|!=|<|>|=)\s*(-?\d+(?:\.\d+)?)$/
+        );
+
+    if(!match){
+
+        return null;
+
+    }
+
+    return {
+
+        operator:
+            match[1],
+
+        value:
+            match[2]
+
+    };
+
+}
+
+
+/* =========================================================
+   حفظ السجل
+========================================================= */
+
+async function saveRecord(){
+
+    if(!state.currentTable){
+
+        showToast(
+            "لم يتم اختيار جدول",
+            "error"
+        );
+
+        return;
+
+    }
+
+    let valid =
+        true;
+
+    const values = {};
+
+    const inputs =
+        document.querySelectorAll(
+            "#formFields input, #formFields select, #formFields textarea"
+        );
+
+    inputs.forEach(
+        function(input){
+
+            const column =
+                state.currentColumns.find(
+                    c =>
+                        c.key ===
+                        input.dataset.columnKey
+                );
+
+            if(!column){
+
+                return;
+
+            }
+
+            if(
+                column.type ===
+                "رقم تسلسلي"
+            ){
+
+                return;
+
+            }
+
+            if(
+                !validateSingleField(
+                    input,
+                    column
+                )
+            ){
+
+                valid =
+                    false;
+
+            }
+
+            let value =
+                input.value;
+
+            if(
+                input.type === "file"
+            ){
+
+                value =
+                    "";
+
+            }
+
+            if(
+                input.tagName === "SELECT" &&
+                value === "__NEW_OPTION__"
+            ){
+
+                valid =
+                    false;
+
+            }
+
+            values[column.key] =
+                value;
+
+        }
+    );
+
+    if(!valid){
+
+        showToast(
+            "يرجى تصحيح البيانات المطلوبة",
+            "error"
+        );
+
+        return;
+
+    }
+
+    const button =
+        document.querySelector(
+            "#recordModal .btn-success"
+        );
+
+    const oldText =
+        button.innerHTML;
+
+    button.disabled =
+        true;
+
+    button.innerHTML =
+        "⏳ جاري الحفظ...";
+
+
+    try{
+
+        const payload = {
+
+            action:
+                state.editingRow === null
+                    ? "add"
+                    : "update",
+
+            tableId:
+                getTableId(
+                    state.currentTable
+                ),
+
+            values:
+                values
+
+        };
+
+
+        if(
+            state.editingRow !== null
+        ){
+
+            const row =
+                state.currentRows[
+                    state.editingRow
+                ];
+
+            payload.rowIndex =
+                getRowIndex(
+                    row,
+                    state.editingRow
+                );
+
+        }
+
+
+        const result =
+            await apiPost(
+                payload
+            );
+
+        if(
+            result &&
+            result.success === false
+        ){
+
+            throw new Error(
+                result.message ||
+                "تعذر حفظ السجل"
+            );
+
+        }
+
+        closeModal();
+
+        showToast(
+            state.editingRow === null
+                ? "تمت إضافة السجل بنجاح"
+                : "تم تحديث السجل بنجاح",
+            "success"
+        );
+
+        await loadCurrentTable();
+
+    }
+    catch(error){
+
+        showToast(
+            error.message ||
+            "حدث خطأ أثناء الحفظ",
+            "error"
+        );
+
+    }
+    finally{
+
+        button.disabled =
+            false;
+
+        button.innerHTML =
+            oldText;
+
+    }
+
+}
+
+
+/* =========================================================
+   رقم الصف
+========================================================= */
+
+function getRowIndex(
+    row,
+    fallback
+){
+
+    if(row && typeof row === "object"){
+
+        return (
+            row.rowIndex ??
+            row.Row_Index ??
+            row.row ??
+            row.Row ??
+            fallback + 3
+        );
+
+    }
+
+    return fallback + 3;
+
+}
+
+
+/* =========================================================
+   تأكيد الحذف
+========================================================= */
+
+function confirmDelete(rowIndex){
+
+    const row =
+        state.currentRows[
+            rowIndex
+        ];
+
+    document.getElementById(
+        "confirmMessage"
+    ).textContent =
+        "هل أنت متأكد من حذف هذا السجل؟ لا يمكن التراجع عن عملية الحذف.";
+
+    document.getElementById(
+        "confirmModal"
+    ).classList.add("show");
+
+    document.getElementById(
+        "confirmYes"
+    ).onclick =
+        function(){
+
+            closeConfirmModal();
+
+            deleteRecord(
+                rowIndex
+            );
+
+        };
+
+}
+
+
+/* =========================================================
+   حذف السجل
+========================================================= */
+
+async function deleteRecord(
+    rowIndex
+){
+
+    if(!state.currentTable){
+
+        return;
+
+    }
+
+    try{
+
+        const row =
+            state.currentRows[
+                rowIndex
+            ];
+
+        const result =
+            await apiPost({
+
+                action:"delete",
+
+                tableId:
+                    getTableId(
+                        state.currentTable
+                    ),
+
+                rowIndex:
+                    getRowIndex(
+                        row,
+                        rowIndex
+                    )
+
+            });
+
+        if(
+            result &&
+            result.success === false
+        ){
+
+            throw new Error(
+                result.message ||
+                "تعذر حذف السجل"
+            );
+
+        }
+
+        showToast(
+            "تم حذف السجل بنجاح",
+            "success"
+        );
+
+        await loadCurrentTable();
+
+    }
+    catch(error){
+
+        showToast(
+            error.message ||
+            "حدث خطأ أثناء الحذف",
+            "error"
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   البحث
+========================================================= */
+
+function handleSearchInput(){
+
+    clearTimeout(
+        state.searchTimer
+    );
+
+    state.searchTimer =
+        setTimeout(
+            performSearch,
+            450
+        );
+
+}
+
+
+async function performSearch(){
+
+    const query =
+        document.getElementById(
+            "searchInput"
+        ).value.trim();
+
+    if(!query){
+
+        await loadCurrentTable();
+
+        return;
+
+    }
+
+    if(!state.currentTable){
+
+        return;
+
+    }
+
+    showDataLoading();
+
+    try{
+
+        const result =
+            await apiGet({
+
+                action:"search",
+
+                tableId:
+                    getTableId(
+                        state.currentTable
+                    ),
+
+                query:
+                    query
+
+            });
+
+        processTableResult(
+            result
+        );
+
+    }
+    catch(error){
+
+        showToast(
+            error.message ||
+            "تعذر تنفيذ البحث",
+            "error"
+        );
+
+        renderDataTable();
+
+    }
+
+}
+
+
+/* =========================================================
+   مسح البحث
+========================================================= */
+
+async function clearSearch(){
+
+    document.getElementById(
+        "searchInput"
+    ).value = "";
+
+    await loadCurrentTable();
+
+}
+
+
+/* =========================================================
+   تحديث الجدول
+========================================================= */
+
+async function refreshCurrentTable(){
+
+    if(!state.currentTable){
+
+        return;
+
+    }
+
+    await loadCurrentTable();
+
+    showToast(
+        "تم تحديث البيانات",
+        "info"
+    );
+
+}
+
+
+/* =========================================================
+   تحميل البيانات
+========================================================= */
+
+function showDataLoading(){
+
+    document.getElementById(
+        "dataContainer"
+    ).innerHTML = `
+
+        <div class="loading">
+
+            <div class="spinner"></div>
+
+            جاري تحميل البيانات...
+
+        </div>
+
+    `;
+
+}
+
+
+/* =========================================================
+   إغلاق النموذج
+========================================================= */
+
+function closeModal(){
+
+    document.getElementById(
+        "recordModal"
+    ).classList.remove("show");
+
+    document.getElementById(
+        "recordForm"
+    ).reset();
+
+    document.getElementById(
+        "formFields"
+    ).innerHTML = "";
+
+    state.editingRow =
+        null;
+
+}
+
+
+/* =========================================================
+   إغلاق التأكيد
+========================================================= */
+
+function closeConfirmModal(){
+
+    document.getElementById(
+        "confirmModal"
+    ).classList.remove("show");
+
+}
+
+
+/* =========================================================
+   Toast
+========================================================= */
+
+function showToast(
+    message,
+    type="info"
+){
+
+    const container =
+        document.getElementById(
+            "toastContainer"
+        );
+
+    const toast =
+        document.createElement(
+            "div"
+        );
+
+    toast.className =
+        "toast " + type;
+
+    toast.textContent =
+        message;
+
+    container.appendChild(
+        toast
+    );
+
+    setTimeout(
+        function(){
+
+            toast.style.opacity =
+                "0";
+
+            toast.style.transform =
+                "translateY(10px)";
+
+            setTimeout(
+                function(){
+
+                    toast.remove();
+
+                },
+                250
+            );
+
+        },
+        3500
+    );
+
+}
+
+
+/* =========================================================
+   تحويل الأرقام العربية
+========================================================= */
+
+function normalizeArabicNumbers(
+    value
+){
+
+    if(value === null || value === undefined){
+
+        return "";
+
+    }
+
+    return String(value)
+        .replace(
+            /[٠-٩]/g,
+            function(digit){
+
+                return String(
+                    "٠١٢٣٤٥٦٧٨٩".indexOf(
+                        digit
+                    )
+                );
+
+            }
+        )
+        .replace(
+            /[۰-۹]/g,
+            function(digit){
+
+                return String(
+                    "۰۱۲۳۴۵۶۷۸۹".indexOf(
+                        digit
+                    )
+                );
+
+            }
+        )
+        .replace(
+            /٫/g,
+            "."
+        )
+        .replace(
+            /٬/g,
+            ""
+        );
+
+}
+
+
+/* =========================================================
+   تنسيق الأرقام
+========================================================= */
+
+function formatNumber(value){
+
+    const number =
+        Number(
+            normalizeArabicNumbers(
+                value
+            )
+        );
+
+    if(!Number.isFinite(number)){
+
+        return String(value);
+
+    }
+
+    return number.toLocaleString(
+        "ar-SA"
+    );
+
+}
+
+
+/* =========================================================
+   تطبيع قيمة الإدخال
+========================================================= */
+
+function normalizeInputValue(
+    value,
+    column
+){
+
+    if(
+        value === null ||
+        value === undefined
+    ){
+
+        return "";
+
+    }
+
+    if(
+        column.type === "تاريخ"
+    ){
+
+        const text =
+            String(value);
+
+        if(
+            /^\d{4}-\d{2}-\d{2}$/.test(
+                text
+            )
+        ){
+
+            return text;
+
+        }
+
+        const date =
+            new Date(value);
+
+        if(
+            !isNaN(
+                date.getTime()
+            )
+        ){
+
+            const y =
+                date.getFullYear();
+
+            const m =
+                String(
+                    date.getMonth()+1
+                ).padStart(
+                    2,
+                    "0"
+                );
+
+            const d =
+                String(
+                    date.getDate()
+                ).padStart(
+                    2,
+                    "0"
+                );
+
+            return `${y}-${m}-${d}`;
+
+        }
+
+    }
+
+    if(
+        column.type === "وقت"
+    ){
+
+        const text =
+            String(value);
+
+        const match =
+            text.match(
+                /(\d{1,2}):(\d{2})/
+            );
+
+        if(match){
+
+            return (
+                String(
+                    Number(match[1])
+                ).padStart(2,"0")
+                +
+                ":" +
+                match[2]
+            );
+
+        }
+
+    }
+
+    return String(value);
+
+}
+
+
+/* =========================================================
+   HTML Escape
+========================================================= */
+
+function escapeHtml(
+    value
+){
+
+    return String(
+        value ?? ""
+    )
+    .replace(
+        /&/g,
+        "&amp;"
+    )
+    .replace(
+        /</g,
+        "&lt;"
+    )
+    .replace(
+        />/g,
+        "&gt;"
+    )
+    .replace(
+        /"/g,
+        "&quot;"
+    )
+    .replace(
+        /'/g,
+        "&#039;"
+    );
+
+}
+
+
+/* =========================================================
+   إغلاق النوافذ عند الضغط خارجها
+========================================================= */
+
+document.addEventListener(
+    "click",
+    function(event){
+
+        const recordModal =
+            document.getElementById(
+                "recordModal"
+            );
+
+        const confirmModal =
+            document.getElementById(
+                "confirmModal"
+            );
+
+        if(
+            event.target ===
+            recordModal
+        ){
+
+            closeModal();
+
+        }
+
+        if(
+            event.target ===
+            confirmModal
+        ){
+
+            closeConfirmModal();
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   زر ESC
+========================================================= */
+
+document.addEventListener(
+    "keydown",
+    function(event){
+
+        if(event.key === "Escape"){
+
+            closeModal();
+
+            closeConfirmModal();
+
+        }
+
+    }
+);
+
+</script>
+
+</body>
+</html>
