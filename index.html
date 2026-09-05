@@ -1,18 +1,10 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta
+name="viewport"
+content="width=device-width, initial-scale=1.0"
 
-<head>
+«»
 
-<meta charset="UTF-8">
-
-<meta
-  name="viewport"
-  content="width=device-width, initial-scale=1.0"
->
-
-<title>نظام إدارة الجداول</title>
-
-<style>
+<title>نظام إدارة الجداول</title><!-- مكتبات إنشاء PDF --><script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script><style>
 
 *{
   box-sizing:border-box;
@@ -91,6 +83,11 @@ button:disabled{
 .secondary{
   background:#e5e7eb;
   color:#222;
+}
+
+.pdf-button{
+  background:#7b2cbf;
+  color:#fff;
 }
 
 select,
@@ -229,6 +226,101 @@ input{
   font-size:20px;
 }
 
+/* =========================================================
+   نافذة PDF
+========================================================= */
+
+.pdf-modal-box{
+  background:#fff;
+  width:min(900px,100%);
+  max-height:94vh;
+  overflow:auto;
+  border-radius:14px;
+  padding:15px;
+}
+
+.pdf-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-bottom:15px;
+}
+
+.pdf-actions button{
+  flex:1;
+  min-width:140px;
+}
+
+.pdf-preview-wrap{
+  background:#ddd;
+  padding:15px;
+  border-radius:10px;
+  overflow:auto;
+}
+
+#pdfPreview{
+  background:#fff;
+  width:794px;
+  min-height:1123px;
+  margin:auto;
+  padding:35px;
+  color:#111;
+  direction:rtl;
+  font-family:Arial,Tahoma,sans-serif;
+}
+
+.pdf-header{
+  text-align:center;
+  margin-bottom:25px;
+}
+
+.pdf-header h1{
+  margin:0 0 10px;
+  font-size:26px;
+}
+
+.pdf-header h2{
+  margin:0 0 10px;
+  font-size:20px;
+}
+
+.pdf-date{
+  font-size:13px;
+  color:#555;
+}
+
+.pdf-table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:12px;
+}
+
+.pdf-table th,
+.pdf-table td{
+  border:1px solid #999;
+  padding:7px 5px;
+  text-align:right;
+  vertical-align:middle;
+}
+
+.pdf-table th{
+  background:#e9ecef;
+  font-weight:bold;
+}
+
+.pdf-footer{
+  margin-top:25px;
+  text-align:center;
+  font-size:11px;
+  color:#666;
+}
+
+.pdf-loading{
+  text-align:center;
+  padding:30px;
+  font-size:18px;
+}
+
 @media(max-width:600px){
 
   header{
@@ -247,133 +339,170 @@ input{
     flex:1;
   }
 
+  .pdf-modal-box{
+    padding:8px;
+  }
+
+  .pdf-preview-wrap{
+    padding:5px;
+  }
+
 }
 
-</style>
-
-</head>
-
-
-<body>
-
-<header>
+</style></head><body><header>
   نظام إدارة الجداول
-</header>
+</header><div class="container">  <div class="card"><div class="toolbar">
 
+  <div
+    style="
+      flex:1;
+      min-width:220px;
+    "
+  >
 
-<div class="container">
+    <select id="tableSelect">
 
-  <div class="card">
+      <option value="">
+        جاري تحميل الجداول...
+      </option>
 
-    <div class="toolbar">
-
-      <div
-        style="
-          flex:1;
-          min-width:220px;
-        "
-      >
-
-        <select id="tableSelect">
-
-          <option value="">
-            جاري تحميل الجداول...
-          </option>
-
-        </select>
-
-      </div>
-
-
-      <button
-        class="primary"
-        onclick="loadSelectedTable()"
-      >
-        فتح الجدول
-      </button>
-
-
-      <button
-        class="success"
-        onclick="openAdd()"
-      >
-        ＋ إضافة سجل
-      </button>
-
-    </div>
+    </select>
 
   </div>
 
 
-  <div id="content"></div>
+  <button
+    class="primary"
+    onclick="loadSelectedTable()"
+  >
+    فتح الجدول
+  </button>
+
+
+  <button
+    class="success"
+    onclick="openAdd()"
+  >
+    ＋ إضافة سجل
+  </button>
 
 </div>
 
-
-<!-- ========================= -->
-<!-- نافذة النموذج -->
-<!-- ========================= -->
-
-<div
+  </div>  <div id="content"></div></div><!-- =========================================================
+     نافذة النموذج
+========================================================= --><div
   id="modal"
   class="modal"
+>  <div class="modal-box"><div class="modal-head">
+
+  <h3 id="modalTitle">
+    إضافة سجل
+  </h3>
+
+  <button
+    class="close"
+    onclick="closeModal()"
+  >
+    ×
+  </button>
+
+</div>
+
+
+<div id="form"></div>
+
+
+<div
+  class="actions"
+  style="margin-top:15px"
 >
 
-  <div class="modal-box">
+  <button
+    id="saveButton"
+    class="success"
+    onclick="saveRecord()"
+  >
+    حفظ
+  </button>
 
-    <div class="modal-head">
+  <button
+    class="secondary"
+    onclick="closeModal()"
+  >
+    إلغاء
+  </button>
 
-      <h3 id="modalTitle">
-        إضافة سجل
-      </h3>
+</div>
 
-      <button
-        class="close"
-        onclick="closeModal()"
-      >
-        ×
-      </button>
+  </div></div><!-- =========================================================
+     نافذة PDF
+========================================================= --><div
+  id="pdfModal"
+  class="modal"
+>  <div class="pdf-modal-box"><div class="modal-head">
 
-    </div>
+  <h3>
+    📄 كشف PDF
+  </h3>
+
+  <button
+    class="close"
+    onclick="closePdfModal()"
+  >
+    ×
+  </button>
+
+</div>
 
 
-    <div id="form"></div>
+<div class="pdf-actions">
+
+  <button
+    id="downloadPdfButton"
+    class="pdf-button"
+    onclick="downloadPDF()"
+  >
+    📥 تحميل PDF
+  </button>
 
 
-    <div
-      class="actions"
-      style="margin-top:15px"
-    >
+  <button
+    id="sharePdfButton"
+    class="success"
+    onclick="sharePDF()"
+  >
+    📤 مشاركة PDF
+  </button>
 
-      <button
-        id="saveButton"
-        class="success"
-        onclick="saveRecord()"
-      >
-        حفظ
-      </button>
 
-      <button
-        class="secondary"
-        onclick="closeModal()"
-      >
-        إلغاء
-      </button>
+  <button
+    class="secondary"
+    onclick="closePdfModal()"
+  >
+    إغلاق
+  </button>
 
+</div>
+
+
+<div class="pdf-preview-wrap">
+
+  <div
+    id="pdfPreview"
+  >
+
+    <div class="pdf-loading">
+      جاري تجهيز الكشف...
     </div>
 
   </div>
 
 </div>
 
-
-<div
+  </div></div><div
   id="toast"
   class="toast"
-></div>
-
-
-<script>
+></div><script>
 
 
 // ================================================================
@@ -395,6 +524,12 @@ let currentTable = null;
 let currentConfig = null;
 
 let editRow = null;
+
+let currentPdfData = null;
+
+let currentPdfBlob = null;
+
+let currentPdfFileName = "";
 
 
 // ================================================================
@@ -431,6 +566,7 @@ function toast(
     },
     3500
   );
+
 }
 
 
@@ -462,6 +598,7 @@ function arabicToEnglish(
     /٬/g,
     ","
   );
+
 }
 
 
@@ -507,10 +644,13 @@ async function get(
     throw new Error(
       "تعذر الاتصال بالخادم"
     );
+
   }
+
 
   const json =
     await response.json();
+
 
   if (!json.success){
 
@@ -518,9 +658,12 @@ async function get(
       json.error ||
       "خطأ في الخادم"
     );
+
   }
 
+
   return json.data;
+
 }
 
 
@@ -531,11 +674,6 @@ async function get(
 async function post(
   payload
 ){
-
-  /*
-   * نستخدم text/plain
-   * لتجنب OPTIONS preflight
-   */
 
   const response =
     await fetch(
@@ -557,15 +695,19 @@ async function post(
       }
     );
 
+
   if (!response.ok){
 
     throw new Error(
       "تعذر الاتصال بالخادم"
     );
+
   }
+
 
   const json =
     await response.json();
+
 
   if (!json.success){
 
@@ -573,9 +715,12 @@ async function post(
       json.error ||
       "خطأ في الخادم"
     );
+
   }
 
+
   return json.data;
+
 }
 
 
@@ -592,10 +737,12 @@ async function init(){
         "tables"
       );
 
+
     const select =
       document.getElementById(
         "tableSelect"
       );
+
 
     select.innerHTML =
       '<option value="">اختر الجدول</option>' +
@@ -653,6 +800,7 @@ async function loadSelectedTable(){
       "tableSelect"
     ).value;
 
+
   if (!id){
 
     toast(
@@ -661,6 +809,7 @@ async function loadSelectedTable(){
     );
 
     return;
+
   }
 
 
@@ -713,6 +862,7 @@ async function renderTable(
     document.getElementById(
       "content"
     );
+
 
   box.innerHTML =
     `
@@ -784,6 +934,14 @@ async function renderTable(
             onclick="openAdd()"
           >
             ＋ إضافة
+          </button>
+
+
+          <button
+            class="pdf-button"
+            onclick="openPDFReport()"
+          >
+            📄 كشف PDF
           </button>
 
         </div>
@@ -969,6 +1127,7 @@ async function searchTable(){
       "search"
     );
 
+
   const query =
     input
       ? input.value
@@ -1045,9 +1204,12 @@ function formatValue(
   ){
 
     return "";
+
   }
 
+
   return String(value);
+
 }
 
 
@@ -1065,6 +1227,7 @@ function openAdd(){
     );
 
     return;
+
   }
 
 
@@ -1288,10 +1451,6 @@ function fieldHtml(
   let input = "";
 
 
-  // --------------------------------
-  // قائمة منسدلة
-  // --------------------------------
-
   if (
     type ===
     "قائمة منسدلة"
@@ -1368,10 +1527,6 @@ function fieldHtml(
   }
 
 
-  // --------------------------------
-  // True / False
-  // --------------------------------
-
   else if (
     type ===
     "True / False"
@@ -1419,10 +1574,6 @@ function fieldHtml(
 
   }
 
-
-  // --------------------------------
-  // الحقول الأخرى
-  // --------------------------------
 
   else {
 
@@ -1564,7 +1715,6 @@ function collectForm(){
           );
 
 
-        // الرقم التسلسلي
         if (
           column &&
           column.Data_Type ===
@@ -1576,7 +1726,6 @@ function collectForm(){
         }
 
 
-        // القائمة المنسدلة
         if (
           element.tagName ===
           "SELECT"
@@ -1590,7 +1739,6 @@ function collectForm(){
         }
 
 
-        // الرقم
         if (
           element.type ===
           "number"
@@ -1613,10 +1761,6 @@ function collectForm(){
     );
 
 
-  // --------------------------------
-  // خيار جديد في القائمة
-  // --------------------------------
-
   document
     .querySelectorAll(
       "#form [data-new-option]"
@@ -1628,6 +1772,7 @@ function collectForm(){
           input.getAttribute(
             "data-new-option"
           );
+
 
         const value =
           input.value.trim();
@@ -1680,10 +1825,6 @@ async function saveRecord(){
     let payload;
 
 
-    // --------------------------------
-    // إضافة
-    // --------------------------------
-
     if (
       editRow === null
     ){
@@ -1699,7 +1840,6 @@ async function saveRecord(){
         data:
           data,
 
-        // للتوافق مع أي نسخة قديمة
         values:
           data
 
@@ -1707,10 +1847,6 @@ async function saveRecord(){
 
     }
 
-
-    // --------------------------------
-    // تعديل
-    // --------------------------------
 
     else {
 
@@ -1728,7 +1864,6 @@ async function saveRecord(){
         data:
           data,
 
-        // للتوافق
         values:
           data
 
@@ -1759,7 +1894,6 @@ async function saveRecord(){
     await renderTable(
       currentTable.Table_ID
     );
-
 
   }
   catch(error){
@@ -1840,6 +1974,797 @@ async function removeRecord(
 
 
 // ================================================================
+// ================================================================
+//                    نظام كشف PDF
+// ================================================================
+// ================================================================
+
+
+// ================================================================
+// فتح كشف PDF
+// ================================================================
+
+async function openPDFReport(){
+
+  if (!currentTable){
+
+    toast(
+      "اختر جدولًا أولًا",
+      false
+    );
+
+    return;
+
+  }
+
+
+  const modal =
+    document.getElementById(
+      "pdfModal"
+    );
+
+
+  const preview =
+    document.getElementById(
+      "pdfPreview"
+    );
+
+
+  modal.style.display =
+    "flex";
+
+
+  preview.innerHTML =
+    `
+      <div class="pdf-loading">
+        جاري تحميل بيانات الكشف...
+      </div>
+    `;
+
+
+  currentPdfBlob = null;
+
+
+  try{
+
+    const data =
+      await get(
+        "table",
+        {
+          tableId:
+            currentTable.Table_ID
+        }
+      );
+
+
+    const columns =
+      data.columns.filter(
+        function(column){
+
+          return column.Visible !==
+            "مخفي";
+
+        }
+      );
+
+
+    if (
+      !data.rows ||
+      data.rows.length === 0
+    ){
+
+      preview.innerHTML =
+        `
+          <div class="pdf-loading">
+            لا توجد بيانات لإنشاء الكشف.
+          </div>
+        `;
+
+      return;
+
+    }
+
+
+    const title =
+      data.table.Table_Title ||
+      data.table.Table_Name ||
+      "كشف";
+
+
+    const date =
+      new Date();
+
+
+    const dateText =
+      date.toLocaleDateString(
+        "ar-SA",
+        {
+          year:"numeric",
+          month:"long",
+          day:"numeric"
+        }
+      );
+
+
+    currentPdfFileName =
+      cleanFileName(
+        title +
+        " - " +
+        dateText
+      ) +
+      ".pdf";
+
+
+    let rows = "";
+
+
+    data.rows.forEach(
+      function(row){
+
+        rows += "<tr>";
+
+
+        columns.forEach(
+          function(column){
+
+            let value =
+              row.displayValues[
+                column.Column_Name
+              ];
+
+
+            if (
+              value === undefined ||
+              value === null
+            ){
+
+              value = "";
+
+            }
+
+
+            rows += `
+              <td>
+                ${esc(
+                  formatValue(
+                    value,
+                    column
+                  )
+                )}
+              </td>
+            `;
+
+          }
+        );
+
+
+        rows += "</tr>";
+
+      }
+    );
+
+
+    preview.innerHTML = `
+
+      <div class="pdf-header">
+
+        <h1>
+          ${esc(title)}
+        </h1>
+
+        <h2>
+          كشف البيانات
+        </h2>
+
+        <div class="pdf-date">
+          تاريخ الإصدار: ${esc(dateText)}
+        </div>
+
+      </div>
+
+
+      <table class="pdf-table">
+
+        <thead>
+
+          <tr>
+
+            ${
+              columns
+                .map(
+                  function(column){
+
+                    return `
+                      <th>
+                        ${esc(
+                          column.Column_Name
+                        )}
+                      </th>
+                    `;
+
+                  }
+                )
+                .join("")
+            }
+
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+          ${rows}
+
+        </tbody>
+
+      </table>
+
+
+      <div class="pdf-footer">
+
+        عدد السجلات:
+        ${data.rows.length}
+
+      </div>
+
+    `;
+
+
+    toast(
+      "تم تجهيز الكشف"
+    );
+
+  }
+  catch(error){
+
+    preview.innerHTML =
+      `
+        <div class="pdf-loading">
+          حدث خطأ في تجهيز الكشف:
+          <br><br>
+          ${esc(error.message)}
+        </div>
+      `;
+
+
+    toast(
+      error.message,
+      false
+    );
+
+  }
+
+}
+
+
+// ================================================================
+// إنشاء PDF
+// ================================================================
+
+async function createPDF(){
+
+  if (!window.html2canvas){
+
+    throw new Error(
+      "تعذر تحميل مكتبة إنشاء PDF"
+    );
+
+  }
+
+
+  if (
+    !window.jspdf ||
+    !window.jspdf.jsPDF
+  ){
+
+    throw new Error(
+      "تعذر تحميل محرك PDF"
+    );
+
+  }
+
+
+  const element =
+    document.getElementById(
+      "pdfPreview"
+    );
+
+
+  if (!element){
+
+    throw new Error(
+      "لم يتم العثور على محتوى الكشف"
+    );
+
+  }
+
+
+  const canvas =
+    await html2canvas(
+      element,
+      {
+        scale:2,
+        useCORS:true,
+        backgroundColor:"#ffffff",
+        logging:false
+      }
+    );
+
+
+  const {
+    jsPDF
+  } =
+    window.jspdf;
+
+
+  const pdf =
+    new jsPDF(
+      {
+        orientation:"portrait",
+        unit:"mm",
+        format:"a4",
+        compress:true
+      }
+    );
+
+
+  const pageWidth =
+    210;
+
+
+  const pageHeight =
+    297;
+
+
+  const margin =
+    8;
+
+
+  const usableWidth =
+    pageWidth -
+    (margin * 2);
+
+
+  const imgWidth =
+    usableWidth;
+
+
+  const imgHeight =
+    canvas.height *
+    imgWidth /
+    canvas.width;
+
+
+  const pageCanvasHeight =
+    Math.floor(
+      canvas.width *
+      (
+        pageHeight -
+        margin * 2
+      ) /
+      imgWidth
+    );
+
+
+  let position = 0;
+
+  let pageIndex = 0;
+
+
+  while (
+    position <
+    canvas.height
+  ){
+
+    const sliceHeight =
+      Math.min(
+        pageCanvasHeight,
+        canvas.height -
+        position
+      );
+
+
+    const pageCanvas =
+      document.createElement(
+        "canvas"
+      );
+
+
+    pageCanvas.width =
+      canvas.width;
+
+
+    pageCanvas.height =
+      sliceHeight;
+
+
+    const ctx =
+      pageCanvas.getContext(
+        "2d"
+      );
+
+
+    ctx.fillStyle =
+      "#ffffff";
+
+
+    ctx.fillRect(
+      0,
+      0,
+      pageCanvas.width,
+      pageCanvas.height
+    );
+
+
+    ctx.drawImage(
+      canvas,
+
+      0,
+      position,
+
+      canvas.width,
+      sliceHeight,
+
+      0,
+      0,
+
+      canvas.width,
+      sliceHeight
+    );
+
+
+    const pageImage =
+      pageCanvas.toDataURL(
+        "image/jpeg",
+        0.92
+      );
+
+
+    const displayedHeight =
+      sliceHeight *
+      imgWidth /
+      canvas.width;
+
+
+    if (
+      pageIndex > 0
+    ){
+
+      pdf.addPage();
+
+    }
+
+
+    pdf.addImage(
+      pageImage,
+      "JPEG",
+      margin,
+      margin,
+      imgWidth,
+      displayedHeight
+    );
+
+
+    position +=
+      sliceHeight;
+
+
+    pageIndex++;
+
+  }
+
+
+  currentPdfBlob =
+    pdf.output(
+      "blob"
+    );
+
+
+  return currentPdfBlob;
+
+}
+
+
+// ================================================================
+// تحميل PDF
+// ================================================================
+
+async function downloadPDF(){
+
+  const button =
+    document.getElementById(
+      "downloadPdfButton"
+    );
+
+
+  try{
+
+    if (button){
+      button.disabled = true;
+    }
+
+
+    toast(
+      "جاري إنشاء ملف PDF..."
+    );
+
+
+    const blob =
+      await createPDF();
+
+
+    const url =
+      URL.createObjectURL(
+        blob
+      );
+
+
+    const link =
+      document.createElement(
+        "a"
+      );
+
+
+    link.href =
+      url;
+
+
+    link.download =
+      currentPdfFileName ||
+      "كشف.pdf";
+
+
+    document.body.appendChild(
+      link
+    );
+
+
+    link.click();
+
+
+    link.remove();
+
+
+    setTimeout(
+      function(){
+
+        URL.revokeObjectURL(
+          url
+        );
+
+      },
+      3000
+    );
+
+
+    toast(
+      "تم إنشاء ملف PDF"
+    );
+
+  }
+  catch(error){
+
+    toast(
+      error.message ||
+      "تعذر إنشاء PDF",
+      false
+    );
+
+  }
+  finally{
+
+    if (button){
+      button.disabled = false;
+    }
+
+  }
+
+}
+
+
+// ================================================================
+// مشاركة PDF
+// ================================================================
+
+async function sharePDF(){
+
+  const button =
+    document.getElementById(
+      "sharePdfButton"
+    );
+
+
+  try{
+
+    if (button){
+      button.disabled = true;
+    }
+
+
+    toast(
+      "جاري تجهيز ملف PDF للمشاركة..."
+    );
+
+
+    const blob =
+      await createPDF();
+
+
+    const file =
+      new File(
+        [
+          blob
+        ],
+        currentPdfFileName ||
+        "كشف.pdf",
+        {
+          type:
+            "application/pdf"
+        }
+      );
+
+
+    if (
+      navigator.share &&
+      navigator.canShare &&
+      navigator.canShare({
+        files:[file]
+      })
+    ){
+
+      await navigator.share({
+
+        title:
+          currentPdfFileName ||
+          "كشف PDF",
+
+        text:
+          "كشف البيانات",
+
+        files:[
+          file
+        ]
+
+      });
+
+
+      toast(
+        "تم فتح خيارات المشاركة"
+      );
+
+      return;
+
+    }
+
+
+    // ------------------------------------------------------------
+    // إذا لم يدعم الجهاز مشاركة الملفات
+    // ------------------------------------------------------------
+
+    const url =
+      URL.createObjectURL(
+        blob
+      );
+
+
+    const link =
+      document.createElement(
+        "a"
+      );
+
+
+    link.href =
+      url;
+
+
+    link.download =
+      currentPdfFileName ||
+      "كشف.pdf";
+
+
+    document.body.appendChild(
+      link
+    );
+
+
+    link.click();
+
+
+    link.remove();
+
+
+    setTimeout(
+      function(){
+
+        URL.revokeObjectURL(
+          url
+        );
+
+      },
+      3000
+    );
+
+
+    toast(
+      "المتصفح لا يدعم المشاركة المباشرة، تم تنزيل الملف"
+    );
+
+  }
+  catch(error){
+
+    if (
+      error &&
+      error.name ===
+      "AbortError"
+    ){
+
+      toast(
+        "تم إلغاء المشاركة"
+      );
+
+      return;
+
+    }
+
+
+    toast(
+      error.message ||
+      "تعذر مشاركة PDF",
+      false
+    );
+
+  }
+  finally{
+
+    if (button){
+      button.disabled = false;
+    }
+
+  }
+
+}
+
+
+// ================================================================
+// إغلاق PDF
+// ================================================================
+
+function closePdfModal(){
+
+  document.getElementById(
+    "pdfModal"
+  ).style.display =
+    "none";
+
+
+  currentPdfBlob =
+    null;
+
+}
+
+
+// ================================================================
+// تنظيف اسم الملف
+// ================================================================
+
+function cleanFileName(
+  name
+){
+
+  return String(
+    name || "كشف"
+  )
+  .replace(
+    /[\\/:*?"<>|]/g,
+    "-"
+  )
+  .trim();
+
+}
+
+
+// ================================================================
 // عرض خطأ
 // ================================================================
 
@@ -1913,7 +2838,5 @@ window.addEventListener(
   init
 );
 
-</script>
-
-</body>
+</script></body>
 </html>
