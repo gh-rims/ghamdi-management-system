@@ -1,924 +1,305 @@
-<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta
-name="viewport"
-content="width=device-width, initial-scale=1.0"
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>نظام إدارة الجداول</title>
 
-«»
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-<title>نظام إدارة الجداول</title><!-- مكتبات إنشاء PDF --><script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script><style>
-
-*{
-  box-sizing:border-box;
-}
-
-body{
-  margin:0;
-  font-family:
-    Arial,
-    Tahoma,
-    sans-serif;
-  background:#f5f6f8;
-  color:#222;
-}
-
-header{
-  background:#172033;
-  color:#fff;
-  padding:18px;
-  text-align:center;
-  font-size:22px;
-  font-weight:700;
-}
-
-.container{
-  max-width:1200px;
-  margin:auto;
-  padding:16px;
-}
-
-.card{
-  background:#fff;
-  border-radius:12px;
-  padding:16px;
-  margin-bottom:15px;
-  box-shadow:
-    0 2px 10px
-    rgba(0,0,0,.06);
-}
-
-.toolbar{
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
-  margin-bottom:14px;
-}
-
-button{
-  border:0;
-  border-radius:9px;
-  padding:11px 16px;
-  cursor:pointer;
-  font-size:15px;
-}
-
-button:disabled{
-  opacity:.6;
-  cursor:not-allowed;
-}
-
-.primary{
-  background:#172033;
-  color:#fff;
-}
-
-.success{
-  background:#16834b;
-  color:#fff;
-}
-
-.danger{
-  background:#c62828;
-  color:#fff;
-}
-
-.secondary{
-  background:#e5e7eb;
-  color:#222;
-}
-
-.pdf-button{
-  background:#7b2cbf;
-  color:#fff;
-}
-
-select,
-input{
-  width:100%;
-  padding:11px;
-  border:
-    1px solid #d5d8de;
-  border-radius:8px;
-  background:#fff;
-  font-size:15px;
-}
-
-.grid{
-  display:grid;
-  grid-template-columns:
-    repeat(
-      auto-fit,
-      minmax(220px,1fr)
-    );
-  gap:12px;
-}
-
-.field label{
-  display:block;
-  font-weight:700;
-  margin-bottom:6px;
-}
-
-.required{
-  color:#c62828;
-}
-
-.field small{
-  display:block;
-  margin-top:5px;
-  color:#777;
-}
-
-.table-title{
-  font-size:20px;
-  font-weight:700;
-  margin-bottom:12px;
-}
-
-.table-wrap{
-  overflow:auto;
-}
-
-.data-table{
-  width:100%;
-  border-collapse:collapse;
-  min-width:700px;
-}
-
-.data-table th,
-.data-table td{
-  border-bottom:
-    1px solid #eee;
-  padding:10px;
-  text-align:right;
-}
-
-.data-table th{
-  background:#f0f2f5;
-}
-
-.actions{
-  display:flex;
-  gap:6px;
-  flex-wrap:wrap;
-}
-
-.empty{
-  text-align:center;
-  padding:25px;
-  color:#777;
-}
-
-.loading{
-  text-align:center;
-  padding:25px;
-  color:#777;
-}
-
-.toast{
-  position:fixed;
-  bottom:20px;
-  right:20px;
-  z-index:99;
-  background:#222;
-  color:#fff;
-  padding:13px 17px;
-  border-radius:9px;
-  display:none;
-  max-width:90%;
-}
-
-.modal{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.55);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  padding:15px;
-  z-index:50;
-}
-
-.modal-box{
-  background:#fff;
-  width:
-    min(
-      700px,
-      100%
-    );
-  max-height:90vh;
-  overflow:auto;
-  border-radius:14px;
-  padding:18px;
-}
-
-.modal-head{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:15px;
-}
-
-.close{
-  background:#eee;
-  border-radius:50%;
-  width:36px;
-  height:36px;
-  padding:0;
-  font-size:20px;
-}
-
-/* =========================================================
-   نافذة PDF
-========================================================= */
-
-.pdf-modal-box{
-  background:#fff;
-  width:min(900px,100%);
-  max-height:94vh;
-  overflow:auto;
-  border-radius:14px;
-  padding:15px;
-}
-
-.pdf-actions{
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
-  margin-bottom:15px;
-}
-
-.pdf-actions button{
-  flex:1;
-  min-width:140px;
-}
-
-.pdf-preview-wrap{
-  background:#ddd;
-  padding:15px;
-  border-radius:10px;
-  overflow:auto;
-}
-
-#pdfPreview{
-  background:#fff;
-  width:794px;
-  min-height:1123px;
-  margin:auto;
-  padding:35px;
-  color:#111;
-  direction:rtl;
-  font-family:Arial,Tahoma,sans-serif;
-}
-
-.pdf-header{
-  text-align:center;
-  margin-bottom:25px;
-}
-
-.pdf-header h1{
-  margin:0 0 10px;
-  font-size:26px;
-}
-
-.pdf-header h2{
-  margin:0 0 10px;
-  font-size:20px;
-}
-
-.pdf-date{
-  font-size:13px;
-  color:#555;
-}
-
-.pdf-table{
-  width:100%;
-  border-collapse:collapse;
-  font-size:12px;
-}
-
-.pdf-table th,
-.pdf-table td{
-  border:1px solid #999;
-  padding:7px 5px;
-  text-align:right;
-  vertical-align:middle;
-}
-
-.pdf-table th{
-  background:#e9ecef;
-  font-weight:bold;
-}
-
-.pdf-footer{
-  margin-top:25px;
-  text-align:center;
-  font-size:11px;
-  color:#666;
-}
-
-.pdf-loading{
-  text-align:center;
-  padding:30px;
-  font-size:18px;
-}
-
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Tahoma,sans-serif;background:#f5f6f8;color:#222}
+header{background:#172033;color:#fff;padding:18px;text-align:center;font-size:22px;font-weight:700}
+.container{max-width:1200px;margin:auto;padding:16px}
+.card{background:#fff;border-radius:12px;padding:16px;margin-bottom:15px;box-shadow:0 2px 10px rgba(0,0,0,.06)}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+button{border:0;border-radius:9px;padding:11px 16px;cursor:pointer;font-size:15px}
+button:disabled{opacity:.55;cursor:not-allowed}
+.primary{background:#172033;color:#fff}
+.success{background:#16834b;color:#fff}
+.danger{background:#c62828;color:#fff}
+.secondary{background:#e5e7eb;color:#222}
+.pdf-button{background:#7b2cbf;color:#fff}
+select,input{width:100%;padding:11px;border:1px solid #d5d8de;border-radius:8px;background:#fff;font-size:15px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.field label{display:block;font-weight:700;margin-bottom:6px}
+.required{color:#c62828}
+.field small{display:block;margin-top:5px;color:#777}
+.table-title{font-size:20px;font-weight:700;margin-bottom:12px}
+.table-wrap{overflow:auto}
+.data-table{width:100%;border-collapse:collapse;min-width:700px}
+.data-table th,.data-table td{border-bottom:1px solid #eee;padding:10px;text-align:right}
+.data-table th{background:#f0f2f5}
+.actions{display:flex;gap:6px;flex-wrap:wrap}
+.empty,.loading{text-align:center;padding:25px;color:#777}
+.toast{position:fixed;bottom:20px;right:20px;z-index:99;background:#222;color:#fff;padding:13px 17px;border-radius:9px;display:none;max-width:90%}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:15px;z-index:50}
+.modal-box,.pdf-modal-box{background:#fff;width:min(900px,100%);max-height:94vh;overflow:auto;border-radius:14px;padding:16px}
+.modal-box{width:min(700px,100%)}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}
+.close{background:#eee;border-radius:50%;width:36px;height:36px;padding:0;font-size:20px}
+.image-preview{max-width:180px;max-height:180px;margin-top:8px;border-radius:8px;display:block}
+.pdf-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:15px}
+.pdf-actions button{flex:1;min-width:140px}
+.pdf-preview-wrap{background:#ddd;padding:15px;border-radius:10px;overflow:auto}
+#pdfPreview{background:#fff;width:794px;min-height:1123px;margin:auto;padding:35px;color:#111;direction:rtl;font-family:Arial,Tahoma,sans-serif}
+.pdf-header{text-align:center;margin-bottom:25px}
+.pdf-header h1{margin:0 0 10px;font-size:26px}
+.pdf-header h2{margin:0 0 10px;font-size:20px}
+.pdf-date{font-size:13px;color:#555}
+.pdf-table{width:100%;border-collapse:collapse;font-size:12px}
+.pdf-table th,.pdf-table td{border:1px solid #999;padding:7px 5px;text-align:right;vertical-align:middle}
+.pdf-table th{background:#e9ecef}
+.pdf-footer{margin-top:25px;text-align:center;font-size:11px;color:#666}
+.pdf-loading{text-align:center;padding:30px;font-size:18px}
 @media(max-width:600px){
-
-  header{
-    font-size:19px;
-  }
-
-  .container{
-    padding:10px;
-  }
-
-  .card{
-    padding:12px;
-  }
-
-  .toolbar button{
-    flex:1;
-  }
-
-  .pdf-modal-box{
-    padding:8px;
-  }
-
-  .pdf-preview-wrap{
-    padding:5px;
-  }
-
+ header{font-size:19px}
+ .container{padding:10px}
+ .card{padding:12px}
+ .pdf-modal-box{padding:8px}
+ .pdf-preview-wrap{padding:5px}
 }
+</style>
+</head>
 
-</style></head><body><header>
-  نظام إدارة الجداول
-</header><div class="container">  <div class="card"><div class="toolbar">
+<body>
 
-  <div
-    style="
-      flex:1;
-      min-width:220px;
-    "
-  >
+<header>نظام إدارة الجداول</header>
 
-    <select id="tableSelect">
+<div class="container">
 
-      <option value="">
-        جاري تحميل الجداول...
-      </option>
+  <div class="card">
+    <div class="toolbar">
+      <div style="flex:1;min-width:220px">
+        <select id="tableSelect" onchange="tableSelectionChanged()">
+          <option value="">جاري تحميل الجداول...</option>
+        </select>
+      </div>
 
-    </select>
-
+      <button class="success" onclick="openAdd()">＋ إضافة سجل</button>
+    </div>
   </div>
 
-
-  <button
-    class="primary"
-    onclick="loadSelectedTable()"
-  >
-    فتح الجدول
-  </button>
-
-
-  <button
-    class="success"
-    onclick="openAdd()"
-  >
-    ＋ إضافة سجل
-  </button>
+  <div id="content"></div>
 
 </div>
 
-  </div>  <div id="content"></div></div><!-- =========================================================
-     نافذة النموذج
-========================================================= --><div
-  id="modal"
-  class="modal"
->  <div class="modal-box"><div class="modal-head">
+<!-- نموذج السجل -->
+<div id="modal" class="modal">
+  <div class="modal-box">
 
-  <h3 id="modalTitle">
-    إضافة سجل
-  </h3>
+    <div class="modal-head">
+      <h3 id="modalTitle">إضافة سجل</h3>
+      <button class="close" onclick="closeModal()">×</button>
+    </div>
 
-  <button
-    class="close"
-    onclick="closeModal()"
-  >
-    ×
-  </button>
+    <div id="form"></div>
 
-</div>
-
-
-<div id="form"></div>
-
-
-<div
-  class="actions"
-  style="margin-top:15px"
->
-
-  <button
-    id="saveButton"
-    class="success"
-    onclick="saveRecord()"
-  >
-    حفظ
-  </button>
-
-  <button
-    class="secondary"
-    onclick="closeModal()"
-  >
-    إلغاء
-  </button>
-
-</div>
-
-  </div></div><!-- =========================================================
-     نافذة PDF
-========================================================= --><div
-  id="pdfModal"
-  class="modal"
->  <div class="pdf-modal-box"><div class="modal-head">
-
-  <h3>
-    📄 كشف PDF
-  </h3>
-
-  <button
-    class="close"
-    onclick="closePdfModal()"
-  >
-    ×
-  </button>
-
-</div>
-
-
-<div class="pdf-actions">
-
-  <button
-    id="downloadPdfButton"
-    class="pdf-button"
-    onclick="downloadPDF()"
-  >
-    📥 تحميل PDF
-  </button>
-
-
-  <button
-    id="sharePdfButton"
-    class="success"
-    onclick="sharePDF()"
-  >
-    📤 مشاركة PDF
-  </button>
-
-
-  <button
-    class="secondary"
-    onclick="closePdfModal()"
-  >
-    إغلاق
-  </button>
-
-</div>
-
-
-<div class="pdf-preview-wrap">
-
-  <div
-    id="pdfPreview"
-  >
-
-    <div class="pdf-loading">
-      جاري تجهيز الكشف...
+    <div class="actions" style="margin-top:15px">
+      <button id="saveButton" class="success" onclick="saveRecord()">حفظ</button>
+      <button class="secondary" onclick="closeModal()">إلغاء</button>
     </div>
 
   </div>
-
 </div>
 
-  </div></div><div
-  id="toast"
-  class="toast"
-></div><script>
+<!-- PDF -->
+<div id="pdfModal" class="modal">
+  <div class="pdf-modal-box">
 
+    <div class="modal-head">
+      <h3>📄 كشف PDF</h3>
+      <button class="close" onclick="closePdfModal()">×</button>
+    </div>
 
-// ================================================================
-// رابط Web App
-// ================================================================
+    <div class="pdf-actions">
+      <button id="downloadPdfButton" class="pdf-button" onclick="downloadPDF()" disabled>
+        📥 تحميل PDF
+      </button>
+
+      <button id="sharePdfButton" class="success" onclick="sharePDF()" disabled>
+        📤 مشاركة PDF
+      </button>
+
+      <button class="secondary" onclick="closePdfModal()">إغلاق</button>
+    </div>
+
+    <div class="pdf-preview-wrap">
+      <div id="pdfPreview">
+        <div class="pdf-loading">جاري تجهيز الكشف...</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+
+/* =========================================================
+   الإعدادات
+========================================================= */
 
 const API_URL =
 "https://script.google.com/macros/s/AKfycbw2FA_As7StLELc0xApapxVDYNa1dcYJT8dxQe06JBMp_fd8OsyLOq57KAECkG3MuxaGA/exec";
 
+let tables=[];
+let currentTable=null;
+let currentConfig=null;
+let editRow=null;
 
-// ================================================================
-// متغيرات النظام
-// ================================================================
+let currentPdfBlob=null;
+let currentPdfFileName="";
 
-let tables = [];
+/* =========================================================
+   أدوات عامة
+========================================================= */
 
-let currentTable = null;
+const $=id=>document.getElementById(id);
 
-let currentConfig = null;
-
-let editRow = null;
-
-let currentPdfData = null;
-
-let currentPdfBlob = null;
-
-let currentPdfFileName = "";
-
-
-// ================================================================
-// رسالة
-// ================================================================
-
-function toast(
-  message,
-  success = true
-){
-
-  const element =
-    document.getElementById(
-      "toast"
-    );
-
-  element.textContent =
-    message;
-
-  element.style.display =
-    "block";
-
-  element.style.background =
-    success
-      ? "#222"
-      : "#b71c1c";
-
-  setTimeout(
-    function(){
-
-      element.style.display =
-        "none";
-
-    },
-    3500
-  );
-
+function toast(message,success=true){
+  const e=$("toast");
+  e.textContent=message;
+  e.style.display="block";
+  e.style.background=success?"#222":"#b71c1c";
+  clearTimeout(e._timer);
+  e._timer=setTimeout(()=>e.style.display="none",3500);
 }
 
-
-// ================================================================
-// تحويل الأرقام العربية
-// ================================================================
-
-function arabicToEnglish(
-  value
-){
-
-  return String(
-    value ?? ""
-  )
-  .replace(
-    /[٠-٩]/g,
-    function(d){
-
-      return "٠١٢٣٤٥٦٧٨٩"
-        .indexOf(d);
-
-    }
-  )
-  .replace(
-    /٫/g,
-    "."
-  )
-  .replace(
-    /٬/g,
-    ","
-  );
-
+function esc(value){
+  return String(value??"")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
 }
 
-
-// ================================================================
-// GET
-// ================================================================
-
-async function get(
-  action,
-  params = {}
-){
-
-  const url =
-    new URL(API_URL);
-
-  url.searchParams.set(
-    "action",
-    action
-  );
-
-  Object.keys(params)
-    .forEach(
-      function(key){
-
-        url.searchParams.set(
-          key,
-          params[key]
-        );
-
-      }
-    );
-
-  const response =
-    await fetch(
-      url.toString(),
-      {
-        redirect:"follow"
-      }
-    );
-
-  if (!response.ok){
-
-    throw new Error(
-      "تعذر الاتصال بالخادم"
-    );
-
-  }
-
-
-  const json =
-    await response.json();
-
-
-  if (!json.success){
-
-    throw new Error(
-      json.error ||
-      "خطأ في الخادم"
-    );
-
-  }
-
-
-  return json.data;
-
+function arabicToEnglish(value){
+  return String(value??"")
+    .replace(/[٠-٩]/g,d=>"٠١٢٣٤٥٦٧٨٩".indexOf(d))
+    .replace(/٫/g,".")
+    .replace(/٬/g,",");
 }
 
-
-// ================================================================
-// POST
-// ================================================================
-
-async function post(
-  payload
-){
-
-  const response =
-    await fetch(
-      API_URL,
-      {
-        method:"POST",
-
-        headers:{
-          "Content-Type":
-            "text/plain;charset=utf-8"
-        },
-
-        body:
-          JSON.stringify(
-            payload
-          ),
-
-        redirect:"follow"
-      }
-    );
-
-
-  if (!response.ok){
-
-    throw new Error(
-      "تعذر الاتصال بالخادم"
-    );
-
-  }
-
-
-  const json =
-    await response.json();
-
-
-  if (!json.success){
-
-    throw new Error(
-      json.error ||
-      "خطأ في الخادم"
-    );
-
-  }
-
-
-  return json.data;
-
+function numericOnly(value){
+  return arabicToEnglish(value).replace(/\D/g,"");
 }
 
+/* =========================================================
+   الاتصال بالخادم
+========================================================= */
 
-// ================================================================
-// بدء النظام
-// ================================================================
+async function get(action,params={}){
+  const url=new URL(API_URL);
+  url.searchParams.set("action",action);
+
+  Object.entries(params).forEach(([k,v])=>{
+    url.searchParams.set(k,v);
+  });
+
+  const r=await fetch(url,{redirect:"follow"});
+  if(!r.ok) throw Error("تعذر الاتصال بالخادم");
+
+  const j=await r.json();
+  if(!j.success) throw Error(j.error||"خطأ في الخادم");
+
+  return j.data;
+}
+
+async function post(payload){
+  const r=await fetch(API_URL,{
+    method:"POST",
+    headers:{"Content-Type":"text/plain;charset=utf-8"},
+    body:JSON.stringify(payload),
+    redirect:"follow"
+  });
+
+  if(!r.ok) throw Error("تعذر الاتصال بالخادم");
+
+  const j=await r.json();
+  if(!j.success) throw Error(j.error||"خطأ في الخادم");
+
+  return j.data;
+}
+
+/* =========================================================
+   تشغيل النظام
+========================================================= */
 
 async function init(){
-
   try{
+    tables=await get("tables");
 
-    tables =
-      await get(
-        "tables"
-      );
+    $("tableSelect").innerHTML=
+      '<option value="">اختر الجدول</option>'+
+      tables.map(t=>`
+        <option value="${esc(t.Table_ID)}">
+          ${esc(t.Icon||"📋")} ${esc(t.Table_Title||t.Table_Name)}
+        </option>
+      `).join("");
 
-
-    const select =
-      document.getElementById(
-        "tableSelect"
-      );
-
-
-    select.innerHTML =
-      '<option value="">اختر الجدول</option>' +
-
-      tables
-        .map(
-          function(table){
-
-            return `
-              <option value="${esc(table.Table_ID)}">
-                ${esc(table.Icon || "📋")}
-                ${esc(
-                  table.Table_Title ||
-                  table.Table_Name
-                )}
-              </option>
-            `;
-
-          }
-        )
-        .join("");
-
-
-    if (
-      tables.length > 0
-    ){
-
-      select.value =
-        tables[0].Table_ID;
-
-      await loadSelectedTable();
-
-    }
-
+    $("content").innerHTML="";
+  }catch(e){
+    showError(e.message);
   }
-  catch(error){
-
-    showError(
-      error.message
-    );
-
-  }
-
 }
 
+/* =========================================================
+   اختيار الجدول
+========================================================= */
 
-// ================================================================
-// فتح الجدول
-// ================================================================
+async function tableSelectionChanged(){
+  const id=$("tableSelect").value;
 
-async function loadSelectedTable(){
+  currentTable=null;
+  currentConfig=null;
+  currentPdfBlob=null;
 
-  const id =
-    document.getElementById(
-      "tableSelect"
-    ).value;
-
-
-  if (!id){
-
-    toast(
-      "اختر جدولًا أولًا",
-      false
-    );
-
+  if(!id){
+    $("content").innerHTML="";
     return;
-
   }
 
+  $("content").innerHTML=
+    '<div class="card loading">جاري تحميل البيانات...</div>';
+
+  currentTable=tables.find(t=>String(t.Table_ID)===String(id));
 
   try{
-
-    currentTable =
-      tables.find(
-        function(table){
-
-          return String(
-            table.Table_ID
-          ) === String(id);
-
-        }
-      ) || null;
-
-
-    currentConfig =
-      await get(
-        "form",
-        {
-          tableId:id
-        }
-      );
-
-
+    currentConfig=await get("form",{tableId:id});
     await renderTable(id);
-
+  }catch(e){
+    showError(e.message);
   }
-  catch(error){
-
-    showError(
-      error.message
-    );
-
-  }
-
 }
 
+/* =========================================================
+   عرض الجدول
+========================================================= */
 
-// ================================================================
-// عرض الجدول
-// ================================================================
+async function renderTable(id){
+  const box=$("content");
 
-async function renderTable(
-  id
-){
-
-  const box =
-    document.getElementById(
-      "content"
-    );
-
-
-  box.innerHTML =
-    `
-      <div class="card loading">
-        جاري تحميل البيانات...
-      </div>
-    `;
-
+  box.innerHTML=
+    '<div class="card loading">جاري تحميل البيانات...</div>';
 
   try{
+    const data=await get("table",{tableId:id});
+    currentConfig={...currentConfig,...data};
 
-    const data =
-      await get(
-        "table",
-        {
-          tableId:id
-        }
-      );
+    const columns=visibleColumns(data.columns);
 
-
-    currentConfig =
-      {
-        ...currentConfig,
-        ...data
-      };
-
-
-    const columns =
-      data.columns.filter(
-        function(column){
-
-          return column.Visible !==
-            "مخفي";
-
-        }
-      );
-
-
-    let html = `
-
+    box.innerHTML=`
       <div class="card">
 
         <div class="table-title">
-
-          ${esc(
-            data.table.Icon ||
-            "📋"
-          )}
-
-          ${esc(
-            data.table.Table_Title ||
-            data.table.Table_Name
-          )}
-
+          ${esc(data.table.Icon||"📋")}
+          ${esc(data.table.Table_Title||data.table.Table_Name)}
         </div>
-
 
         <div class="toolbar">
 
@@ -928,512 +309,314 @@ async function renderTable(
             oninput="searchTable()"
           >
 
+          <button class="success" onclick="openAdd()">＋ إضافة</button>
 
-          <button
-            class="success"
-            onclick="openAdd()"
-          >
-            ＋ إضافة
-          </button>
-
-
-          <button
-            class="pdf-button"
-            onclick="openPDFReport()"
-          >
+          <button class="pdf-button" onclick="openPDFReport()">
             📄 كشف PDF
           </button>
 
         </div>
 
-
         <div class="table-wrap">
-
           <table class="data-table">
 
             <thead>
-
               <tr>
-
-                ${
-                  columns
-                    .map(
-                      function(column){
-
-                        return `
-                          <th>
-                            ${esc(
-                              column.Column_Name
-                            )}
-                          </th>
-                        `;
-
-                      }
-                    )
-                    .join("")
-                }
-
-                <th>
-                  إجراءات
-                </th>
-
+                ${columns.map(c=>`<th>${esc(c.Column_Name)}</th>`).join("")}
+                <th>إجراءات</th>
               </tr>
-
             </thead>
 
-
             <tbody id="tbody">
-
-              ${
-                rowsHtml(
-                  data.rows,
-                  columns
-                )
-              }
-
+              ${rowsHtml(data.rows,columns)}
             </tbody>
 
           </table>
-
         </div>
 
       </div>
-
     `;
-
-
-    box.innerHTML =
-      html;
-
+  }catch(e){
+    showError(e.message);
   }
-  catch(error){
-
-    showError(
-      error.message
-    );
-
-  }
-
 }
 
+function visibleColumns(columns=[]){
+  return columns.filter(c=>c.Visible!=="مخفي");
+}
 
-// ================================================================
-// الصفوف
-// ================================================================
+/* =========================================================
+   عرض الصفوف
+========================================================= */
 
-function rowsHtml(
-  rows,
-  columns
-){
+function getCellValue(row,column){
+  const name=column.Column_Name;
+  const key="C"+column.Column_No;
 
-  if (
-    !rows ||
-    !rows.length
-  ){
+  return row?.displayValues?.[name]
+      ?? row?.values?.[name]
+      ?? row?.displayValues?.[key]
+      ?? row?.values?.[key]
+      ?? "";
+}
 
+function rowsHtml(rows=[],columns=[]){
+  if(!rows.length){
     return `
       <tr>
-        <td
-          colspan="${columns.length + 1}"
-          class="empty"
-        >
+        <td colspan="${columns.length+1}" class="empty">
           لا توجد بيانات
         </td>
       </tr>
     `;
-
   }
 
+  return rows.map(row=>`
+    <tr>
+      ${columns.map(c=>`
+        <td>${esc(formatValue(getCellValue(row,c),c))}</td>
+      `).join("")}
 
-  return rows
-    .map(
-      function(row){
+      <td>
+        <div class="actions">
+          <button class="primary" onclick="openEdit(${row.rowNumber})">
+            تعديل
+          </button>
 
-        return `
-
-          <tr>
-
-            ${
-              columns
-                .map(
-                  function(column){
-
-                    return `
-                      <td>
-                        ${esc(
-                          formatValue(
-                            row.displayValues[
-                              column.Column_Name
-                            ],
-                            column
-                          )
-                        )}
-                      </td>
-                    `;
-
-                  }
-                )
-                .join("")
-            }
-
-
-            <td>
-
-              <div class="actions">
-
-                <button
-                  class="primary"
-                  onclick="openEdit(${row.rowNumber})"
-                >
-                  تعديل
-                </button>
-
-
-                <button
-                  class="danger"
-                  onclick="removeRecord(${row.rowNumber})"
-                >
-                  حذف
-                </button>
-
-              </div>
-
-            </td>
-
-          </tr>
-
-        `;
-
-      }
-    )
-    .join("");
-
+          <button class="danger" onclick="removeRecord(${row.rowNumber})">
+            حذف
+          </button>
+        </div>
+      </td>
+    </tr>
+  `).join("");
 }
 
-
-// ================================================================
-// البحث
-// ================================================================
+/* =========================================================
+   البحث
+========================================================= */
 
 async function searchTable(){
-
-  if (!currentTable){
-    return;
-  }
-
-
-  const input =
-    document.getElementById(
-      "search"
-    );
-
-
-  const query =
-    input
-      ? input.value
-      : "";
-
+  if(!currentTable)return;
 
   try{
+    const data=await get("search",{
+      tableId:currentTable.Table_ID,
+      q:$("search")?.value||""
+    });
 
-    const data =
-      await get(
-        "search",
-        {
-          tableId:
-            currentTable.Table_ID,
-
-          q:
-            query
-        }
-      );
-
-
-    const columns =
-      data.columns.filter(
-        function(column){
-
-          return column.Visible !==
-            "مخفي";
-
-        }
-      );
-
-
-    const body =
-      document.getElementById(
-        "tbody"
-      );
-
-
-    if (body){
-
-      body.innerHTML =
-        rowsHtml(
-          data.rows,
-          columns
-        );
-
-    }
-
+    $("tbody").innerHTML=
+      rowsHtml(data.rows,visibleColumns(data.columns));
+  }catch(e){
+    toast(e.message,false);
   }
-  catch(error){
-
-    toast(
-      error.message,
-      false
-    );
-
-  }
-
 }
 
+/* =========================================================
+   تنسيق التاريخ والوقت
+========================================================= */
 
-// ================================================================
-// تنسيق القيمة
-// ================================================================
+function formatValue(value,column){
+  if(value===null||value===undefined||value==="")return "";
 
-function formatValue(
-  value,
-  column
-){
+  const type=column?.Data_Type;
 
-  if (
-    value === null ||
-    value === undefined
-  ){
-
-    return "";
-
+  if(type==="تاريخ"){
+    const s=String(value);
+    const m=s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if(m)return `${m[3]}/${m[2]}/${m[1]}`;
   }
 
+  if(type==="وقت"){
+    const s=String(value);
+    const m=s.match(/(?:T|\s)(\d{1,2}):(\d{2})/);
+    if(m)return `${String(m[1]).padStart(2,"0")}:${m[2]}`;
+
+    const t=s.match(/^(\d{1,2}):(\d{2})/);
+    if(t)return `${String(t[1]).padStart(2,"0")}:${t[2]}`;
+  }
 
   return String(value);
-
 }
 
-
-// ================================================================
-// إضافة
-// ================================================================
+/* =========================================================
+   إضافة
+========================================================= */
 
 function openAdd(){
-
-  if (!currentTable){
-
-    toast(
-      "اختر جدولًا أولًا",
-      false
-    );
-
+  if(!currentTable){
+    toast("اختر جدولًا أولًا",false);
     return;
-
   }
 
-
-  editRow = null;
-
-
-  document.getElementById(
-    "modalTitle"
-  ).textContent =
-    "إضافة سجل";
-
-
+  editRow=null;
+  $("modalTitle").textContent="إضافة سجل";
   buildForm();
-
-
-  document.getElementById(
-    "modal"
-  ).style.display =
-    "flex";
-
+  $("modal").style.display="flex";
 }
 
+/* =========================================================
+   تعديل
+========================================================= */
 
-// ================================================================
-// تعديل
-// ================================================================
-
-async function openEdit(
-  rowNumber
-){
-
+async function openEdit(rowNumber){
   try{
+    editRow=rowNumber;
 
-    editRow =
-      rowNumber;
+    const record=await get("record",{
+      tableId:currentTable.Table_ID,
+      rowNumber
+    });
 
-
-    const record =
-      await get(
-        "record",
-        {
-          tableId:
-            currentTable.Table_ID,
-
-          rowNumber:
-            rowNumber
-        }
-      );
-
-
-    document.getElementById(
-      "modalTitle"
-    ).textContent =
-      "تعديل سجل";
-
-
-    buildForm(
-      record.data
-    );
-
-
-    document.getElementById(
-      "modal"
-    ).style.display =
-      "flex";
-
+    $("modalTitle").textContent="تعديل سجل";
+    buildForm(record.data||{});
+    $("modal").style.display="flex";
+  }catch(e){
+    toast(e.message,false);
   }
-  catch(error){
-
-    toast(
-      error.message,
-      false
-    );
-
-  }
-
 }
-
-
-// ================================================================
-// إغلاق النموذج
-// ================================================================
 
 function closeModal(){
-
-  document.getElementById(
-    "modal"
-  ).style.display =
-    "none";
-
-
-  document.getElementById(
-    "form"
-  ).innerHTML =
-    "";
-
+  $("modal").style.display="none";
+  $("form").innerHTML="";
 }
 
+/* =========================================================
+   بناء النموذج
+========================================================= */
 
-// ================================================================
-// بناء النموذج
-// ================================================================
+function getFields(){
+  return (
+    currentConfig?.fields||
+    currentConfig?.columns||
+    []
+  ).filter(c=>c.Visible!=="مخفي");
+}
 
-function buildForm(
-  values = {}
-){
+function buildForm(values={}){
+  const fields=getFields();
 
-  const fields =
-    (
-      currentConfig.fields ||
-      currentConfig.columns ||
-      []
-    )
-    .filter(
-      function(column){
-
-        return column.Visible !==
-          "مخفي";
-
-      }
-    );
-
-
-  document.getElementById(
-    "form"
-  ).innerHTML =
-
-    '<div class="grid">' +
-
-    fields
-      .map(
-        function(column){
-
-          return fieldHtml(
-            column,
-            values
-          );
-
-        }
-      )
-      .join("") +
-
+  $("form").innerHTML=
+    '<div class="grid">'+
+    fields.map(c=>fieldHtml(c,values)).join("")+
     '</div>';
 
+  bindFieldEvents();
 }
 
+/* =========================================================
+   الحقول
+========================================================= */
 
-// ================================================================
-// حقل النموذج
-// ================================================================
+function fieldHtml(column,values){
+  const name=column.Column_Name;
+  const type=column.Data_Type;
+  const required=column.Required==="إلزامي";
 
-function fieldHtml(
-  column,
-  values
-){
+  let value=values[name];
 
-  const name =
-    column.Column_Name;
-
-  const type =
-    column.Data_Type;
-
-  const required =
-    column.Required ===
-    "إلزامي";
-
-  const auto =
-    type ===
-    "رقم تسلسلي";
-
-
-  let value =
-    values[name];
-
-
-  if (
-    value === null ||
-    value === undefined
-  ){
-
-    value =
-      column.Default ??
-      column.Default_Value ??
-      "";
-
+  if(value===null||value===undefined){
+    value=column.Default??column.Default_Value??"";
   }
 
+  /* الرقم التسلسلي */
+  if(type==="رقم تسلسلي"){
+    return `
+      <div class="field">
+        <label>${esc(name)}</label>
+        <input disabled value="${esc(value)}">
+        <input type="hidden" data-name="${esc(name)}" value="${esc(value)}">
+      </div>
+    `;
+  }
 
-  if (
-    auto
-  ){
+  /* القائمة */
+  if(type==="قائمة منسدلة"){
+    const options=
+      currentConfig?.dropdownOptions?.[name]||[];
 
     return `
+      <div class="field">
+        <label>
+          ${esc(name)}
+          ${required?'<span class="required">*</span>':""}
+        </label>
 
+        <select data-name="${esc(name)}" ${required?"required":""}>
+          <option value="">اختر...</option>
+
+          ${options.map(o=>`
+            <option value="${esc(o)}"
+              ${String(o)===String(value)?"selected":""}>
+              ${esc(o)}
+            </option>
+          `).join("")}
+        </select>
+
+        ${
+          column.Allow_New_Option==="نعم"
+          ?`
+            <input
+              data-new-option="${esc(name)}"
+              style="margin-top:6px"
+              placeholder="أو اكتب خيارًا جديدًا"
+            >
+          `:""
+        }
+      </div>
+    `;
+  }
+
+  /* True / False */
+  if(type==="True / False"){
+    const v=String(value).toLowerCase();
+
+    return `
+      <div class="field">
+        <label>
+          ${esc(name)}
+          ${required?'<span class="required">*</span>':""}
+        </label>
+
+        <select data-name="${esc(name)}" ${required?"required":""}>
+          <option value="">اختر...</option>
+          <option value="true" ${v==="true"?"selected":""}>نعم</option>
+          <option value="false" ${v==="false"?"selected":""}>لا</option>
+        </select>
+      </div>
+    `;
+  }
+
+  /* صورة */
+  if(type==="صورة"){
+    return `
       <div class="field">
 
         <label>
           ${esc(name)}
+          ${required?'<span class="required">*</span>':""}
         </label>
 
+        <button
+          type="button"
+          class="secondary"
+          onclick="chooseImage('${esc(name)}')">
+          🖼️ إدراج صورة
+        </button>
 
         <input
-          disabled
-          value="${esc(value)}"
+          type="file"
+          id="image_${esc(name)}"
+          accept="image/*"
+          hidden
+          onchange="previewImage(this,'preview_${esc(name)}')"
         >
 
+        <img
+          id="preview_${esc(name)}"
+          class="image-preview"
+          ${value?`src="${esc(value)}"`:"style=\"display:none\""}
+        >
 
         <input
           type="hidden"
@@ -1442,1401 +625,650 @@ function fieldHtml(
         >
 
       </div>
-
     `;
-
   }
 
+  let inputType="text";
+  let extra="";
 
-  let input = "";
-
-
-  if (
-    type ===
-    "قائمة منسدلة"
+  if(
+    type==="رقم"||
+    type==="مبلغ مالي"||
+    type==="نسبة مئوية"
   ){
-
-    const options =
-      (
-        currentConfig
-          .dropdownOptions &&
-        currentConfig
-          .dropdownOptions[name]
-      ) || [];
-
-
-    input = `
-
-      <select
-        data-name="${esc(name)}"
-      >
-
-        <option value="">
-          اختر...
-        </option>
-
-
-        ${
-          options
-            .map(
-              function(option){
-
-                return `
-
-                  <option
-                    value="${esc(option)}"
-                    ${
-                      String(option) ===
-                      String(value)
-                        ? "selected"
-                        : ""
-                    }
-                  >
-                    ${esc(option)}
-                  </option>
-
-                `;
-
-              }
-            )
-            .join("")
-        }
-
-      </select>
-
-    `;
-
-
-    if (
-      column.Allow_New_Option ===
-      "نعم"
-    ){
-
-      input += `
-
-        <input
-          style="margin-top:6px"
-          data-new-option="${esc(name)}"
-          placeholder="أو اكتب خيارًا جديدًا"
-        >
-
-      `;
-
-    }
-
+    inputType="text";
+    extra='inputmode="numeric"';
   }
 
-
-  else if (
-    type ===
-    "True / False"
-  ){
-
-    input = `
-
-      <select
-        data-name="${esc(name)}"
-      >
-
-        <option value="">
-          اختر...
-        </option>
-
-
-        <option
-          value="true"
-          ${
-            value === true ||
-            String(value) === "true"
-              ? "selected"
-              : ""
-          }
-        >
-          نعم
-        </option>
-
-
-        <option
-          value="false"
-          ${
-            value === false ||
-            String(value) === "false"
-              ? "selected"
-              : ""
-          }
-        >
-          لا
-        </option>
-
-      </select>
-
-    `;
-
+  if(type==="رقم جوال"){
+    inputType="tel";
+    extra='inputmode="numeric" maxlength="10"';
   }
 
+  if(type==="تاريخ"){
+    inputType="date";
 
-  else {
-
-    let inputType =
-      "text";
-
-
-    if (
-      type === "رقم" ||
-      type === "مبلغ مالي" ||
-      type === "نسبة مئوية"
-    ){
-
-      inputType =
-        "number";
-
+    /* التاريخ الافتراضي عند الإضافة */
+    if(editRow===null&&!value){
+      value=today();
     }
+  }
 
+  if(type==="وقت"){
+    inputType="time";
+  }
 
-    if (
-      type === "تاريخ"
-    ){
+  if(type==="رابط"){
+    inputType="url";
+  }
 
-      inputType =
-        "date";
+  return `
+    <div class="field">
 
-    }
-
-
-    if (
-      type === "وقت"
-    ){
-
-      inputType =
-        "time";
-
-    }
-
-
-    if (
-      type === "رابط"
-    ){
-
-      inputType =
-        "url";
-
-    }
-
-
-    input = `
+      <label>
+        ${esc(name)}
+        ${required?'<span class="required">*</span>':""}
+      </label>
 
       <input
         type="${inputType}"
         data-name="${esc(name)}"
         value="${esc(value)}"
-        ${
-          required
-            ? "required"
-            : ""
-        }
+        ${extra}
+        ${required?"required":""}
       >
-
-    `;
-
-  }
-
-
-  return `
-
-    <div class="field">
-
-      <label>
-
-        ${esc(name)}
-
-        ${
-          required
-            ? '<span class="required">*</span>'
-            : ""
-        }
-
-      </label>
-
-
-      ${input}
-
 
       ${
         column.Condition_Message
-          ? `
-            <small>
-              ${esc(
-                column.Condition_Message
-              )}
-            </small>
-          `
-          : ""
+        ?`<small>${esc(column.Condition_Message)}</small>`
+        :""
       }
 
     </div>
-
   `;
-
 }
 
+/* =========================================================
+   أحداث الحقول
+========================================================= */
 
-// ================================================================
-// جمع بيانات النموذج
-// ================================================================
+function bindFieldEvents(){
+  document.querySelectorAll("#form input").forEach(input=>{
+    const name=input.dataset.name;
+    if(!name)return;
 
-function collectForm(){
+    const column=getFields().find(c=>c.Column_Name===name);
+    if(!column)return;
 
-  const data = {};
+    if(
+      column.Data_Type==="رقم"||
+      column.Data_Type==="مبلغ مالي"||
+      column.Data_Type==="نسبة مئوية"
+    ){
+      input.addEventListener("input",()=>{
+        input.value=numericOnly(input.value);
+      });
+    }
 
-
-  document
-    .querySelectorAll(
-      "#form [data-name]"
-    )
-    .forEach(
-      function(element){
-
-        const name =
-          element.getAttribute(
-            "data-name"
-          );
-
-
-        const column =
-          currentConfig.fields.find(
-            function(field){
-
-              return (
-                field.Column_Name ===
-                name
-              );
-
-            }
-          );
-
-
-        if (
-          column &&
-          column.Data_Type ===
-          "رقم تسلسلي"
-        ){
-
-          return;
-
-        }
-
-
-        if (
-          element.tagName ===
-          "SELECT"
-        ){
-
-          data[name] =
-            element.value;
-
-          return;
-
-        }
-
-
-        if (
-          element.type ===
-          "number"
-        ){
-
-          data[name] =
-            arabicToEnglish(
-              element.value
-            );
-
-          return;
-
-        }
-
-
-        data[name] =
-          element.value;
-
-      }
-    );
-
-
-  document
-    .querySelectorAll(
-      "#form [data-new-option]"
-    )
-    .forEach(
-      function(input){
-
-        const name =
-          input.getAttribute(
-            "data-new-option"
-          );
-
-
-        const value =
-          input.value.trim();
-
-
-        if (value){
-
-          data[name] =
-            value;
-
-        }
-
-      }
-    );
-
-
-  return data;
-
+    if(column.Data_Type==="رقم جوال"){
+      input.addEventListener("input",()=>{
+        input.value=numericOnly(input.value).slice(0,10);
+      });
+    }
+  });
 }
 
+/* =========================================================
+   الصور
+========================================================= */
 
-// ================================================================
-// حفظ
-// ================================================================
+function chooseImage(name){
+  const input=$("image_"+name);
+  if(input)input.click();
+}
 
-async function saveRecord(){
+function previewImage(input,id){
+  const img=$(id);
+  const file=input.files?.[0];
 
-  if (!currentTable){
+  if(!file){
+    img.style.display="none";
     return;
   }
 
-
-  const button =
-    document.getElementById(
-      "saveButton"
-    );
-
-
-  if (button){
-    button.disabled = true;
+  if(!file.type.startsWith("image/")){
+    toast("الملف المحدد ليس صورة",false);
+    input.value="";
+    return;
   }
 
+  const reader=new FileReader();
 
-  try{
+  reader.onload=e=>{
+    img.src=e.target.result;
+    img.style.display="block";
 
-    const data =
-      collectForm();
-
-
-    let payload;
-
-
-    if (
-      editRow === null
-    ){
-
-      payload = {
-
-        action:
-          "add",
-
-        tableId:
-          currentTable.Table_ID,
-
-        data:
-          data,
-
-        values:
-          data
-
-      };
-
-    }
-
-
-    else {
-
-      payload = {
-
-        action:
-          "update",
-
-        tableId:
-          currentTable.Table_ID,
-
-        rowNumber:
-          editRow,
-
-        data:
-          data,
-
-        values:
-          data
-
-      };
-
-    }
-
-
-    await post(
-      payload
+    const hidden=img.parentElement.querySelector(
+      `input[type="hidden"][data-name]`
     );
 
+    if(hidden)hidden.value="";
+  };
 
-    const wasEdit =
-      editRow !== null;
+  reader.readAsDataURL(file);
+}
 
+/* =========================================================
+   التاريخ والوقت
+========================================================= */
+
+function today(){
+  const d=new Date();
+  const y=d.getFullYear();
+  const m=String(d.getMonth()+1).padStart(2,"0");
+  const day=String(d.getDate()).padStart(2,"0");
+  return `${y}-${m}-${day}`;
+}
+
+function currentTime(){
+  const d=new Date();
+  return `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+}
+
+/* =========================================================
+   جمع النموذج والتحقق
+========================================================= */
+
+function collectForm(){
+  const data={};
+
+  for(const element of document.querySelectorAll("#form [data-name]")){
+    const name=element.dataset.name;
+    const column=getFields().find(c=>c.Column_Name===name);
+
+    if(!column||column.Data_Type==="رقم تسلسلي")continue;
+
+    let value=element.value.trim();
+
+    if(column.Data_Type==="رقم"||
+       column.Data_Type==="مبلغ مالي"||
+       column.Data_Type==="نسبة مئوية"){
+      value=numericOnly(value);
+    }
+
+    if(column.Data_Type==="رقم جوال"){
+      value=numericOnly(value);
+
+      if(value && !/^05\d{8}$/.test(value)){
+        throw Error(`رقم الجوال في حقل "${name}" يجب أن يبدأ بـ 05 ويتكون من 10 أرقام`);
+      }
+    }
+
+    if(column.Required==="إلزامي"&&!value){
+      throw Error(`الرجاء إدخال ${name}`);
+    }
+
+    if(column.Data_Type==="وقت"&&!value){
+      value=currentTime();
+    }
+
+    if(!checkCondition(value,column)){
+      throw Error(
+        column.Condition_Message||
+        `القيمة المدخلة في "${name}" غير صحيحة`
+      );
+    }
+
+    data[name]=value;
+  }
+
+  /* الخيارات الجديدة */
+  document.querySelectorAll("#form [data-new-option]").forEach(input=>{
+    const name=input.dataset.newOption;
+    const value=input.value.trim();
+
+    if(value)data[name]=value;
+  });
+
+  return data;
+}
+
+/* =========================================================
+   الشروط
+========================================================= */
+
+function checkCondition(value,column){
+  const condition=String(column.Input_Condition||"").trim();
+
+  if(!condition||value==="")return true;
+
+  const n=Number(arabicToEnglish(value));
+
+  if(condition==="رقم جوال")
+    return /^05\d{8}$/.test(numericOnly(value));
+
+  if(condition==="رقم موجب")
+    return !isNaN(n)&&n>0;
+
+  if(condition==="0-100")
+    return !isNaN(n)&&n>=0&&n<=100;
+
+  let m;
+
+  if((m=condition.match(/^(min|max):\s*(-?\d+(?:\.\d+)?)$/))){
+    return m[1]==="min"?n>=Number(m[2]):n<=Number(m[2]);
+  }
+
+  if((m=condition.match(/^(<=|>=|==|=|!=|<|>)\s*(-?\d+(?:\.\d+)?)$/))){
+    const op=m[1],x=Number(m[2]);
+
+    return op==="="?n===x:
+           op==="=="?n===x:
+           op==="!="?n!==x:
+           op==="<"?n<x:
+           op===">"?n>x:
+           op==="<="?n<=x:
+           op===">="?n>=x:false;
+  }
+
+  return true;
+}
+
+/* =========================================================
+   الحفظ
+========================================================= */
+
+async function saveRecord(){
+  if(!currentTable)return;
+
+  const button=$("saveButton");
+
+  try{
+    button.disabled=true;
+
+    const data=collectForm();
+
+    const payload=editRow===null
+      ?{
+        action:"add",
+        tableId:currentTable.Table_ID,
+        data,
+        values:data
+      }
+      :{
+        action:"update",
+        tableId:currentTable.Table_ID,
+        rowNumber:editRow,
+        data,
+        values:data
+      };
+
+    await post(payload);
+
+    const wasEdit=editRow!==null;
 
     closeModal();
 
-
     toast(
       wasEdit
-        ? "تم تعديل السجل بنجاح"
-        : "تم حفظ السجل بنجاح"
+        ?"تم تعديل السجل بنجاح"
+        :"تم حفظ السجل بنجاح"
     );
 
+    await renderTable(currentTable.Table_ID);
 
-    await renderTable(
-      currentTable.Table_ID
-    );
-
+  }catch(e){
+    toast(e.message||"خطأ في الخادم",false);
+  }finally{
+    button.disabled=false;
   }
-  catch(error){
-
-    toast(
-      error.message ||
-      "خطأ في الخادم",
-      false
-    );
-
-  }
-  finally{
-
-    if (button){
-      button.disabled = false;
-    }
-
-  }
-
 }
 
+/* =========================================================
+   حذف
+========================================================= */
 
-// ================================================================
-// حذف
-// ================================================================
-
-async function removeRecord(
-  rowNumber
-){
-
-  if (
-    !confirm(
-      "هل أنت متأكد من حذف هذا السجل؟"
-    )
-  ){
-
-    return;
-  }
-
+async function removeRecord(rowNumber){
+  if(!confirm("هل أنت متأكد من حذف هذا السجل؟"))return;
 
   try{
-
     await post({
-
-      action:
-        "delete",
-
-      tableId:
-        currentTable.Table_ID,
-
-      rowNumber:
-        rowNumber
-
+      action:"delete",
+      tableId:currentTable.Table_ID,
+      rowNumber
     });
 
+    toast("تم حذف السجل بنجاح");
+    await renderTable(currentTable.Table_ID);
 
-    toast(
-      "تم حذف السجل بنجاح"
-    );
-
-
-    await renderTable(
-      currentTable.Table_ID
-    );
-
+  }catch(e){
+    toast(e.message||"خطأ في الخادم",false);
   }
-  catch(error){
-
-    toast(
-      error.message ||
-      "خطأ في الخادم",
-      false
-    );
-
-  }
-
 }
 
-
-// ================================================================
-// ================================================================
-//                    نظام كشف PDF
-// ================================================================
-// ================================================================
-
-
-// ================================================================
-// فتح كشف PDF
-// ================================================================
+/* =========================================================
+   PDF
+========================================================= */
 
 async function openPDFReport(){
-
-  if (!currentTable){
-
-    toast(
-      "اختر جدولًا أولًا",
-      false
-    );
-
+  if(!currentTable){
+    toast("اختر جدولًا أولًا",false);
     return;
-
   }
 
+  const modal=$("pdfModal");
+  const preview=$("pdfPreview");
+  const download=$("downloadPdfButton");
+  const share=$("sharePdfButton");
 
-  const modal =
-    document.getElementById(
-      "pdfModal"
-    );
+  modal.style.display="flex";
 
+  preview.innerHTML=
+    '<div class="pdf-loading">جاري تحميل بيانات الكشف...</div>';
 
-  const preview =
-    document.getElementById(
-      "pdfPreview"
-    );
-
-
-  modal.style.display =
-    "flex";
-
-
-  preview.innerHTML =
-    `
-      <div class="pdf-loading">
-        جاري تحميل بيانات الكشف...
-      </div>
-    `;
-
-
-  currentPdfBlob = null;
-
+  download.disabled=true;
+  share.disabled=true;
+  currentPdfBlob=null;
 
   try{
+    const data=await get("table",{
+      tableId:currentTable.Table_ID
+    });
 
-    const data =
-      await get(
-        "table",
-        {
-          tableId:
-            currentTable.Table_ID
-        }
-      );
+    const columns=visibleColumns(data.columns);
 
-
-    const columns =
-      data.columns.filter(
-        function(column){
-
-          return column.Visible !==
-            "مخفي";
-
-        }
-      );
-
-
-    if (
-      !data.rows ||
-      data.rows.length === 0
-    ){
-
-      preview.innerHTML =
-        `
-          <div class="pdf-loading">
-            لا توجد بيانات لإنشاء الكشف.
-          </div>
-        `;
-
+    if(!data.rows?.length){
+      preview.innerHTML=
+        '<div class="pdf-loading">لا توجد بيانات لإنشاء الكشف.</div>';
       return;
-
     }
 
-
-    const title =
-      data.table.Table_Title ||
-      data.table.Table_Name ||
+    const title=
+      data.table.Table_Title||
+      data.table.Table_Name||
       "كشف";
 
-
-    const date =
-      new Date();
-
-
-    const dateText =
-      date.toLocaleDateString(
-        "ar-SA",
-        {
-          year:"numeric",
-          month:"long",
-          day:"numeric"
-        }
-      );
-
-
-    currentPdfFileName =
-      cleanFileName(
-        title +
-        " - " +
-        dateText
-      ) +
-      ".pdf";
-
-
-    let rows = "";
-
-
-    data.rows.forEach(
-      function(row){
-
-        rows += "<tr>";
-
-
-        columns.forEach(
-          function(column){
-
-            let value =
-              row.displayValues[
-                column.Column_Name
-              ];
-
-
-            if (
-              value === undefined ||
-              value === null
-            ){
-
-              value = "";
-
-            }
-
-
-            rows += `
-              <td>
-                ${esc(
-                  formatValue(
-                    value,
-                    column
-                  )
-                )}
-              </td>
-            `;
-
-          }
-        );
-
-
-        rows += "</tr>";
-
+    const dateText=new Date().toLocaleDateString(
+      "ar-SA",
+      {
+        year:"numeric",
+        month:"long",
+        day:"numeric"
       }
     );
 
+    currentPdfFileName=
+      cleanFileName(`${title} - ${dateText}`)+".pdf";
 
-    preview.innerHTML = `
-
+    preview.innerHTML=`
       <div class="pdf-header">
-
-        <h1>
-          ${esc(title)}
-        </h1>
-
-        <h2>
-          كشف البيانات
-        </h2>
-
+        <h1>${esc(title)}</h1>
+        <h2>كشف البيانات</h2>
         <div class="pdf-date">
           تاريخ الإصدار: ${esc(dateText)}
         </div>
-
       </div>
-
 
       <table class="pdf-table">
-
         <thead>
-
           <tr>
-
-            ${
-              columns
-                .map(
-                  function(column){
-
-                    return `
-                      <th>
-                        ${esc(
-                          column.Column_Name
-                        )}
-                      </th>
-                    `;
-
-                  }
-                )
-                .join("")
-            }
-
+            ${columns.map(c=>`<th>${esc(c.Column_Name)}</th>`).join("")}
           </tr>
-
         </thead>
 
-
         <tbody>
-
-          ${rows}
-
+          ${data.rows.map(row=>`
+            <tr>
+              ${columns.map(c=>`
+                <td>
+                  ${esc(formatValue(getCellValue(row,c),c))}
+                </td>
+              `).join("")}
+            </tr>
+          `).join("")}
         </tbody>
-
       </table>
 
-
       <div class="pdf-footer">
-
-        عدد السجلات:
-        ${data.rows.length}
-
+        عدد السجلات: ${data.rows.length}
       </div>
-
     `;
 
+    /* تجهيز PDF مسبقًا حتى تعمل المشاركة */
+    toast("جاري تجهيز ملف PDF...");
 
-    toast(
-      "تم تجهيز الكشف"
-    );
+    await createPDF();
 
+    download.disabled=false;
+    share.disabled=false;
+
+    toast("تم تجهيز الكشف");
+
+  }catch(e){
+    preview.innerHTML=`
+      <div class="pdf-loading">
+        حدث خطأ في تجهيز الكشف:
+        <br><br>
+        ${esc(e.message)}
+      </div>
+    `;
+
+    toast(e.message,false);
   }
-  catch(error){
-
-    preview.innerHTML =
-      `
-        <div class="pdf-loading">
-          حدث خطأ في تجهيز الكشف:
-          <br><br>
-          ${esc(error.message)}
-        </div>
-      `;
-
-
-    toast(
-      error.message,
-      false
-    );
-
-  }
-
 }
 
-
-// ================================================================
-// إنشاء PDF
-// ================================================================
+/* =========================================================
+   إنشاء PDF
+========================================================= */
 
 async function createPDF(){
+  if(!window.html2canvas)
+    throw Error("تعذر تحميل مكتبة إنشاء PDF");
 
-  if (!window.html2canvas){
+  if(!window.jspdf?.jsPDF)
+    throw Error("تعذر تحميل محرك PDF");
 
-    throw new Error(
-      "تعذر تحميل مكتبة إنشاء PDF"
+  const canvas=await html2canvas($("pdfPreview"),{
+    scale:2,
+    useCORS:true,
+    backgroundColor:"#fff",
+    logging:false
+  });
+
+  const {jsPDF}=window.jspdf;
+
+  const pdf=new jsPDF({
+    orientation:"portrait",
+    unit:"mm",
+    format:"a4",
+    compress:true
+  });
+
+  const pageWidth=210;
+  const pageHeight=297;
+  const margin=8;
+  const width=pageWidth-margin*2;
+
+  const height=canvas.height*width/canvas.width;
+
+  const sliceHeight=Math.floor(
+    canvas.width*(pageHeight-margin*2)/width
+  );
+
+  let position=0;
+  let page=0;
+
+  while(position<canvas.height){
+    const slice=Math.min(
+      sliceHeight,
+      canvas.height-position
     );
 
-  }
+    const pc=document.createElement("canvas");
 
+    pc.width=canvas.width;
+    pc.height=slice;
 
-  if (
-    !window.jspdf ||
-    !window.jspdf.jsPDF
-  ){
+    const ctx=pc.getContext("2d");
 
-    throw new Error(
-      "تعذر تحميل محرك PDF"
-    );
-
-  }
-
-
-  const element =
-    document.getElementById(
-      "pdfPreview"
-    );
-
-
-  if (!element){
-
-    throw new Error(
-      "لم يتم العثور على محتوى الكشف"
-    );
-
-  }
-
-
-  const canvas =
-    await html2canvas(
-      element,
-      {
-        scale:2,
-        useCORS:true,
-        backgroundColor:"#ffffff",
-        logging:false
-      }
-    );
-
-
-  const {
-    jsPDF
-  } =
-    window.jspdf;
-
-
-  const pdf =
-    new jsPDF(
-      {
-        orientation:"portrait",
-        unit:"mm",
-        format:"a4",
-        compress:true
-      }
-    );
-
-
-  const pageWidth =
-    210;
-
-
-  const pageHeight =
-    297;
-
-
-  const margin =
-    8;
-
-
-  const usableWidth =
-    pageWidth -
-    (margin * 2);
-
-
-  const imgWidth =
-    usableWidth;
-
-
-  const imgHeight =
-    canvas.height *
-    imgWidth /
-    canvas.width;
-
-
-  const pageCanvasHeight =
-    Math.floor(
-      canvas.width *
-      (
-        pageHeight -
-        margin * 2
-      ) /
-      imgWidth
-    );
-
-
-  let position = 0;
-
-  let pageIndex = 0;
-
-
-  while (
-    position <
-    canvas.height
-  ){
-
-    const sliceHeight =
-      Math.min(
-        pageCanvasHeight,
-        canvas.height -
-        position
-      );
-
-
-    const pageCanvas =
-      document.createElement(
-        "canvas"
-      );
-
-
-    pageCanvas.width =
-      canvas.width;
-
-
-    pageCanvas.height =
-      sliceHeight;
-
-
-    const ctx =
-      pageCanvas.getContext(
-        "2d"
-      );
-
-
-    ctx.fillStyle =
-      "#ffffff";
-
-
-    ctx.fillRect(
-      0,
-      0,
-      pageCanvas.width,
-      pageCanvas.height
-    );
-
+    ctx.fillStyle="#fff";
+    ctx.fillRect(0,0,pc.width,pc.height);
 
     ctx.drawImage(
       canvas,
-
-      0,
-      position,
-
-      canvas.width,
-      sliceHeight,
-
-      0,
-      0,
-
-      canvas.width,
-      sliceHeight
+      0,position,
+      canvas.width,slice,
+      0,0,
+      canvas.width,slice
     );
 
-
-    const pageImage =
-      pageCanvas.toDataURL(
-        "image/jpeg",
-        0.92
-      );
-
-
-    const displayedHeight =
-      sliceHeight *
-      imgWidth /
-      canvas.width;
-
-
-    if (
-      pageIndex > 0
-    ){
-
-      pdf.addPage();
-
-    }
-
+    if(page>0)pdf.addPage();
 
     pdf.addImage(
-      pageImage,
+      pc.toDataURL("image/jpeg",.92),
       "JPEG",
       margin,
       margin,
-      imgWidth,
-      displayedHeight
+      width,
+      slice*width/canvas.width
     );
 
-
-    position +=
-      sliceHeight;
-
-
-    pageIndex++;
-
+    position+=slice;
+    page++;
   }
 
-
-  currentPdfBlob =
-    pdf.output(
-      "blob"
-    );
-
-
+  currentPdfBlob=pdf.output("blob");
   return currentPdfBlob;
-
 }
 
-
-// ================================================================
-// تحميل PDF
-// ================================================================
+/* =========================================================
+   تحميل PDF
+========================================================= */
 
 async function downloadPDF(){
-
-  const button =
-    document.getElementById(
-      "downloadPdfButton"
-    );
-
-
   try{
-
-    if (button){
-      button.disabled = true;
-    }
-
-
-    toast(
-      "جاري إنشاء ملف PDF..."
-    );
-
-
-    const blob =
+    if(!currentPdfBlob)
       await createPDF();
 
+    const url=URL.createObjectURL(currentPdfBlob);
+    const link=document.createElement("a");
 
-    const url =
-      URL.createObjectURL(
-        blob
-      );
+    link.href=url;
+    link.download=currentPdfFileName||"كشف.pdf";
 
-
-    const link =
-      document.createElement(
-        "a"
-      );
-
-
-    link.href =
-      url;
-
-
-    link.download =
-      currentPdfFileName ||
-      "كشف.pdf";
-
-
-    document.body.appendChild(
-      link
-    );
-
-
+    document.body.appendChild(link);
     link.click();
-
-
     link.remove();
 
+    setTimeout(()=>URL.revokeObjectURL(url),3000);
 
-    setTimeout(
-      function(){
+    toast("تم إنشاء ملف PDF");
 
-        URL.revokeObjectURL(
-          url
-        );
-
-      },
-      3000
-    );
-
-
-    toast(
-      "تم إنشاء ملف PDF"
-    );
-
+  }catch(e){
+    toast(e.message||"تعذر إنشاء PDF",false);
   }
-  catch(error){
-
-    toast(
-      error.message ||
-      "تعذر إنشاء PDF",
-      false
-    );
-
-  }
-  finally{
-
-    if (button){
-      button.disabled = false;
-    }
-
-  }
-
 }
 
-
-// ================================================================
-// مشاركة PDF
-// ================================================================
+/* =========================================================
+   مشاركة PDF
+========================================================= */
 
 async function sharePDF(){
-
-  const button =
-    document.getElementById(
-      "sharePdfButton"
-    );
-
+  const button=$("sharePdfButton");
 
   try{
+    if(!currentPdfBlob)
+      throw Error("ملف PDF غير جاهز، أغلق الكشف وافتحه مرة أخرى");
 
-    if (button){
-      button.disabled = true;
-    }
-
-
-    toast(
-      "جاري تجهيز ملف PDF للمشاركة..."
+    const file=new File(
+      [currentPdfBlob],
+      currentPdfFileName||"كشف.pdf",
+      {type:"application/pdf"}
     );
 
+    /*
+      مهم:
+      لا يتم إنشاء PDF هنا.
+      الملف مجهز مسبقًا عند فتح نافذة PDF.
+      لذلك navigator.share يتم استدعاؤه مباشرة من ضغطة المستخدم.
+    */
 
-    const blob =
-      await createPDF();
-
-
-    const file =
-      new File(
-        [
-          blob
-        ],
-        currentPdfFileName ||
-        "كشف.pdf",
-        {
-          type:
-            "application/pdf"
-        }
-      );
-
-
-    if (
-      navigator.share &&
-      navigator.canShare &&
-      navigator.canShare({
-        files:[file]
-      })
+    if(
+      navigator.share&&
+      navigator.canShare?.({files:[file]})
     ){
-
       await navigator.share({
-
-        title:
-          currentPdfFileName ||
-          "كشف PDF",
-
-        text:
-          "كشف البيانات",
-
-        files:[
-          file
-        ]
-
+        title:currentPdfFileName||"كشف PDF",
+        text:"كشف البيانات",
+        files:[file]
       });
 
-
-      toast(
-        "تم فتح خيارات المشاركة"
-      );
-
+      toast("تم فتح خيارات المشاركة");
       return;
-
     }
 
-
-    // ------------------------------------------------------------
-    // إذا لم يدعم الجهاز مشاركة الملفات
-    // ------------------------------------------------------------
-
-    const url =
-      URL.createObjectURL(
-        blob
-      );
-
-
-    const link =
-      document.createElement(
-        "a"
-      );
-
-
-    link.href =
-      url;
-
-
-    link.download =
-      currentPdfFileName ||
-      "كشف.pdf";
-
-
-    document.body.appendChild(
-      link
-    );
-
-
-    link.click();
-
-
-    link.remove();
-
-
-    setTimeout(
-      function(){
-
-        URL.revokeObjectURL(
-          url
-        );
-
-      },
-      3000
-    );
-
+    /* بديل إذا كان المتصفح لا يدعم مشاركة الملفات */
+    await downloadPDF();
 
     toast(
-      "المتصفح لا يدعم المشاركة المباشرة، تم تنزيل الملف"
+      "المتصفح لا يدعم مشاركة الملفات مباشرة، تم تنزيل ملف PDF"
     );
 
-  }
-  catch(error){
-
-    if (
-      error &&
-      error.name ===
-      "AbortError"
-    ){
-
-      toast(
-        "تم إلغاء المشاركة"
-      );
-
+  }catch(e){
+    if(e?.name==="AbortError"){
+      toast("تم إلغاء المشاركة");
       return;
-
     }
 
-
     toast(
-      error.message ||
-      "تعذر مشاركة PDF",
+      e?.message||"تعذر مشاركة PDF",
       false
     );
-
+  }finally{
+    button.disabled=false;
   }
-  finally{
-
-    if (button){
-      button.disabled = false;
-    }
-
-  }
-
 }
 
-
-// ================================================================
-// إغلاق PDF
-// ================================================================
+/* =========================================================
+   إغلاق PDF
+========================================================= */
 
 function closePdfModal(){
-
-  document.getElementById(
-    "pdfModal"
-  ).style.display =
-    "none";
-
-
-  currentPdfBlob =
-    null;
-
+  $("pdfModal").style.display="none";
+  currentPdfBlob=null;
 }
 
+/* =========================================================
+   اسم الملف
+========================================================= */
 
-// ================================================================
-// تنظيف اسم الملف
-// ================================================================
-
-function cleanFileName(
-  name
-){
-
-  return String(
-    name || "كشف"
-  )
-  .replace(
-    /[\\/:*?"<>|]/g,
-    "-"
-  )
-  .trim();
-
+function cleanFileName(name){
+  return String(name||"كشف")
+    .replace(/[\\/:*?"<>|]/g,"-")
+    .trim();
 }
 
+/* =========================================================
+   الخطأ
+========================================================= */
 
-// ================================================================
-// عرض خطأ
-// ================================================================
-
-function showError(
-  message
-){
-
-  document.getElementById(
-    "content"
-  ).innerHTML = `
-
+function showError(message){
+  $("content").innerHTML=`
     <div class="card empty">
-
       حدث خطأ:
-
       <br><br>
-
       ${esc(message)}
-
     </div>
-
   `;
-
 }
 
+/* =========================================================
+   تشغيل
+========================================================= */
 
-// ================================================================
-// حماية HTML
-// ================================================================
+window.addEventListener("load",init);
 
-function esc(value){
+</script>
 
-  return String(
-    value ?? ""
-  )
-
-  .replace(
-    /&/g,
-    "&amp;"
-  )
-
-  .replace(
-    /</g,
-    "&lt;"
-  )
-
-  .replace(
-    />/g,
-    "&gt;"
-  )
-
-  .replace(
-    /"/g,
-    "&quot;"
-  )
-
-  .replace(
-    /'/g,
-    "&#039;"
-  );
-
-}
-
-
-// ================================================================
-// تشغيل النظام
-// ================================================================
-
-window.addEventListener(
-  "load",
-  init
-);
-
-</script></body>
+</body>
 </html>
