@@ -54,6 +54,7 @@ select,input{width:100%;padding:11px;border:1px solid #d5d8de;border-radius:8px;
 .pdf-table th{background:#e9ecef}
 .pdf-footer{margin-top:25px;text-align:center;font-size:11px;color:#666}
 .pdf-loading{text-align:center;padding:30px;font-size:18px}
+.dropdown-loading{color:#777;font-size:13px;margin-top:6px}
 @media(max-width:600px){
  header{font-size:19px}
  .container{padding:10px}
@@ -115,15 +116,25 @@ select,input{width:100%;padding:11px;border:1px solid #d5d8de;border-radius:8px;
     </div>
 
     <div class="pdf-actions">
-      <button id="downloadPdfButton" class="pdf-button" onclick="downloadPDF()" disabled>
+
+      <button id="downloadPdfButton"
+              class="pdf-button"
+              onclick="downloadPDF()"
+              disabled>
         📥 تحميل PDF
       </button>
 
-      <button id="sharePdfButton" class="success" onclick="sharePDF()" disabled>
+      <button id="sharePdfButton"
+              class="success"
+              onclick="sharePDF(event)"
+              disabled>
         📤 مشاركة PDF
       </button>
 
-      <button class="secondary" onclick="closePdfModal()">إغلاق</button>
+      <button class="secondary" onclick="closePdfModal()">
+        إغلاق
+      </button>
+
     </div>
 
     <div class="pdf-preview-wrap">
@@ -162,11 +173,16 @@ const $=id=>document.getElementById(id);
 
 function toast(message,success=true){
   const e=$("toast");
+
   e.textContent=message;
   e.style.display="block";
   e.style.background=success?"#222":"#b71c1c";
+
   clearTimeout(e._timer);
-  e._timer=setTimeout(()=>e.style.display="none",3500);
+
+  e._timer=setTimeout(()=>{
+    e.style.display="none";
+  },3500);
 }
 
 function esc(value){
@@ -195,33 +211,46 @@ function numericOnly(value){
 
 async function get(action,params={}){
   const url=new URL(API_URL);
+
   url.searchParams.set("action",action);
 
   Object.entries(params).forEach(([k,v])=>{
     url.searchParams.set(k,v);
   });
 
-  const r=await fetch(url,{redirect:"follow"});
-  if(!r.ok) throw Error("تعذر الاتصال بالخادم");
+  const r=await fetch(url,{
+    redirect:"follow"
+  });
+
+  if(!r.ok)
+    throw Error("تعذر الاتصال بالخادم");
 
   const j=await r.json();
-  if(!j.success) throw Error(j.error||"خطأ في الخادم");
+
+  if(!j.success)
+    throw Error(j.error||"خطأ في الخادم");
 
   return j.data;
 }
 
 async function post(payload){
+
   const r=await fetch(API_URL,{
     method:"POST",
-    headers:{"Content-Type":"text/plain;charset=utf-8"},
+    headers:{
+      "Content-Type":"text/plain;charset=utf-8"
+    },
     body:JSON.stringify(payload),
     redirect:"follow"
   });
 
-  if(!r.ok) throw Error("تعذر الاتصال بالخادم");
+  if(!r.ok)
+    throw Error("تعذر الاتصال بالخادم");
 
   const j=await r.json();
-  if(!j.success) throw Error(j.error||"خطأ في الخادم");
+
+  if(!j.success)
+    throw Error(j.error||"خطأ في الخادم");
 
   return j.data;
 }
@@ -231,7 +260,9 @@ async function post(payload){
 ========================================================= */
 
 async function init(){
+
   try{
+
     tables=await get("tables");
 
     $("tableSelect").innerHTML=
@@ -243,9 +274,13 @@ async function init(){
       `).join("");
 
     $("content").innerHTML="";
+
   }catch(e){
+
     showError(e.message);
+
   }
+
 }
 
 /* =========================================================
@@ -253,6 +288,7 @@ async function init(){
 ========================================================= */
 
 async function tableSelectionChanged(){
+
   const id=$("tableSelect").value;
 
   currentTable=null;
@@ -260,21 +296,77 @@ async function tableSelectionChanged(){
   currentPdfBlob=null;
 
   if(!id){
+
     $("content").innerHTML="";
     return;
+
   }
 
   $("content").innerHTML=
     '<div class="card loading">جاري تحميل البيانات...</div>';
 
-  currentTable=tables.find(t=>String(t.Table_ID)===String(id));
+  currentTable=
+    tables.find(t=>String(t.Table_ID)===String(id));
 
   try{
-    currentConfig=await get("form",{tableId:id});
+
+    currentConfig=
+      await get("form",{
+        tableId:id
+      });
+
     await renderTable(id);
+
   }catch(e){
+
     showError(e.message);
+
   }
+
+}
+
+/* =========================================================
+   تحديث القوائم المنسدلة
+========================================================= */
+
+/*
+  هذه أهم إضافة في الإصدار الجديد.
+
+  يتم جلب الخيارات من الجدول الفعلي مباشرة
+  كل مرة يتم فيها فتح نموذج الإضافة أو التعديل.
+
+  بالتالي أي اسم جديد تم حفظه في العمود
+  سيظهر في القائمة.
+*/
+
+async function refreshDropdownOptions(){
+
+  if(!currentTable)
+    return {};
+
+  try{
+
+    const options=
+      await get("dropdowns",{
+        tableId:currentTable.Table_ID
+      });
+
+    currentConfig.dropdownOptions=
+      options||{};
+
+    return currentConfig.dropdownOptions;
+
+  }catch(e){
+
+    console.error(
+      "خطأ في تحديث القوائم المنسدلة:",
+      e
+    );
+
+    throw e;
+
+  }
+
 }
 
 /* =========================================================
@@ -282,23 +374,40 @@ async function tableSelectionChanged(){
 ========================================================= */
 
 async function renderTable(id){
+
   const box=$("content");
 
   box.innerHTML=
     '<div class="card loading">جاري تحميل البيانات...</div>';
 
   try{
-    const data=await get("table",{tableId:id});
-    currentConfig={...currentConfig,...data};
 
-    const columns=visibleColumns(data.columns);
+    const data=
+      await get("table",{
+        tableId:id
+      });
+
+    currentConfig={
+      ...currentConfig,
+      ...data
+    };
+
+    const columns=
+      visibleColumns(data.columns);
 
     box.innerHTML=`
+
       <div class="card">
 
         <div class="table-title">
+
           ${esc(data.table.Icon||"📋")}
-          ${esc(data.table.Table_Title||data.table.Table_Name)}
+
+          ${esc(
+            data.table.Table_Title||
+            data.table.Table_Name
+          )}
+
         </div>
 
         <div class="toolbar">
@@ -309,40 +418,68 @@ async function renderTable(id){
             oninput="searchTable()"
           >
 
-          <button class="success" onclick="openAdd()">＋ إضافة</button>
+          <button
+            class="success"
+            onclick="openAdd()">
+            ＋ إضافة
+          </button>
 
-          <button class="pdf-button" onclick="openPDFReport()">
+          <button
+            class="pdf-button"
+            onclick="openPDFReport()">
             📄 كشف PDF
           </button>
 
         </div>
 
         <div class="table-wrap">
+
           <table class="data-table">
 
             <thead>
+
               <tr>
-                ${columns.map(c=>`<th>${esc(c.Column_Name)}</th>`).join("")}
+
+                ${
+                  columns.map(c=>
+                    `<th>${esc(c.Column_Name)}</th>`
+                  ).join("")
+                }
+
                 <th>إجراءات</th>
+
               </tr>
+
             </thead>
 
             <tbody id="tbody">
+
               ${rowsHtml(data.rows,columns)}
+
             </tbody>
 
           </table>
+
         </div>
 
       </div>
+
     `;
+
   }catch(e){
+
     showError(e.message);
+
   }
+
 }
 
 function visibleColumns(columns=[]){
-  return columns.filter(c=>c.Visible!=="مخفي");
+
+  return columns.filter(
+    c=>c.Visible!=="مخفي"
+  );
+
 }
 
 /* =========================================================
@@ -350,6 +487,7 @@ function visibleColumns(columns=[]){
 ========================================================= */
 
 function getCellValue(row,column){
+
   const name=column.Column_Name;
   const key="C"+column.Column_No;
 
@@ -358,38 +496,66 @@ function getCellValue(row,column){
       ?? row?.displayValues?.[key]
       ?? row?.values?.[key]
       ?? "";
+
 }
 
 function rowsHtml(rows=[],columns=[]){
+
   if(!rows.length){
+
     return `
       <tr>
-        <td colspan="${columns.length+1}" class="empty">
+        <td
+          colspan="${columns.length+1}"
+          class="empty">
           لا توجد بيانات
         </td>
       </tr>
     `;
+
   }
 
   return rows.map(row=>`
+
     <tr>
-      ${columns.map(c=>`
-        <td>${esc(formatValue(getCellValue(row,c),c))}</td>
-      `).join("")}
+
+      ${
+        columns.map(c=>`
+          <td>
+            ${esc(
+              formatValue(
+                getCellValue(row,c),
+                c
+              )
+            )}
+          </td>
+        `).join("")
+      }
 
       <td>
+
         <div class="actions">
-          <button class="primary" onclick="openEdit(${row.rowNumber})">
+
+          <button
+            class="primary"
+            onclick="openEdit(${row.rowNumber})">
             تعديل
           </button>
 
-          <button class="danger" onclick="removeRecord(${row.rowNumber})">
+          <button
+            class="danger"
+            onclick="removeRecord(${row.rowNumber})">
             حذف
           </button>
+
         </div>
+
       </td>
+
     </tr>
+
   `).join("");
+
 }
 
 /* =========================================================
@@ -397,19 +563,30 @@ function rowsHtml(rows=[],columns=[]){
 ========================================================= */
 
 async function searchTable(){
-  if(!currentTable)return;
+
+  if(!currentTable)
+    return;
 
   try{
-    const data=await get("search",{
-      tableId:currentTable.Table_ID,
-      q:$("search")?.value||""
-    });
+
+    const data=
+      await get("search",{
+        tableId:currentTable.Table_ID,
+        q:$("search")?.value||""
+      });
 
     $("tbody").innerHTML=
-      rowsHtml(data.rows,visibleColumns(data.columns));
+      rowsHtml(
+        data.rows,
+        visibleColumns(data.columns)
+      );
+
   }catch(e){
+
     toast(e.message,false);
+
   }
+
 }
 
 /* =========================================================
@@ -417,42 +594,107 @@ async function searchTable(){
 ========================================================= */
 
 function formatValue(value,column){
-  if(value===null||value===undefined||value==="")return "";
+
+  if(
+    value===null||
+    value===undefined||
+    value===""
+  )
+    return "";
 
   const type=column?.Data_Type;
 
   if(type==="تاريخ"){
+
     const s=String(value);
-    const m=s.match(/^(\d{4})-(\d{2})-(\d{2})/);
-    if(m)return `${m[3]}/${m[2]}/${m[1]}`;
+
+    const m=
+      s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+
+    if(m)
+      return `${m[3]}/${m[2]}/${m[1]}`;
+
   }
 
   if(type==="وقت"){
-    const s=String(value);
-    const m=s.match(/(?:T|\s)(\d{1,2}):(\d{2})/);
-    if(m)return `${String(m[1]).padStart(2,"0")}:${m[2]}`;
 
-    const t=s.match(/^(\d{1,2}):(\d{2})/);
-    if(t)return `${String(t[1]).padStart(2,"0")}:${t[2]}`;
+    const s=String(value);
+
+    const m=
+      s.match(/(?:T|\s)(\d{1,2}):(\d{2})/);
+
+    if(m)
+      return `${String(m[1]).padStart(2,"0")}:${m[2]}`;
+
+    const t=
+      s.match(/^(\d{1,2}):(\d{2})/);
+
+    if(t)
+      return `${String(t[1]).padStart(2,"0")}:${t[2]}`;
+
   }
 
   return String(value);
+
 }
 
 /* =========================================================
    إضافة
 ========================================================= */
 
-function openAdd(){
+async function openAdd(){
+
   if(!currentTable){
+
     toast("اختر جدولًا أولًا",false);
     return;
+
   }
 
+  const modal=$("modal");
+
   editRow=null;
-  $("modalTitle").textContent="إضافة سجل";
-  buildForm();
-  $("modal").style.display="flex";
+
+  $("modalTitle").textContent=
+    "إضافة سجل";
+
+  /*
+    نظهر النافذة أولًا مع رسالة تحميل بسيطة
+    حتى لا يشعر المستخدم أن الزر لم يعمل.
+  */
+
+  modal.style.display="flex";
+
+  $("form").innerHTML=
+    '<div class="loading">جاري تحميل القوائم...</div>';
+
+  try{
+
+    /*
+      جلب أحدث الخيارات من Google Sheets
+      قبل بناء النموذج.
+    */
+
+    await refreshDropdownOptions();
+
+    buildForm();
+
+  }catch(e){
+
+    $("form").innerHTML=
+      `<div class="empty">
+        تعذر تحميل خيارات القوائم.
+        <br><br>
+        ${esc(e.message)}
+      </div>`;
+
+    toast(
+      "تعذر تحديث القوائم المنسدلة",
+      false
+    );
+
+  }
+
 }
 
 /* =========================================================
@@ -460,25 +702,56 @@ function openAdd(){
 ========================================================= */
 
 async function openEdit(rowNumber){
+
+  if(!currentTable)
+    return;
+
   try{
+
     editRow=rowNumber;
 
-    const record=await get("record",{
-      tableId:currentTable.Table_ID,
-      rowNumber
-    });
+    $("modalTitle").textContent=
+      "تعديل سجل";
 
-    $("modalTitle").textContent="تعديل سجل";
-    buildForm(record.data||{});
     $("modal").style.display="flex";
+
+    $("form").innerHTML=
+      '<div class="loading">جاري تحميل السجل والقوائم...</div>';
+
+    /*
+      نجلب أحدث القوائم أولًا.
+    */
+
+    await refreshDropdownOptions();
+
+    /*
+      ثم نجلب بيانات السجل.
+    */
+
+    const record=
+      await get("record",{
+        tableId:currentTable.Table_ID,
+        rowNumber
+      });
+
+    buildForm(record.data||{});
+
   }catch(e){
+
     toast(e.message,false);
+
+    closeModal();
+
   }
+
 }
 
 function closeModal(){
+
   $("modal").style.display="none";
+
   $("form").innerHTML="";
+
 }
 
 /* =========================================================
@@ -486,22 +759,30 @@ function closeModal(){
 ========================================================= */
 
 function getFields(){
+
   return (
     currentConfig?.fields||
     currentConfig?.columns||
     []
-  ).filter(c=>c.Visible!=="مخفي");
+  ).filter(
+    c=>c.Visible!=="مخفي"
+  );
+
 }
 
 function buildForm(values={}){
+
   const fields=getFields();
 
   $("form").innerHTML=
     '<div class="grid">'+
-    fields.map(c=>fieldHtml(c,values)).join("")+
+    fields.map(
+      c=>fieldHtml(c,values)
+    ).join("")+
     '</div>';
 
   bindFieldEvents();
+
 }
 
 /* =========================================================
@@ -509,99 +790,213 @@ function buildForm(values={}){
 ========================================================= */
 
 function fieldHtml(column,values){
+
   const name=column.Column_Name;
   const type=column.Data_Type;
-  const required=column.Required==="إلزامي";
+  const required=
+    column.Required==="إلزامي";
 
   let value=values[name];
 
-  if(value===null||value===undefined){
-    value=column.Default??column.Default_Value??"";
+  if(
+    value===null||
+    value===undefined
+  ){
+
+    value=
+      column.Default??
+      column.Default_Value??
+      "";
+
   }
 
   /* الرقم التسلسلي */
+
   if(type==="رقم تسلسلي"){
-    return `
-      <div class="field">
-        <label>${esc(name)}</label>
-        <input disabled value="${esc(value)}">
-        <input type="hidden" data-name="${esc(name)}" value="${esc(value)}">
-      </div>
-    `;
-  }
-
-  /* القائمة */
-  if(type==="قائمة منسدلة"){
-    const options=
-      currentConfig?.dropdownOptions?.[name]||[];
 
     return `
       <div class="field">
+
         <label>
           ${esc(name)}
-          ${required?'<span class="required">*</span>':""}
         </label>
 
-        <select data-name="${esc(name)}" ${required?"required":""}>
-          <option value="">اختر...</option>
+        <input
+          disabled
+          value="${esc(value)}">
 
-          ${options.map(o=>`
-            <option value="${esc(o)}"
-              ${String(o)===String(value)?"selected":""}>
-              ${esc(o)}
-            </option>
-          `).join("")}
+        <input
+          type="hidden"
+          data-name="${esc(name)}"
+          value="${esc(value)}">
+
+      </div>
+    `;
+
+  }
+
+  /* =====================================================
+     القائمة المنسدلة
+  ===================================================== */
+
+  if(type==="قائمة منسدلة"){
+
+    /*
+      الآن يتم أخذ الخيارات من
+      currentConfig.dropdownOptions
+      التي تم تحديثها قبل فتح النموذج.
+    */
+
+    const options=
+      currentConfig?.dropdownOptions?.[name]||
+      [];
+
+    return `
+      <div class="field">
+
+        <label>
+
+          ${esc(name)}
+
+          ${
+            required
+            ?'<span class="required">*</span>'
+            :""
+          }
+
+        </label>
+
+        <select
+          data-name="${esc(name)}"
+          ${required?"required":""}>
+
+          <option value="">
+            اختر...
+          </option>
+
+          ${
+            options.map(o=>`
+
+              <option
+                value="${esc(o)}"
+                ${
+                  String(o)===String(value)
+                  ?"selected"
+                  :""
+                }>
+
+                ${esc(o)}
+
+              </option>
+
+            `).join("")
+          }
+
         </select>
+
+        ${
+          options.length===0
+          ?`
+            <small class="dropdown-loading">
+              لا توجد خيارات مسجلة حاليًا
+            </small>
+          `
+          :""
+        }
 
         ${
           column.Allow_New_Option==="نعم"
           ?`
+
             <input
               data-new-option="${esc(name)}"
               style="margin-top:6px"
-              placeholder="أو اكتب خيارًا جديدًا"
-            >
-          `:""
+              placeholder="أو اكتب خيارًا جديدًا">
+
+          `
+          :""
         }
+
       </div>
     `;
+
   }
 
   /* True / False */
+
   if(type==="True / False"){
-    const v=String(value).toLowerCase();
+
+    const v=
+      String(value).toLowerCase();
 
     return `
       <div class="field">
+
         <label>
+
           ${esc(name)}
-          ${required?'<span class="required">*</span>':""}
+
+          ${
+            required
+            ?'<span class="required">*</span>'
+            :""
+          }
+
         </label>
 
-        <select data-name="${esc(name)}" ${required?"required":""}>
-          <option value="">اختر...</option>
-          <option value="true" ${v==="true"?"selected":""}>نعم</option>
-          <option value="false" ${v==="false"?"selected":""}>لا</option>
+        <select
+          data-name="${esc(name)}"
+          ${required?"required":""}>
+
+          <option value="">
+            اختر...
+          </option>
+
+          <option
+            value="true"
+            ${v==="true"?"selected":""}>
+            نعم
+          </option>
+
+          <option
+            value="false"
+            ${v==="false"?"selected":""}>
+            لا
+          </option>
+
         </select>
+
       </div>
     `;
+
   }
 
   /* صورة */
+
   if(type==="صورة"){
+
     return `
       <div class="field">
 
         <label>
+
           ${esc(name)}
-          ${required?'<span class="required">*</span>':""}
+
+          ${
+            required
+            ?'<span class="required">*</span>'
+            :""
+          }
+
         </label>
 
         <button
           type="button"
           class="secondary"
           onclick="chooseImage('${esc(name)}')">
+
           🖼️ إدراج صورة
+
         </button>
 
         <input
@@ -609,23 +1004,28 @@ function fieldHtml(column,values){
           id="image_${esc(name)}"
           accept="image/*"
           hidden
-          onchange="previewImage(this,'preview_${esc(name)}')"
-        >
+          onchange="previewImage(
+            this,
+            'preview_${esc(name)}'
+          )">
 
         <img
           id="preview_${esc(name)}"
           class="image-preview"
-          ${value?`src="${esc(value)}"`:"style=\"display:none\""}
-        >
+          ${
+            value
+            ?`src="${esc(value)}"`
+            :`style="display:none"`
+          }>
 
         <input
           type="hidden"
           data-name="${esc(name)}"
-          value="${esc(value)}"
-        >
+          value="${esc(value)}">
 
       </div>
     `;
+
   }
 
   let inputType="text";
@@ -636,38 +1036,60 @@ function fieldHtml(column,values){
     type==="مبلغ مالي"||
     type==="نسبة مئوية"
   ){
+
     inputType="text";
     extra='inputmode="numeric"';
+
   }
 
   if(type==="رقم جوال"){
+
     inputType="tel";
-    extra='inputmode="numeric" maxlength="10"';
+    extra=
+      'inputmode="numeric" maxlength="10"';
+
   }
 
   if(type==="تاريخ"){
+
     inputType="date";
 
-    /* التاريخ الافتراضي عند الإضافة */
-    if(editRow===null&&!value){
+    if(
+      editRow===null&&
+      !value
+    ){
+
       value=today();
+
     }
+
   }
 
   if(type==="وقت"){
+
     inputType="time";
+
   }
 
   if(type==="رابط"){
+
     inputType="url";
+
   }
 
   return `
     <div class="field">
 
       <label>
+
         ${esc(name)}
-        ${required?'<span class="required">*</span>':""}
+
+        ${
+          required
+          ?'<span class="required">*</span>'
+          :""
+        }
+
       </label>
 
       <input
@@ -675,17 +1097,21 @@ function fieldHtml(column,values){
         data-name="${esc(name)}"
         value="${esc(value)}"
         ${extra}
-        ${required?"required":""}
-      >
+        ${required?"required":""}>
 
       ${
         column.Condition_Message
-        ?`<small>${esc(column.Condition_Message)}</small>`
+        ?`
+          <small>
+            ${esc(column.Condition_Message)}
+          </small>
+        `
         :""
       }
 
     </div>
   `;
+
 }
 
 /* =========================================================
@@ -693,29 +1119,55 @@ function fieldHtml(column,values){
 ========================================================= */
 
 function bindFieldEvents(){
-  document.querySelectorAll("#form input").forEach(input=>{
-    const name=input.dataset.name;
-    if(!name)return;
 
-    const column=getFields().find(c=>c.Column_Name===name);
-    if(!column)return;
+  document
+    .querySelectorAll("#form input")
+    .forEach(input=>{
 
-    if(
-      column.Data_Type==="رقم"||
-      column.Data_Type==="مبلغ مالي"||
-      column.Data_Type==="نسبة مئوية"
-    ){
-      input.addEventListener("input",()=>{
-        input.value=numericOnly(input.value);
-      });
-    }
+      const name=input.dataset.name;
 
-    if(column.Data_Type==="رقم جوال"){
-      input.addEventListener("input",()=>{
-        input.value=numericOnly(input.value).slice(0,10);
-      });
-    }
-  });
+      if(!name)
+        return;
+
+      const column=
+        getFields().find(
+          c=>c.Column_Name===name
+        );
+
+      if(!column)
+        return;
+
+      if(
+        column.Data_Type==="رقم"||
+        column.Data_Type==="مبلغ مالي"||
+        column.Data_Type==="نسبة مئوية"
+      ){
+
+        input.addEventListener(
+          "input",
+          ()=>{
+            input.value=
+              numericOnly(input.value);
+          }
+        );
+
+      }
+
+      if(column.Data_Type==="رقم جوال"){
+
+        input.addEventListener(
+          "input",
+          ()=>{
+            input.value=
+              numericOnly(input.value)
+              .slice(0,10);
+          }
+        );
+
+      }
+
+    });
+
 }
 
 /* =========================================================
@@ -723,39 +1175,62 @@ function bindFieldEvents(){
 ========================================================= */
 
 function chooseImage(name){
-  const input=$("image_"+name);
-  if(input)input.click();
+
+  const input=
+    $("image_"+name);
+
+  if(input)
+    input.click();
+
 }
 
 function previewImage(input,id){
+
   const img=$(id);
-  const file=input.files?.[0];
+
+  const file=
+    input.files?.[0];
 
   if(!file){
+
     img.style.display="none";
     return;
+
   }
 
   if(!file.type.startsWith("image/")){
-    toast("الملف المحدد ليس صورة",false);
-    input.value="";
-    return;
-  }
 
-  const reader=new FileReader();
-
-  reader.onload=e=>{
-    img.src=e.target.result;
-    img.style.display="block";
-
-    const hidden=img.parentElement.querySelector(
-      `input[type="hidden"][data-name]`
+    toast(
+      "الملف المحدد ليس صورة",
+      false
     );
 
-    if(hidden)hidden.value="";
+    input.value="";
+    return;
+
+  }
+
+  const reader=
+    new FileReader();
+
+  reader.onload=e=>{
+
+    img.src=e.target.result;
+
+    img.style.display="block";
+
+    const hidden=
+      img.parentElement.querySelector(
+        `input[type="hidden"][data-name]`
+      );
+
+    if(hidden)
+      hidden.value="";
+
   };
 
   reader.readAsDataURL(file);
+
 }
 
 /* =========================================================
@@ -763,16 +1238,33 @@ function previewImage(input,id){
 ========================================================= */
 
 function today(){
+
   const d=new Date();
+
   const y=d.getFullYear();
-  const m=String(d.getMonth()+1).padStart(2,"0");
-  const day=String(d.getDate()).padStart(2,"0");
+
+  const m=
+    String(d.getMonth()+1)
+      .padStart(2,"0");
+
+  const day=
+    String(d.getDate())
+      .padStart(2,"0");
+
   return `${y}-${m}-${day}`;
+
 }
 
 function currentTime(){
+
   const d=new Date();
-  return `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+
+  return `${
+    String(d.getHours()).padStart(2,"0")
+  }:${
+    String(d.getMinutes()).padStart(2,"0")
+  }`;
+
 }
 
 /* =========================================================
@@ -780,57 +1272,117 @@ function currentTime(){
 ========================================================= */
 
 function collectForm(){
+
   const data={};
 
-  for(const element of document.querySelectorAll("#form [data-name]")){
-    const name=element.dataset.name;
-    const column=getFields().find(c=>c.Column_Name===name);
+  for(
+    const element of
+    document.querySelectorAll(
+      "#form [data-name]"
+    )
+  ){
 
-    if(!column||column.Data_Type==="رقم تسلسلي")continue;
+    const name=
+      element.dataset.name;
 
-    let value=element.value.trim();
+    const column=
+      getFields().find(
+        c=>c.Column_Name===name
+      );
 
-    if(column.Data_Type==="رقم"||
-       column.Data_Type==="مبلغ مالي"||
-       column.Data_Type==="نسبة مئوية"){
+    if(
+      !column||
+      column.Data_Type==="رقم تسلسلي"
+    )
+      continue;
+
+    let value=
+      element.value.trim();
+
+    if(
+      column.Data_Type==="رقم"||
+      column.Data_Type==="مبلغ مالي"||
+      column.Data_Type==="نسبة مئوية"
+    ){
+
       value=numericOnly(value);
+
     }
 
     if(column.Data_Type==="رقم جوال"){
+
       value=numericOnly(value);
 
-      if(value && !/^05\d{8}$/.test(value)){
-        throw Error(`رقم الجوال في حقل "${name}" يجب أن يبدأ بـ 05 ويتكون من 10 أرقام`);
+      if(
+        value&&
+        !/^05\d{8}$/.test(value)
+      ){
+
+        throw Error(
+          `رقم الجوال في حقل "${name}" يجب أن يبدأ بـ 05 ويتكون من 10 أرقام`
+        );
+
       }
+
     }
 
-    if(column.Required==="إلزامي"&&!value){
-      throw Error(`الرجاء إدخال ${name}`);
+    if(
+      column.Required==="إلزامي"&&
+      !value
+    ){
+
+      throw Error(
+        `الرجاء إدخال ${name}`
+      );
+
     }
 
-    if(column.Data_Type==="وقت"&&!value){
+    if(
+      column.Data_Type==="وقت"&&
+      !value
+    ){
+
       value=currentTime();
+
     }
 
     if(!checkCondition(value,column)){
+
       throw Error(
         column.Condition_Message||
         `القيمة المدخلة في "${name}" غير صحيحة`
       );
+
     }
 
     data[name]=value;
+
   }
 
-  /* الخيارات الجديدة */
-  document.querySelectorAll("#form [data-new-option]").forEach(input=>{
-    const name=input.dataset.newOption;
-    const value=input.value.trim();
+  /*
+    الخيارات الجديدة:
+    تبقى نفس آلية النظام الحالية.
+  */
 
-    if(value)data[name]=value;
-  });
+  document
+    .querySelectorAll(
+      "#form [data-new-option]"
+    )
+    .forEach(input=>{
+
+      const name=
+        input.dataset.newOption;
+
+      const value=
+        input.value.trim();
+
+      if(value)
+        data[name]=value;
+
+    });
 
   return data;
+
 }
 
 /* =========================================================
@@ -838,29 +1390,58 @@ function collectForm(){
 ========================================================= */
 
 function checkCondition(value,column){
-  const condition=String(column.Input_Condition||"").trim();
 
-  if(!condition||value==="")return true;
+  const condition=
+    String(
+      column.Input_Condition||""
+    ).trim();
 
-  const n=Number(arabicToEnglish(value));
+  if(
+    !condition||
+    value===""
+  )
+    return true;
+
+  const n=
+    Number(
+      arabicToEnglish(value)
+    );
 
   if(condition==="رقم جوال")
-    return /^05\d{8}$/.test(numericOnly(value));
+    return /^05\d{8}$/.test(
+      numericOnly(value)
+    );
 
   if(condition==="رقم موجب")
     return !isNaN(n)&&n>0;
 
   if(condition==="0-100")
-    return !isNaN(n)&&n>=0&&n<=100;
+    return !isNaN(n)&&
+           n>=0&&
+           n<=100;
 
   let m;
 
-  if((m=condition.match(/^(min|max):\s*(-?\d+(?:\.\d+)?)$/))){
-    return m[1]==="min"?n>=Number(m[2]):n<=Number(m[2]);
+  if(
+    (m=condition.match(
+      /^(min|max):\s*(-?\d+(?:\.\d+)?)$/
+    ))
+  ){
+
+    return m[1]==="min"
+      ?n>=Number(m[2])
+      :n<=Number(m[2]);
+
   }
 
-  if((m=condition.match(/^(<=|>=|==|=|!=|<|>)\s*(-?\d+(?:\.\d+)?)$/))){
-    const op=m[1],x=Number(m[2]);
+  if(
+    (m=condition.match(
+      /^(<=|>=|==|=|!=|<|>)\s*(-?\d+(?:\.\d+)?)$/
+    ))
+  ){
+
+    const op=m[1];
+    const x=Number(m[2]);
 
     return op==="="?n===x:
            op==="=="?n===x:
@@ -869,9 +1450,11 @@ function checkCondition(value,column){
            op===">"?n>x:
            op==="<="?n<=x:
            op===">="?n>=x:false;
+
   }
 
   return true;
+
 }
 
 /* =========================================================
@@ -879,16 +1462,22 @@ function checkCondition(value,column){
 ========================================================= */
 
 async function saveRecord(){
-  if(!currentTable)return;
 
-  const button=$("saveButton");
+  if(!currentTable)
+    return;
+
+  const button=
+    $("saveButton");
 
   try{
+
     button.disabled=true;
 
-    const data=collectForm();
+    const data=
+      collectForm();
 
-    const payload=editRow===null
+    const payload=
+      editRow===null
       ?{
         action:"add",
         tableId:currentTable.Table_ID,
@@ -905,23 +1494,53 @@ async function saveRecord(){
 
     await post(payload);
 
-    const wasEdit=editRow!==null;
+    const wasEdit=
+      editRow!==null;
 
     closeModal();
 
     toast(
       wasEdit
-        ?"تم تعديل السجل بنجاح"
-        :"تم حفظ السجل بنجاح"
+      ?"تم تعديل السجل بنجاح"
+      :"تم حفظ السجل بنجاح"
     );
 
-    await renderTable(currentTable.Table_ID);
+    /*
+      تحديث القوائم بعد الحفظ أيضًا.
+      وهذا مهم إذا كان الحفظ قد أضاف خيارًا جديدًا.
+    */
+
+    try{
+
+      await refreshDropdownOptions();
+
+    }catch(e){
+
+      console.warn(
+        "تعذر تحديث القوائم بعد الحفظ",
+        e
+      );
+
+    }
+
+    await renderTable(
+      currentTable.Table_ID
+    );
 
   }catch(e){
-    toast(e.message||"خطأ في الخادم",false);
+
+    toast(
+      e.message||
+      "خطأ في الخادم",
+      false
+    );
+
   }finally{
+
     button.disabled=false;
+
   }
+
 }
 
 /* =========================================================
@@ -929,9 +1548,16 @@ async function saveRecord(){
 ========================================================= */
 
 async function removeRecord(rowNumber){
-  if(!confirm("هل أنت متأكد من حذف هذا السجل؟"))return;
+
+  if(
+    !confirm(
+      "هل أنت متأكد من حذف هذا السجل؟"
+    )
+  )
+    return;
 
   try{
+
     await post({
       action:"delete",
       tableId:currentTable.Table_ID,
@@ -939,11 +1565,21 @@ async function removeRecord(rowNumber){
     });
 
     toast("تم حذف السجل بنجاح");
-    await renderTable(currentTable.Table_ID);
+
+    await renderTable(
+      currentTable.Table_ID
+    );
 
   }catch(e){
-    toast(e.message||"خطأ في الخادم",false);
+
+    toast(
+      e.message||
+      "خطأ في الخادم",
+      false
+    );
+
   }
+
 }
 
 /* =========================================================
@@ -951,15 +1587,29 @@ async function removeRecord(rowNumber){
 ========================================================= */
 
 async function openPDFReport(){
+
   if(!currentTable){
-    toast("اختر جدولًا أولًا",false);
+
+    toast(
+      "اختر جدولًا أولًا",
+      false
+    );
+
     return;
+
   }
 
-  const modal=$("pdfModal");
-  const preview=$("pdfPreview");
-  const download=$("downloadPdfButton");
-  const share=$("sharePdfButton");
+  const modal=
+    $("pdfModal");
+
+  const preview=
+    $("pdfPreview");
+
+  const download=
+    $("downloadPdfButton");
+
+  const share=
+    $("sharePdfButton");
 
   modal.style.display="flex";
 
@@ -968,19 +1618,26 @@ async function openPDFReport(){
 
   download.disabled=true;
   share.disabled=true;
+
   currentPdfBlob=null;
 
   try{
-    const data=await get("table",{
-      tableId:currentTable.Table_ID
-    });
 
-    const columns=visibleColumns(data.columns);
+    const data=
+      await get("table",{
+        tableId:currentTable.Table_ID
+      });
+
+    const columns=
+      visibleColumns(data.columns);
 
     if(!data.rows?.length){
+
       preview.innerHTML=
         '<div class="pdf-loading">لا توجد بيانات لإنشاء الكشف.</div>';
+
       return;
+
     }
 
     const title=
@@ -988,73 +1645,132 @@ async function openPDFReport(){
       data.table.Table_Name||
       "كشف";
 
-    const dateText=new Date().toLocaleDateString(
-      "ar-SA",
-      {
-        year:"numeric",
-        month:"long",
-        day:"numeric"
-      }
-    );
+    const dateText=
+      new Date().toLocaleDateString(
+        "ar-SA",
+        {
+          year:"numeric",
+          month:"long",
+          day:"numeric"
+        }
+      );
 
     currentPdfFileName=
-      cleanFileName(`${title} - ${dateText}`)+".pdf";
+      cleanFileName(
+        `${title} - ${dateText}`
+      )+".pdf";
 
     preview.innerHTML=`
+
       <div class="pdf-header">
+
         <h1>${esc(title)}</h1>
+
         <h2>كشف البيانات</h2>
+
         <div class="pdf-date">
-          تاريخ الإصدار: ${esc(dateText)}
+          تاريخ الإصدار:
+          ${esc(dateText)}
         </div>
+
       </div>
 
       <table class="pdf-table">
+
         <thead>
+
           <tr>
-            ${columns.map(c=>`<th>${esc(c.Column_Name)}</th>`).join("")}
+
+            ${
+              columns.map(c=>
+                `<th>${esc(c.Column_Name)}</th>`
+              ).join("")
+            }
+
           </tr>
+
         </thead>
 
         <tbody>
-          ${data.rows.map(row=>`
-            <tr>
-              ${columns.map(c=>`
-                <td>
-                  ${esc(formatValue(getCellValue(row,c),c))}
-                </td>
-              `).join("")}
-            </tr>
-          `).join("")}
+
+          ${
+            data.rows.map(row=>`
+
+              <tr>
+
+                ${
+                  columns.map(c=>`
+
+                    <td>
+                      ${esc(
+                        formatValue(
+                          getCellValue(row,c),
+                          c
+                        )
+                      )}
+                    </td>
+
+                  `).join("")
+                }
+
+              </tr>
+
+            `).join("")
+          }
+
         </tbody>
+
       </table>
 
       <div class="pdf-footer">
-        عدد السجلات: ${data.rows.length}
+
+        عدد السجلات:
+        ${data.rows.length}
+
       </div>
+
     `;
 
-    /* تجهيز PDF مسبقًا حتى تعمل المشاركة */
-    toast("جاري تجهيز ملف PDF...");
+    toast(
+      "جاري تجهيز ملف PDF..."
+    );
+
+    /*
+      إنشاء PDF مسبقًا.
+    */
 
     await createPDF();
 
     download.disabled=false;
     share.disabled=false;
 
-    toast("تم تجهيز الكشف");
+    toast(
+      "تم تجهيز الكشف"
+    );
 
   }catch(e){
+
     preview.innerHTML=`
+
       <div class="pdf-loading">
+
         حدث خطأ في تجهيز الكشف:
+
         <br><br>
+
         ${esc(e.message)}
+
       </div>
+
     `;
 
-    toast(e.message,false);
+    toast(
+      e.message,
+      false
+    );
+
   }
+
 }
 
 /* =========================================================
@@ -1062,70 +1778,105 @@ async function openPDFReport(){
 ========================================================= */
 
 async function createPDF(){
+
   if(!window.html2canvas)
-    throw Error("تعذر تحميل مكتبة إنشاء PDF");
+    throw Error(
+      "تعذر تحميل مكتبة إنشاء PDF"
+    );
 
   if(!window.jspdf?.jsPDF)
-    throw Error("تعذر تحميل محرك PDF");
+    throw Error(
+      "تعذر تحميل محرك PDF"
+    );
 
-  const canvas=await html2canvas($("pdfPreview"),{
-    scale:2,
-    useCORS:true,
-    backgroundColor:"#fff",
-    logging:false
-  });
+  const canvas=
+    await html2canvas(
+      $("pdfPreview"),
+      {
+        scale:2,
+        useCORS:true,
+        backgroundColor:"#fff",
+        logging:false
+      }
+    );
 
-  const {jsPDF}=window.jspdf;
-
-  const pdf=new jsPDF({
-    orientation:"portrait",
-    unit:"mm",
-    format:"a4",
-    compress:true
-  });
+  const {jsPDF}=
+    window.jspdf;
 
   const pageWidth=210;
   const pageHeight=297;
   const margin=8;
-  const width=pageWidth-margin*2;
+  const width=
+    pageWidth-margin*2;
 
-  const height=canvas.height*width/canvas.width;
-
-  const sliceHeight=Math.floor(
-    canvas.width*(pageHeight-margin*2)/width
-  );
+  const sliceHeight=
+    Math.floor(
+      canvas.width*
+      (pageHeight-margin*2)/
+      width
+    );
 
   let position=0;
   let page=0;
 
-  while(position<canvas.height){
-    const slice=Math.min(
-      sliceHeight,
-      canvas.height-position
-    );
+  const pdf=
+    new jsPDF({
+      orientation:"portrait",
+      unit:"mm",
+      format:"a4",
+      compress:true
+    });
 
-    const pc=document.createElement("canvas");
+  while(
+    position<canvas.height
+  ){
+
+    const slice=
+      Math.min(
+        sliceHeight,
+        canvas.height-position
+      );
+
+    const pc=
+      document.createElement(
+        "canvas"
+      );
 
     pc.width=canvas.width;
     pc.height=slice;
 
-    const ctx=pc.getContext("2d");
+    const ctx=
+      pc.getContext("2d");
 
     ctx.fillStyle="#fff";
-    ctx.fillRect(0,0,pc.width,pc.height);
+
+    ctx.fillRect(
+      0,
+      0,
+      pc.width,
+      pc.height
+    );
 
     ctx.drawImage(
       canvas,
-      0,position,
-      canvas.width,slice,
-      0,0,
-      canvas.width,slice
+      0,
+      position,
+      canvas.width,
+      slice,
+      0,
+      0,
+      canvas.width,
+      slice
     );
 
-    if(page>0)pdf.addPage();
+    if(page>0)
+      pdf.addPage();
 
     pdf.addImage(
-      pc.toDataURL("image/jpeg",.92),
+      pc.toDataURL(
+        "image/jpeg",
+        .92
+      ),
       "JPEG",
       margin,
       margin,
@@ -1135,10 +1886,14 @@ async function createPDF(){
 
     position+=slice;
     page++;
+
   }
 
-  currentPdfBlob=pdf.output("blob");
+  currentPdfBlob=
+    pdf.output("blob");
+
   return currentPdfBlob;
+
 }
 
 /* =========================================================
@@ -1146,87 +1901,288 @@ async function createPDF(){
 ========================================================= */
 
 async function downloadPDF(){
+
   try{
+
     if(!currentPdfBlob)
       await createPDF();
 
-    const url=URL.createObjectURL(currentPdfBlob);
-    const link=document.createElement("a");
+    const url=
+      URL.createObjectURL(
+        currentPdfBlob
+      );
+
+    const link=
+      document.createElement("a");
 
     link.href=url;
-    link.download=currentPdfFileName||"كشف.pdf";
+
+    link.download=
+      currentPdfFileName||
+      "كشف.pdf";
 
     document.body.appendChild(link);
+
     link.click();
+
     link.remove();
 
-    setTimeout(()=>URL.revokeObjectURL(url),3000);
+    setTimeout(()=>{
+      URL.revokeObjectURL(url);
+    },3000);
 
-    toast("تم إنشاء ملف PDF");
+    toast(
+      "تم إنشاء ملف PDF"
+    );
 
   }catch(e){
-    toast(e.message||"تعذر إنشاء PDF",false);
+
+    toast(
+      e.message||
+      "تعذر إنشاء PDF",
+      false
+    );
+
   }
+
 }
 
 /* =========================================================
-   مشاركة PDF
+   مشاركة PDF - الإصدار المحسن
 ========================================================= */
 
-async function sharePDF(){
-  const button=$("sharePdfButton");
+async function sharePDF(event){
+
+  const button=
+    $("sharePdfButton");
+
+  /*
+    منع أي سلوك افتراضي للزر.
+  */
+
+  if(event)
+    event.preventDefault();
 
   try{
-    if(!currentPdfBlob)
-      throw Error("ملف PDF غير جاهز، أغلق الكشف وافتحه مرة أخرى");
-
-    const file=new File(
-      [currentPdfBlob],
-      currentPdfFileName||"كشف.pdf",
-      {type:"application/pdf"}
-    );
 
     /*
-      مهم:
-      لا يتم إنشاء PDF هنا.
-      الملف مجهز مسبقًا عند فتح نافذة PDF.
-      لذلك navigator.share يتم استدعاؤه مباشرة من ضغطة المستخدم.
+      يجب أن يكون PDF جاهزًا قبل الضغط.
+    */
+
+    if(!currentPdfBlob){
+
+      toast(
+        "ملف PDF غير جاهز، أعد فتح الكشف",
+        false
+      );
+
+      return;
+
+    }
+
+    /*
+      تحويل Blob إلى File.
+    */
+
+    const file=
+      new File(
+        [currentPdfBlob],
+        currentPdfFileName||
+        "كشف.pdf",
+        {
+          type:"application/pdf",
+          lastModified:Date.now()
+        }
+      );
+
+    /*
+      التحقق من وجود Web Share API.
     */
 
     if(
-      navigator.share&&
-      navigator.canShare?.({files:[file]})
+      typeof navigator.share!=="function"
     ){
-      await navigator.share({
-        title:currentPdfFileName||"كشف PDF",
-        text:"كشف البيانات",
-        files:[file]
-      });
 
-      toast("تم فتح خيارات المشاركة");
+      /*
+        لا يوجد دعم للمشاركة المباشرة.
+        ننزل الملف بدلًا من إعطاء خطأ.
+      */
+
+      await downloadPDF();
+
+      toast(
+        "هذا المتصفح لا يدعم مشاركة الملفات مباشرة، تم تنزيل PDF",
+        false
+      );
+
       return;
+
     }
 
-    /* بديل إذا كان المتصفح لا يدعم مشاركة الملفات */
+    /*
+      بعض المتصفحات لا توفر canShare.
+      لذلك لا نجعل عدم وجودها سببًا لمنع المشاركة.
+    */
+
+    let fileSharingSupported=true;
+
+    if(
+      typeof navigator.canShare==="function"
+    ){
+
+      try{
+
+        fileSharingSupported=
+          navigator.canShare({
+            files:[file]
+          });
+
+      }catch(e){
+
+        fileSharingSupported=false;
+
+      }
+
+    }
+
+    /*
+      إذا كان المتصفح يعلن صراحة أنه لا يدعم
+      مشاركة الملفات، نجرب المشاركة العادية
+      أولًا إذا كانت متاحة.
+    */
+
+    if(!fileSharingSupported){
+
+      /*
+        محاولة المشاركة بالملف مباشرة.
+        بعض إصدارات أندرويد لا تعطي canShare
+        نتيجة صحيحة رغم أن share يعمل.
+      */
+
+      try{
+
+        await navigator.share({
+          title:
+            currentPdfFileName||
+            "كشف PDF",
+
+          text:
+            "كشف البيانات",
+
+          files:[file]
+        });
+
+        toast(
+          "تم فتح خيارات المشاركة"
+        );
+
+        return;
+
+      }catch(shareError){
+
+        /*
+          إذا كان الخطأ بسبب عدم دعم الملفات
+          ننتقل للتنزيل.
+        */
+
+        console.warn(
+          "مشاركة الملف غير مدعومة:",
+          shareError
+        );
+
+      }
+
+    }else{
+
+      /*
+        دعم مشاركة الملفات موجود.
+        نرسل الملف مباشرة.
+      */
+
+      await navigator.share({
+
+        title:
+          currentPdfFileName||
+          "كشف PDF",
+
+        text:
+          "كشف البيانات",
+
+        files:[file]
+
+      });
+
+      toast(
+        "تم فتح خيارات المشاركة"
+      );
+
+      return;
+
+    }
+
+    /*
+      الحل الاحتياطي النهائي.
+    */
+
     await downloadPDF();
 
     toast(
-      "المتصفح لا يدعم مشاركة الملفات مباشرة، تم تنزيل ملف PDF"
+      "تم تنزيل ملف PDF لأن المتصفح لا يسمح بمشاركته مباشرة",
+      false
     );
 
   }catch(e){
-    if(e?.name==="AbortError"){
-      toast("تم إلغاء المشاركة");
+
+    /*
+      الضغط على رجوع أو إغلاق نافذة المشاركة
+      ليس خطأ حقيقيًا.
+    */
+
+    if(
+      e?.name==="AbortError"
+    ){
+
+      toast(
+        "تم إلغاء المشاركة"
+      );
+
       return;
+
     }
 
-    toast(
-      e?.message||"تعذر مشاركة PDF",
-      false
+    console.error(
+      "PDF Share Error:",
+      e
     );
+
+    /*
+      محاولة أخيرة لتنزيل الملف.
+    */
+
+    try{
+
+      await downloadPDF();
+
+      toast(
+        "تعذرت المشاركة المباشرة، تم تنزيل ملف PDF",
+        false
+      );
+
+    }catch(downloadError){
+
+      toast(
+        "تعذر مشاركة أو تنزيل ملف PDF",
+        false
+      );
+
+    }
+
   }finally{
+
     button.disabled=false;
+
   }
+
 }
 
 /* =========================================================
@@ -1234,8 +2190,15 @@ async function sharePDF(){
 ========================================================= */
 
 function closePdfModal(){
+
   $("pdfModal").style.display="none";
-  currentPdfBlob=null;
+
+  /*
+    لا نحذف الملف فورًا من الذاكرة.
+    حتى لا يحدث تعارض إذا كان المستخدم
+    أغلق النافذة ثم عاد إليها.
+  */
+
 }
 
 /* =========================================================
@@ -1243,9 +2206,14 @@ function closePdfModal(){
 ========================================================= */
 
 function cleanFileName(name){
+
   return String(name||"كشف")
-    .replace(/[\\/:*?"<>|]/g,"-")
+    .replace(
+      /[\\/:*?"<>|]/g,
+      "-"
+    )
     .trim();
+
 }
 
 /* =========================================================
@@ -1253,20 +2221,31 @@ function cleanFileName(name){
 ========================================================= */
 
 function showError(message){
+
   $("content").innerHTML=`
+
     <div class="card empty">
+
       حدث خطأ:
+
       <br><br>
+
       ${esc(message)}
+
     </div>
+
   `;
+
 }
 
 /* =========================================================
    تشغيل
 ========================================================= */
 
-window.addEventListener("load",init);
+window.addEventListener(
+  "load",
+  init
+);
 
 </script>
 
