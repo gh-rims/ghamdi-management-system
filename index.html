@@ -55,6 +55,7 @@ select,input{width:100%;padding:11px;border:1px solid #d5d8de;border-radius:8px;
 .pdf-footer{margin-top:25px;text-align:center;font-size:11px;color:#666}
 .pdf-loading{text-align:center;padding:30px;font-size:18px}
 .dropdown-loading{color:#777;font-size:13px;margin-top:6px}
+
 @media(max-width:600px){
  header{font-size:19px}
  .container{padding:10px}
@@ -73,13 +74,29 @@ select,input{width:100%;padding:11px;border:1px solid #d5d8de;border-radius:8px;
 
   <div class="card">
     <div class="toolbar">
+
       <div style="flex:1;min-width:220px">
-        <select id="tableSelect" onchange="tableSelectionChanged()">
-          <option value="">جاري تحميل الجداول...</option>
+
+        <select
+          id="tableSelect"
+          onchange="tableSelectionChanged()">
+
+          <option value="">
+            جاري تحميل الجداول...
+          </option>
+
         </select>
+
       </div>
 
-      <button class="success" onclick="openAdd()">＋ إضافة سجل</button>
+      <button
+        class="success"
+        onclick="openAdd()">
+
+        ＋ إضافة سجل
+
+      </button>
+
     </div>
   </div>
 
@@ -87,66 +104,130 @@ select,input{width:100%;padding:11px;border:1px solid #d5d8de;border-radius:8px;
 
 </div>
 
-<!-- نموذج السجل -->
+
+<!-- =====================================================
+     نموذج السجل
+===================================================== -->
+
 <div id="modal" class="modal">
+
   <div class="modal-box">
 
     <div class="modal-head">
-      <h3 id="modalTitle">إضافة سجل</h3>
-      <button class="close" onclick="closeModal()">×</button>
+
+      <h3 id="modalTitle">
+        إضافة سجل
+      </h3>
+
+      <button
+        class="close"
+        onclick="closeModal()">
+
+        ×
+
+      </button>
+
     </div>
 
     <div id="form"></div>
 
-    <div class="actions" style="margin-top:15px">
-      <button id="saveButton" class="success" onclick="saveRecord()">حفظ</button>
-      <button class="secondary" onclick="closeModal()">إلغاء</button>
+    <div
+      class="actions"
+      style="margin-top:15px">
+
+      <button
+        id="saveButton"
+        class="success"
+        onclick="saveRecord()">
+
+        حفظ
+
+      </button>
+
+      <button
+        class="secondary"
+        onclick="closeModal()">
+
+        إلغاء
+
+      </button>
+
     </div>
 
   </div>
+
 </div>
 
-<!-- PDF -->
+
+<!-- =====================================================
+     PDF
+===================================================== -->
+
 <div id="pdfModal" class="modal">
+
   <div class="pdf-modal-box">
 
     <div class="modal-head">
-      <h3>📄 كشف PDF</h3>
-      <button class="close" onclick="closePdfModal()">×</button>
+
+      <h3>
+        📄 كشف PDF
+      </h3>
+
+      <button
+        class="close"
+        onclick="closePdfModal()">
+
+        ×
+
+      </button>
+
     </div>
+
 
     <div class="pdf-actions">
 
-      <button id="downloadPdfButton"
-              class="pdf-button"
-              onclick="downloadPDF()"
-              disabled>
+      <!-- تم الإبقاء على زر التحميل فقط -->
+
+      <button
+        id="downloadPdfButton"
+        class="pdf-button"
+        onclick="downloadPDF()"
+        disabled>
+
         📥 تحميل PDF
+
       </button>
 
-      <button id="sharePdfButton"
-              class="success"
-              onclick="sharePDF(event)"
-              disabled>
-        📤 مشاركة PDF
-      </button>
+      <button
+        class="secondary"
+        onclick="closePdfModal()">
 
-      <button class="secondary" onclick="closePdfModal()">
         إغلاق
+
       </button>
 
     </div>
 
+
     <div class="pdf-preview-wrap">
+
       <div id="pdfPreview">
-        <div class="pdf-loading">جاري تجهيز الكشف...</div>
+
+        <div class="pdf-loading">
+          جاري تجهيز الكشف...
+        </div>
+
       </div>
+
     </div>
 
   </div>
+
 </div>
 
+
 <div id="toast" class="toast"></div>
+
 
 <script>
 
@@ -157,6 +238,7 @@ select,input{width:100%;padding:11px;border:1px solid #d5d8de;border-radius:8px;
 const API_URL =
 "https://script.google.com/macros/s/AKfycbw2FA_As7StLELc0xApapxVDYNa1dcYJT8dxQe06JBMp_fd8OsyLOq57KAECkG3MuxaGA/exec";
 
+
 let tables=[];
 let currentTable=null;
 let currentConfig=null;
@@ -165,57 +247,88 @@ let editRow=null;
 let currentPdfBlob=null;
 let currentPdfFileName="";
 
+
 /* =========================================================
    أدوات عامة
 ========================================================= */
 
 const $=id=>document.getElementById(id);
 
+
 function toast(message,success=true){
+
   const e=$("toast");
 
   e.textContent=message;
+
   e.style.display="block";
-  e.style.background=success?"#222":"#b71c1c";
+
+  e.style.background=
+    success
+    ?" #222"
+    :"#b71c1c";
 
   clearTimeout(e._timer);
 
   e._timer=setTimeout(()=>{
+
     e.style.display="none";
+
   },3500);
+
 }
 
+
 function esc(value){
+
   return String(value??"")
     .replace(/&/g,"&amp;")
     .replace(/</g,"&lt;")
     .replace(/>/g,"&gt;")
     .replace(/"/g,"&quot;")
     .replace(/'/g,"&#039;");
+
 }
+
 
 function arabicToEnglish(value){
+
   return String(value??"")
-    .replace(/[٠-٩]/g,d=>"٠١٢٣٤٥٦٧٨٩".indexOf(d))
+    .replace(
+      /[٠-٩]/g,
+      d=>"٠١٢٣٤٥٦٧٨٩".indexOf(d)
+    )
     .replace(/٫/g,".")
     .replace(/٬/g,",");
+
 }
 
+
 function numericOnly(value){
-  return arabicToEnglish(value).replace(/\D/g,"");
+
+  return arabicToEnglish(value)
+    .replace(/\D/g,"");
+
 }
+
 
 /* =========================================================
    الاتصال بالخادم
 ========================================================= */
 
 async function get(action,params={}){
+
   const url=new URL(API_URL);
 
-  url.searchParams.set("action",action);
+  url.searchParams.set(
+    "action",
+    action
+  );
 
   Object.entries(params).forEach(([k,v])=>{
+
     url.searchParams.set(k,v);
+
   });
 
   const r=await fetch(url,{
@@ -223,37 +336,57 @@ async function get(action,params={}){
   });
 
   if(!r.ok)
-    throw Error("تعذر الاتصال بالخادم");
+    throw Error(
+      "تعذر الاتصال بالخادم"
+    );
 
   const j=await r.json();
 
   if(!j.success)
-    throw Error(j.error||"خطأ في الخادم");
+    throw Error(
+      j.error||
+      "خطأ في الخادم"
+    );
 
   return j.data;
+
 }
+
 
 async function post(payload){
 
   const r=await fetch(API_URL,{
+
     method:"POST",
+
     headers:{
-      "Content-Type":"text/plain;charset=utf-8"
+      "Content-Type":
+        "text/plain;charset=utf-8"
     },
+
     body:JSON.stringify(payload),
+
     redirect:"follow"
+
   });
 
   if(!r.ok)
-    throw Error("تعذر الاتصال بالخادم");
+    throw Error(
+      "تعذر الاتصال بالخادم"
+    );
 
   const j=await r.json();
 
   if(!j.success)
-    throw Error(j.error||"خطأ في الخادم");
+    throw Error(
+      j.error||
+      "خطأ في الخادم"
+    );
 
   return j.data;
+
 }
+
 
 /* =========================================================
    تشغيل النظام
@@ -268,9 +401,18 @@ async function init(){
     $("tableSelect").innerHTML=
       '<option value="">اختر الجدول</option>'+
       tables.map(t=>`
+
         <option value="${esc(t.Table_ID)}">
-          ${esc(t.Icon||"📋")} ${esc(t.Table_Title||t.Table_Name)}
+
+          ${esc(t.Icon||"📋")}
+
+          ${esc(
+            t.Table_Title||
+            t.Table_Name
+          )}
+
         </option>
+
       `).join("");
 
     $("content").innerHTML="";
@@ -283,13 +425,15 @@ async function init(){
 
 }
 
+
 /* =========================================================
    اختيار الجدول
 ========================================================= */
 
 async function tableSelectionChanged(){
 
-  const id=$("tableSelect").value;
+  const id=
+    $("tableSelect").value;
 
   currentTable=null;
   currentConfig=null;
@@ -306,7 +450,9 @@ async function tableSelectionChanged(){
     '<div class="card loading">جاري تحميل البيانات...</div>';
 
   currentTable=
-    tables.find(t=>String(t.Table_ID)===String(id));
+    tables.find(
+      t=>String(t.Table_ID)===String(id)
+    );
 
   try{
 
@@ -325,49 +471,82 @@ async function tableSelectionChanged(){
 
 }
 
+
 /* =========================================================
-   تحديث القوائم المنسدلة
+   تجهيز القوائم من بيانات الجدول نفسها
 ========================================================= */
 
 /*
-  هذه أهم إضافة في الإصدار الجديد.
+  لا يوجد هنا أي طلب إضافي للسيرفر.
 
-  يتم جلب الخيارات من الجدول الفعلي مباشرة
-  كل مرة يتم فيها فتح نموذج الإضافة أو التعديل.
+  البيانات الموجودة أصلًا في data.rows
+  يتم استخدامها لاستخراج خيارات القوائم.
 
-  بالتالي أي اسم جديد تم حفظه في العمود
-  سيظهر في القائمة.
+  كل عمود من نوع "قائمة منسدلة":
+  - يتم أخذ قيمه من الصفوف
+  - حذف القيم الفارغة
+  - حذف التكرار
+  - ترتيبها حسب ظهورها في الجدول
 */
 
-async function refreshDropdownOptions(){
+function buildDropdownOptionsFromRows(
+  rows=[],
+  columns=[]
+){
 
-  if(!currentTable)
-    return {};
+  const result={};
 
-  try{
+  columns
+    .filter(
+      c=>c.Data_Type==="قائمة منسدلة"
+    )
+    .forEach(column=>{
 
-    const options=
-      await get("dropdowns",{
-        tableId:currentTable.Table_ID
+      const name=
+        column.Column_Name;
+
+      const unique=[];
+      const seen=new Set();
+
+      rows.forEach(row=>{
+
+        const value=
+          getCellValue(
+            row,
+            column
+          );
+
+        if(
+          value===null||
+          value===undefined
+        )
+          return;
+
+        const text=
+          String(value).trim();
+
+        if(!text)
+          return;
+
+        const key=text;
+
+        if(seen.has(key))
+          return;
+
+        seen.add(key);
+
+        unique.push(text);
+
       });
 
-    currentConfig.dropdownOptions=
-      options||{};
+      result[name]=unique;
 
-    return currentConfig.dropdownOptions;
+    });
 
-  }catch(e){
-
-    console.error(
-      "خطأ في تحديث القوائم المنسدلة:",
-      e
-    );
-
-    throw e;
-
-  }
+  return result;
 
 }
+
 
 /* =========================================================
    عرض الجدول
@@ -382,18 +561,44 @@ async function renderTable(id){
 
   try{
 
+    /*
+      يتم جلب بيانات الجدول مرة واحدة.
+    */
+
     const data=
       await get("table",{
         tableId:id
       });
+
+
+    /*
+      الاحتفاظ بالبيانات التي تم تحميلها
+      واستخدامها كمصدر للقوائم.
+    */
 
     currentConfig={
       ...currentConfig,
       ...data
     };
 
+
+    /*
+      تجهيز القوائم مباشرة من نفس البيانات.
+      لا يوجد طلب API إضافي.
+    */
+
+    currentConfig.dropdownOptions=
+      buildDropdownOptionsFromRows(
+        data.rows||[],
+        data.columns||[]
+      );
+
+
     const columns=
-      visibleColumns(data.columns);
+      visibleColumns(
+        data.columns
+      );
+
 
     box.innerHTML=`
 
@@ -410,27 +615,34 @@ async function renderTable(id){
 
         </div>
 
+
         <div class="toolbar">
 
           <input
             id="search"
             placeholder="بحث..."
-            oninput="searchTable()"
-          >
+            oninput="searchTable()">
+
 
           <button
             class="success"
             onclick="openAdd()">
+
             ＋ إضافة
+
           </button>
+
 
           <button
             class="pdf-button"
             onclick="openPDFReport()">
+
             📄 كشف PDF
+
           </button>
 
         </div>
+
 
         <div class="table-wrap">
 
@@ -446,15 +658,21 @@ async function renderTable(id){
                   ).join("")
                 }
 
-                <th>إجراءات</th>
+                <th>
+                  إجراءات
+                </th>
 
               </tr>
 
             </thead>
 
+
             <tbody id="tbody">
 
-              ${rowsHtml(data.rows,columns)}
+              ${rowsHtml(
+                data.rows,
+                columns
+              )}
 
             </tbody>
 
@@ -474,6 +692,7 @@ async function renderTable(id){
 
 }
 
+
 function visibleColumns(columns=[]){
 
   return columns.filter(
@@ -482,14 +701,18 @@ function visibleColumns(columns=[]){
 
 }
 
+
 /* =========================================================
    عرض الصفوف
 ========================================================= */
 
 function getCellValue(row,column){
 
-  const name=column.Column_Name;
-  const key="C"+column.Column_No;
+  const name=
+    column.Column_Name;
+
+  const key=
+    "C"+column.Column_No;
 
   return row?.displayValues?.[name]
       ?? row?.values?.[name]
@@ -499,21 +722,32 @@ function getCellValue(row,column){
 
 }
 
-function rowsHtml(rows=[],columns=[]){
+
+function rowsHtml(
+  rows=[],
+  columns=[]
+){
 
   if(!rows.length){
 
     return `
+
       <tr>
+
         <td
           colspan="${columns.length+1}"
           class="empty">
+
           لا توجد بيانات
+
         </td>
+
       </tr>
+
     `;
 
   }
+
 
   return rows.map(row=>`
 
@@ -521,16 +755,21 @@ function rowsHtml(rows=[],columns=[]){
 
       ${
         columns.map(c=>`
+
           <td>
+
             ${esc(
               formatValue(
                 getCellValue(row,c),
                 c
               )
             )}
+
           </td>
+
         `).join("")
       }
+
 
       <td>
 
@@ -539,13 +778,18 @@ function rowsHtml(rows=[],columns=[]){
           <button
             class="primary"
             onclick="openEdit(${row.rowNumber})">
+
             تعديل
+
           </button>
+
 
           <button
             class="danger"
             onclick="removeRecord(${row.rowNumber})">
+
             حذف
+
           </button>
 
         </div>
@@ -557,6 +801,7 @@ function rowsHtml(rows=[],columns=[]){
   `).join("");
 
 }
+
 
 /* =========================================================
    البحث
@@ -571,23 +816,35 @@ async function searchTable(){
 
     const data=
       await get("search",{
-        tableId:currentTable.Table_ID,
-        q:$("search")?.value||""
+
+        tableId:
+          currentTable.Table_ID,
+
+        q:
+          $("search")?.value||""
+
       });
+
 
     $("tbody").innerHTML=
       rowsHtml(
         data.rows,
-        visibleColumns(data.columns)
+        visibleColumns(
+          data.columns
+        )
       );
 
   }catch(e){
 
-    toast(e.message,false);
+    toast(
+      e.message,
+      false
+    );
 
   }
 
 }
+
 
 /* =========================================================
    تنسيق التاريخ والوقت
@@ -602,100 +859,100 @@ function formatValue(value,column){
   )
     return "";
 
-  const type=column?.Data_Type;
+  const type=
+    column?.Data_Type;
+
 
   if(type==="تاريخ"){
 
-    const s=String(value);
+    const s=
+      String(value);
 
     const m=
-      s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      s.match(
+        /^(\d{4})-(\d{2})-(\d{2})/
+      );
 
     if(m)
       return `${m[3]}/${m[2]}/${m[1]}`;
 
   }
 
+
   if(type==="وقت"){
 
-    const s=String(value);
+    const s=
+      String(value);
 
     const m=
-      s.match(/(?:T|\s)(\d{1,2}):(\d{2})/);
+      s.match(
+        /(?:T|\s)(\d{1,2}):(\d{2})/
+      );
 
     if(m)
-      return `${String(m[1]).padStart(2,"0")}:${m[2]}`;
+      return `${
+        String(m[1]).padStart(2,"0")
+      }:${m[2]}`;
+
 
     const t=
-      s.match(/^(\d{1,2}):(\d{2})/);
+      s.match(
+        /^(\d{1,2}):(\d{2})/
+      );
 
     if(t)
-      return `${String(t[1]).padStart(2,"0")}:${t[2]}`;
+      return `${
+        String(t[1]).padStart(2,"0")
+      }:${t[2]}`;
 
   }
+
 
   return String(value);
 
 }
 
+
 /* =========================================================
    إضافة
 ========================================================= */
 
-async function openAdd(){
+function openAdd(){
 
   if(!currentTable){
 
-    toast("اختر جدولًا أولًا",false);
+    toast(
+      "اختر جدولًا أولًا",
+      false
+    );
+
     return;
 
   }
 
-  const modal=$("modal");
 
   editRow=null;
+
 
   $("modalTitle").textContent=
     "إضافة سجل";
 
+
+  $("modal").style.display=
+    "flex";
+
+
   /*
-    نظهر النافذة أولًا مع رسالة تحميل بسيطة
-    حتى لا يشعر المستخدم أن الزر لم يعمل.
+    لا يوجد انتظار لجلب القوائم.
+
+    القوائم موجودة مسبقًا في:
+    currentConfig.dropdownOptions
   */
 
-  modal.style.display="flex";
-
-  $("form").innerHTML=
-    '<div class="loading">جاري تحميل القوائم...</div>';
-
-  try{
-
-    /*
-      جلب أحدث الخيارات من Google Sheets
-      قبل بناء النموذج.
-    */
-
-    await refreshDropdownOptions();
-
-    buildForm();
-
-  }catch(e){
-
-    $("form").innerHTML=
-      `<div class="empty">
-        تعذر تحميل خيارات القوائم.
-        <br><br>
-        ${esc(e.message)}
-      </div>`;
-
-    toast(
-      "تعذر تحديث القوائم المنسدلة",
-      false
-    );
-
-  }
+  buildForm();
 
 }
+
 
 /* =========================================================
    تعديل
@@ -708,37 +965,49 @@ async function openEdit(rowNumber){
 
   try{
 
-    editRow=rowNumber;
+    editRow=
+      rowNumber;
+
 
     $("modalTitle").textContent=
       "تعديل سجل";
 
-    $("modal").style.display="flex";
+
+    $("modal").style.display=
+      "flex";
+
 
     $("form").innerHTML=
-      '<div class="loading">جاري تحميل السجل والقوائم...</div>';
+      '<div class="loading">جاري تحميل السجل...</div>';
+
 
     /*
-      نجلب أحدث القوائم أولًا.
+      لا يوجد طلب لجلب القوائم.
+      القوائم موجودة أصلًا من بيانات الجدول.
     */
 
-    await refreshDropdownOptions();
-
-    /*
-      ثم نجلب بيانات السجل.
-    */
 
     const record=
       await get("record",{
-        tableId:currentTable.Table_ID,
+
+        tableId:
+          currentTable.Table_ID,
+
         rowNumber
+
       });
 
-    buildForm(record.data||{});
+
+    buildForm(
+      record.data||{}
+    );
 
   }catch(e){
 
-    toast(e.message,false);
+    toast(
+      e.message,
+      false
+    );
 
     closeModal();
 
@@ -746,13 +1015,16 @@ async function openEdit(rowNumber){
 
 }
 
+
 function closeModal(){
 
-  $("modal").style.display="none";
+  $("modal").style.display=
+    "none";
 
   $("form").innerHTML="";
 
 }
+
 
 /* =========================================================
    بناء النموذج
@@ -770,33 +1042,51 @@ function getFields(){
 
 }
 
+
 function buildForm(values={}){
 
-  const fields=getFields();
+  const fields=
+    getFields();
+
 
   $("form").innerHTML=
     '<div class="grid">'+
     fields.map(
-      c=>fieldHtml(c,values)
+      c=>fieldHtml(
+        c,
+        values
+      )
     ).join("")+
     '</div>';
+
 
   bindFieldEvents();
 
 }
 
+
 /* =========================================================
    الحقول
 ========================================================= */
 
-function fieldHtml(column,values){
+function fieldHtml(
+  column,
+  values
+){
 
-  const name=column.Column_Name;
-  const type=column.Data_Type;
+  const name=
+    column.Column_Name;
+
+  const type=
+    column.Data_Type;
+
   const required=
     column.Required==="إلزامي";
 
-  let value=values[name];
+
+  let value=
+    values[name];
+
 
   if(
     value===null||
@@ -810,20 +1100,24 @@ function fieldHtml(column,values){
 
   }
 
+
   /* الرقم التسلسلي */
 
   if(type==="رقم تسلسلي"){
 
     return `
+
       <div class="field">
 
         <label>
           ${esc(name)}
         </label>
 
+
         <input
           disabled
           value="${esc(value)}">
+
 
         <input
           type="hidden"
@@ -831,9 +1125,11 @@ function fieldHtml(column,values){
           value="${esc(value)}">
 
       </div>
+
     `;
 
   }
+
 
   /* =====================================================
      القائمة المنسدلة
@@ -842,16 +1138,21 @@ function fieldHtml(column,values){
   if(type==="قائمة منسدلة"){
 
     /*
-      الآن يتم أخذ الخيارات من
-      currentConfig.dropdownOptions
-      التي تم تحديثها قبل فتح النموذج.
+      الخيارات مأخوذة مباشرة من بيانات الجدول
+      التي تم تحميلها سابقًا.
+
+      لا يوجد اتصال جديد بالخادم هنا.
     */
 
     const options=
-      currentConfig?.dropdownOptions?.[name]||
+      currentConfig
+        ?.dropdownOptions
+        ?.[name]||
       [];
 
+
     return `
+
       <div class="field">
 
         <label>
@@ -866,6 +1167,7 @@ function fieldHtml(column,values){
 
         </label>
 
+
         <select
           data-name="${esc(name)}"
           ${required?"required":""}>
@@ -874,13 +1176,15 @@ function fieldHtml(column,values){
             اختر...
           </option>
 
+
           ${
             options.map(o=>`
 
               <option
                 value="${esc(o)}"
                 ${
-                  String(o)===String(value)
+                  String(o)===
+                  String(value)
                   ?"selected"
                   :""
                 }>
@@ -894,15 +1198,22 @@ function fieldHtml(column,values){
 
         </select>
 
+
         ${
           options.length===0
           ?`
-            <small class="dropdown-loading">
+
+            <small
+              class="dropdown-loading">
+
               لا توجد خيارات مسجلة حاليًا
+
             </small>
+
           `
           :""
         }
+
 
         ${
           column.Allow_New_Option==="نعم"
@@ -918,18 +1229,23 @@ function fieldHtml(column,values){
         }
 
       </div>
+
     `;
 
   }
+
 
   /* True / False */
 
   if(type==="True / False"){
 
     const v=
-      String(value).toLowerCase();
+      String(value)
+        .toLowerCase();
+
 
     return `
+
       <div class="field">
 
         <label>
@@ -943,6 +1259,7 @@ function fieldHtml(column,values){
           }
 
         </label>
+
 
         <select
           data-name="${esc(name)}"
@@ -952,30 +1269,39 @@ function fieldHtml(column,values){
             اختر...
           </option>
 
+
           <option
             value="true"
             ${v==="true"?"selected":""}>
+
             نعم
+
           </option>
+
 
           <option
             value="false"
             ${v==="false"?"selected":""}>
+
             لا
+
           </option>
 
         </select>
 
       </div>
+
     `;
 
   }
+
 
   /* صورة */
 
   if(type==="صورة"){
 
     return `
+
       <div class="field">
 
         <label>
@@ -990,6 +1316,7 @@ function fieldHtml(column,values){
 
         </label>
 
+
         <button
           type="button"
           class="secondary"
@@ -998,6 +1325,7 @@ function fieldHtml(column,values){
           🖼️ إدراج صورة
 
         </button>
+
 
         <input
           type="file"
@@ -1009,6 +1337,7 @@ function fieldHtml(column,values){
             'preview_${esc(name)}'
           )">
 
+
         <img
           id="preview_${esc(name)}"
           class="image-preview"
@@ -1018,18 +1347,22 @@ function fieldHtml(column,values){
             :`style="display:none"`
           }>
 
+
         <input
           type="hidden"
           data-name="${esc(name)}"
           value="${esc(value)}">
 
       </div>
+
     `;
 
   }
 
+
   let inputType="text";
   let extra="";
+
 
   if(
     type==="رقم"||
@@ -1038,32 +1371,40 @@ function fieldHtml(column,values){
   ){
 
     inputType="text";
-    extra='inputmode="numeric"';
+
+    extra=
+      'inputmode="numeric"';
 
   }
+
 
   if(type==="رقم جوال"){
 
     inputType="tel";
+
     extra=
       'inputmode="numeric" maxlength="10"';
 
   }
 
+
   if(type==="تاريخ"){
 
     inputType="date";
+
 
     if(
       editRow===null&&
       !value
     ){
 
-      value=today();
+      value=
+        today();
 
     }
 
   }
+
 
   if(type==="وقت"){
 
@@ -1071,13 +1412,16 @@ function fieldHtml(column,values){
 
   }
 
+
   if(type==="رابط"){
 
     inputType="url";
 
   }
 
+
   return `
+
     <div class="field">
 
       <label>
@@ -1092,6 +1436,7 @@ function fieldHtml(column,values){
 
       </label>
 
+
       <input
         type="${inputType}"
         data-name="${esc(name)}"
@@ -1099,20 +1444,27 @@ function fieldHtml(column,values){
         ${extra}
         ${required?"required":""}>
 
+
       ${
         column.Condition_Message
         ?`
+
           <small>
-            ${esc(column.Condition_Message)}
+            ${esc(
+              column.Condition_Message
+            )}
           </small>
+
         `
         :""
       }
 
     </div>
+
   `;
 
 }
+
 
 /* =========================================================
    أحداث الحقول
@@ -1121,21 +1473,28 @@ function fieldHtml(column,values){
 function bindFieldEvents(){
 
   document
-    .querySelectorAll("#form input")
+    .querySelectorAll(
+      "#form input"
+    )
     .forEach(input=>{
 
-      const name=input.dataset.name;
+      const name=
+        input.dataset.name;
+
 
       if(!name)
         return;
+
 
       const column=
         getFields().find(
           c=>c.Column_Name===name
         );
 
+
       if(!column)
         return;
+
 
       if(
         column.Data_Type==="رقم"||
@@ -1146,21 +1505,31 @@ function bindFieldEvents(){
         input.addEventListener(
           "input",
           ()=>{
+
             input.value=
-              numericOnly(input.value);
+              numericOnly(
+                input.value
+              );
+
           }
         );
 
       }
 
-      if(column.Data_Type==="رقم جوال"){
+
+      if(
+        column.Data_Type==="رقم جوال"
+      ){
 
         input.addEventListener(
           "input",
           ()=>{
+
             input.value=
-              numericOnly(input.value)
-              .slice(0,10);
+              numericOnly(
+                input.value
+              ).slice(0,10);
+
           }
         );
 
@@ -1169,6 +1538,7 @@ function bindFieldEvents(){
     });
 
 }
+
 
 /* =========================================================
    الصور
@@ -1184,21 +1554,33 @@ function chooseImage(name){
 
 }
 
-function previewImage(input,id){
+
+function previewImage(
+  input,
+  id
+){
 
   const img=$(id);
 
   const file=
     input.files?.[0];
 
+
   if(!file){
 
-    img.style.display="none";
+    img.style.display=
+      "none";
+
     return;
 
   }
 
-  if(!file.type.startsWith("image/")){
+
+  if(
+    !file.type.startsWith(
+      "image/"
+    )
+  ){
 
     toast(
       "الملف المحدد ليس صورة",
@@ -1206,32 +1588,41 @@ function previewImage(input,id){
     );
 
     input.value="";
+
     return;
 
   }
 
+
   const reader=
     new FileReader();
 
+
   reader.onload=e=>{
 
-    img.src=e.target.result;
+    img.src=
+      e.target.result;
 
-    img.style.display="block";
+    img.style.display=
+      "block";
+
 
     const hidden=
       img.parentElement.querySelector(
         `input[type="hidden"][data-name]`
       );
 
+
     if(hidden)
       hidden.value="";
 
   };
 
+
   reader.readAsDataURL(file);
 
 }
+
 
 /* =========================================================
    التاريخ والوقت
@@ -1239,33 +1630,49 @@ function previewImage(input,id){
 
 function today(){
 
-  const d=new Date();
+  const d=
+    new Date();
 
-  const y=d.getFullYear();
+
+  const y=
+    d.getFullYear();
+
 
   const m=
-    String(d.getMonth()+1)
-      .padStart(2,"0");
+    String(
+      d.getMonth()+1
+    ).padStart(2,"0");
+
 
   const day=
-    String(d.getDate())
-      .padStart(2,"0");
+    String(
+      d.getDate()
+    ).padStart(2,"0");
+
 
   return `${y}-${m}-${day}`;
 
 }
 
+
 function currentTime(){
 
-  const d=new Date();
+  const d=
+    new Date();
+
 
   return `${
-    String(d.getHours()).padStart(2,"0")
+    String(
+      d.getHours()
+    ).padStart(2,"0")
   }:${
-    String(d.getMinutes()).padStart(2,"0")
+    String(
+      d.getMinutes()
+    ).padStart(2,"0")
   }`;
 
 }
+
 
 /* =========================================================
    جمع النموذج والتحقق
@@ -1274,6 +1681,7 @@ function currentTime(){
 function collectForm(){
 
   const data={};
+
 
   for(
     const element of
@@ -1285,10 +1693,12 @@ function collectForm(){
     const name=
       element.dataset.name;
 
+
     const column=
       getFields().find(
         c=>c.Column_Name===name
       );
+
 
     if(
       !column||
@@ -1296,8 +1706,10 @@ function collectForm(){
     )
       continue;
 
+
     let value=
       element.value.trim();
+
 
     if(
       column.Data_Type==="رقم"||
@@ -1305,13 +1717,19 @@ function collectForm(){
       column.Data_Type==="نسبة مئوية"
     ){
 
-      value=numericOnly(value);
+      value=
+        numericOnly(value);
 
     }
 
-    if(column.Data_Type==="رقم جوال"){
 
-      value=numericOnly(value);
+    if(
+      column.Data_Type==="رقم جوال"
+    ){
+
+      value=
+        numericOnly(value);
+
 
       if(
         value&&
@@ -1326,6 +1744,7 @@ function collectForm(){
 
     }
 
+
     if(
       column.Required==="إلزامي"&&
       !value
@@ -1337,16 +1756,24 @@ function collectForm(){
 
     }
 
+
     if(
       column.Data_Type==="وقت"&&
       !value
     ){
 
-      value=currentTime();
+      value=
+        currentTime();
 
     }
 
-    if(!checkCondition(value,column)){
+
+    if(
+      !checkCondition(
+        value,
+        column
+      )
+    ){
 
       throw Error(
         column.Condition_Message||
@@ -1355,13 +1782,14 @@ function collectForm(){
 
     }
 
+
     data[name]=value;
 
   }
 
+
   /*
-    الخيارات الجديدة:
-    تبقى نفس آلية النظام الحالية.
+    الخيارات الجديدة
   */
 
   document
@@ -1373,28 +1801,36 @@ function collectForm(){
       const name=
         input.dataset.newOption;
 
+
       const value=
         input.value.trim();
+
 
       if(value)
         data[name]=value;
 
     });
 
+
   return data;
 
 }
+
 
 /* =========================================================
    الشروط
 ========================================================= */
 
-function checkCondition(value,column){
+function checkCondition(
+  value,
+  column
+){
 
   const condition=
     String(
       column.Input_Condition||""
     ).trim();
+
 
   if(
     !condition||
@@ -1402,25 +1838,31 @@ function checkCondition(value,column){
   )
     return true;
 
+
   const n=
     Number(
       arabicToEnglish(value)
     );
+
 
   if(condition==="رقم جوال")
     return /^05\d{8}$/.test(
       numericOnly(value)
     );
 
+
   if(condition==="رقم موجب")
     return !isNaN(n)&&n>0;
+
 
   if(condition==="0-100")
     return !isNaN(n)&&
            n>=0&&
            n<=100;
 
+
   let m;
+
 
   if(
     (m=condition.match(
@@ -1434,6 +1876,7 @@ function checkCondition(value,column){
 
   }
 
+
   if(
     (m=condition.match(
       /^(<=|>=|==|=|!=|<|>)\s*(-?\d+(?:\.\d+)?)$/
@@ -1441,21 +1884,34 @@ function checkCondition(value,column){
   ){
 
     const op=m[1];
-    const x=Number(m[2]);
 
-    return op==="="?n===x:
-           op==="=="?n===x:
-           op==="!="?n!==x:
-           op==="<"?n<x:
-           op===">"?n>x:
-           op==="<="?n<=x:
-           op===">="?n>=x:false;
+    const x=
+      Number(m[2]);
+
+
+    return op==="="
+      ?n===x
+      :op==="=="
+      ?n===x
+      :op==="!="
+      ?n!==x
+      :op==="<"
+      ?n<x
+      :op===">"
+      ?n>x
+      :op==="<="
+      ?n<=x
+      :op===">="
+      ?n>=x
+      :false;
 
   }
+
 
   return true;
 
 }
+
 
 /* =========================================================
    الحفظ
@@ -1466,38 +1922,61 @@ async function saveRecord(){
   if(!currentTable)
     return;
 
+
   const button=
     $("saveButton");
 
+
   try{
 
-    button.disabled=true;
+    button.disabled=
+      true;
+
 
     const data=
       collectForm();
 
+
     const payload=
       editRow===null
       ?{
+
         action:"add",
-        tableId:currentTable.Table_ID,
+
+        tableId:
+          currentTable.Table_ID,
+
         data,
+
         values:data
+
       }
       :{
+
         action:"update",
-        tableId:currentTable.Table_ID,
-        rowNumber:editRow,
+
+        tableId:
+          currentTable.Table_ID,
+
+        rowNumber:
+          editRow,
+
         data,
+
         values:data
+
       };
 
+
     await post(payload);
+
 
     const wasEdit=
       editRow!==null;
 
+
     closeModal();
+
 
     toast(
       wasEdit
@@ -1505,27 +1984,19 @@ async function saveRecord(){
       :"تم حفظ السجل بنجاح"
     );
 
+
     /*
-      تحديث القوائم بعد الحفظ أيضًا.
-      وهذا مهم إذا كان الحفظ قد أضاف خيارًا جديدًا.
+      إعادة تحميل الجدول مرة واحدة.
+
+      عند إعادة التحميل:
+      يتم استخراج القوائم الجديدة
+      من نفس البيانات الجديدة.
     */
-
-    try{
-
-      await refreshDropdownOptions();
-
-    }catch(e){
-
-      console.warn(
-        "تعذر تحديث القوائم بعد الحفظ",
-        e
-      );
-
-    }
 
     await renderTable(
       currentTable.Table_ID
     );
+
 
   }catch(e){
 
@@ -1537,17 +2008,21 @@ async function saveRecord(){
 
   }finally{
 
-    button.disabled=false;
+    button.disabled=
+      false;
 
   }
 
 }
 
+
 /* =========================================================
    حذف
 ========================================================= */
 
-async function removeRecord(rowNumber){
+async function removeRecord(
+  rowNumber
+){
 
   if(
     !confirm(
@@ -1556,19 +2031,30 @@ async function removeRecord(rowNumber){
   )
     return;
 
+
   try{
 
     await post({
+
       action:"delete",
-      tableId:currentTable.Table_ID,
+
+      tableId:
+        currentTable.Table_ID,
+
       rowNumber
+
     });
 
-    toast("تم حذف السجل بنجاح");
+
+    toast(
+      "تم حذف السجل بنجاح"
+    );
+
 
     await renderTable(
       currentTable.Table_ID
     );
+
 
   }catch(e){
 
@@ -1581,6 +2067,7 @@ async function removeRecord(rowNumber){
   }
 
 }
+
 
 /* =========================================================
    PDF
@@ -1599,37 +2086,51 @@ async function openPDFReport(){
 
   }
 
+
   const modal=
     $("pdfModal");
+
 
   const preview=
     $("pdfPreview");
 
+
   const download=
     $("downloadPdfButton");
 
-  const share=
-    $("sharePdfButton");
 
-  modal.style.display="flex";
+  modal.style.display=
+    "flex";
+
 
   preview.innerHTML=
     '<div class="pdf-loading">جاري تحميل بيانات الكشف...</div>';
 
-  download.disabled=true;
-  share.disabled=true;
 
-  currentPdfBlob=null;
+  download.disabled=
+    true;
+
+
+  currentPdfBlob=
+    null;
+
 
   try{
 
     const data=
       await get("table",{
-        tableId:currentTable.Table_ID
+
+        tableId:
+          currentTable.Table_ID
+
       });
 
+
     const columns=
-      visibleColumns(data.columns);
+      visibleColumns(
+        data.columns
+      );
+
 
     if(!data.rows?.length){
 
@@ -1640,40 +2141,55 @@ async function openPDFReport(){
 
     }
 
+
     const title=
       data.table.Table_Title||
       data.table.Table_Name||
       "كشف";
 
+
     const dateText=
       new Date().toLocaleDateString(
         "ar-SA",
         {
+
           year:"numeric",
+
           month:"long",
+
           day:"numeric"
+
         }
       );
+
 
     currentPdfFileName=
       cleanFileName(
         `${title} - ${dateText}`
       )+".pdf";
 
+
     preview.innerHTML=`
 
       <div class="pdf-header">
 
-        <h1>${esc(title)}</h1>
+        <h1>
+          ${esc(title)}
+        </h1>
 
-        <h2>كشف البيانات</h2>
+        <h2>
+          كشف البيانات
+        </h2>
 
         <div class="pdf-date">
+
           تاريخ الإصدار:
           ${esc(dateText)}
+
         </div>
 
       </div>
+
 
       <table class="pdf-table">
 
@@ -1691,6 +2207,7 @@ async function openPDFReport(){
 
         </thead>
 
+
         <tbody>
 
           ${
@@ -1702,12 +2219,17 @@ async function openPDFReport(){
                   columns.map(c=>`
 
                     <td>
+
                       ${esc(
                         formatValue(
-                          getCellValue(row,c),
+                          getCellValue(
+                            row,
+                            c
+                          ),
                           c
                         )
                       )}
+
                     </td>
 
                   `).join("")
@@ -1722,6 +2244,7 @@ async function openPDFReport(){
 
       </table>
 
+
       <div class="pdf-footer">
 
         عدد السجلات:
@@ -1731,22 +2254,23 @@ async function openPDFReport(){
 
     `;
 
+
     toast(
       "جاري تجهيز ملف PDF..."
     );
 
-    /*
-      إنشاء PDF مسبقًا.
-    */
 
     await createPDF();
 
-    download.disabled=false;
-    share.disabled=false;
+
+    download.disabled=
+      false;
+
 
     toast(
       "تم تجهيز الكشف"
     );
+
 
   }catch(e){
 
@@ -1764,6 +2288,7 @@ async function openPDFReport(){
 
     `;
 
+
     toast(
       e.message,
       false
@@ -1772,6 +2297,7 @@ async function openPDFReport(){
   }
 
 }
+
 
 /* =========================================================
    إنشاء PDF
@@ -1784,48 +2310,70 @@ async function createPDF(){
       "تعذر تحميل مكتبة إنشاء PDF"
     );
 
+
   if(!window.jspdf?.jsPDF)
     throw Error(
       "تعذر تحميل محرك PDF"
     );
 
+
   const canvas=
     await html2canvas(
       $("pdfPreview"),
       {
+
         scale:2,
+
         useCORS:true,
+
         backgroundColor:"#fff",
+
         logging:false
+
       }
     );
+
 
   const {jsPDF}=
     window.jspdf;
 
+
   const pageWidth=210;
   const pageHeight=297;
   const margin=8;
+
+
   const width=
     pageWidth-margin*2;
 
+
   const sliceHeight=
     Math.floor(
+
       canvas.width*
       (pageHeight-margin*2)/
       width
+
     );
+
 
   let position=0;
   let page=0;
 
+
   const pdf=
     new jsPDF({
+
       orientation:"portrait",
+
       unit:"mm",
+
       format:"a4",
+
       compress:true
+
     });
+
 
   while(
     position<canvas.height
@@ -1837,18 +2385,29 @@ async function createPDF(){
         canvas.height-position
       );
 
+
     const pc=
       document.createElement(
         "canvas"
       );
 
-    pc.width=canvas.width;
-    pc.height=slice;
+
+    pc.width=
+      canvas.width;
+
+    pc.height=
+      slice;
+
 
     const ctx=
-      pc.getContext("2d");
+      pc.getContext(
+        "2d"
+      );
 
-    ctx.fillStyle="#fff";
+
+    ctx.fillStyle=
+      "#fff";
+
 
     ctx.fillRect(
       0,
@@ -1857,44 +2416,66 @@ async function createPDF(){
       pc.height
     );
 
+
     ctx.drawImage(
+
       canvas,
+
       0,
       position,
+
       canvas.width,
       slice,
+
       0,
       0,
+
       canvas.width,
       slice
+
     );
+
 
     if(page>0)
       pdf.addPage();
 
+
     pdf.addImage(
+
       pc.toDataURL(
         "image/jpeg",
         .92
       ),
+
       "JPEG",
+
       margin,
       margin,
+
       width,
-      slice*width/canvas.width
+
+      slice*
+      width/
+      canvas.width
+
     );
 
+
     position+=slice;
+
     page++;
 
   }
 
+
   currentPdfBlob=
     pdf.output("blob");
+
 
   return currentPdfBlob;
 
 }
+
 
 /* =========================================================
    تحميل PDF
@@ -1907,33 +2488,52 @@ async function downloadPDF(){
     if(!currentPdfBlob)
       await createPDF();
 
+
     const url=
       URL.createObjectURL(
         currentPdfBlob
       );
 
-    const link=
-      document.createElement("a");
 
-    link.href=url;
+    const link=
+      document.createElement(
+        "a"
+      );
+
+
+    link.href=
+      url;
+
 
     link.download=
       currentPdfFileName||
       "كشف.pdf";
 
-    document.body.appendChild(link);
+
+    document.body.appendChild(
+      link
+    );
+
 
     link.click();
 
+
     link.remove();
 
+
     setTimeout(()=>{
-      URL.revokeObjectURL(url);
+
+      URL.revokeObjectURL(
+        url
+      );
+
     },3000);
+
 
     toast(
       "تم إنشاء ملف PDF"
     );
+
 
   }catch(e){
 
@@ -1947,243 +2547,6 @@ async function downloadPDF(){
 
 }
 
-/* =========================================================
-   مشاركة PDF - الإصدار المحسن
-========================================================= */
-
-async function sharePDF(event){
-
-  const button=
-    $("sharePdfButton");
-
-  /*
-    منع أي سلوك افتراضي للزر.
-  */
-
-  if(event)
-    event.preventDefault();
-
-  try{
-
-    /*
-      يجب أن يكون PDF جاهزًا قبل الضغط.
-    */
-
-    if(!currentPdfBlob){
-
-      toast(
-        "ملف PDF غير جاهز، أعد فتح الكشف",
-        false
-      );
-
-      return;
-
-    }
-
-    /*
-      تحويل Blob إلى File.
-    */
-
-    const file=
-      new File(
-        [currentPdfBlob],
-        currentPdfFileName||
-        "كشف.pdf",
-        {
-          type:"application/pdf",
-          lastModified:Date.now()
-        }
-      );
-
-    /*
-      التحقق من وجود Web Share API.
-    */
-
-    if(
-      typeof navigator.share!=="function"
-    ){
-
-      /*
-        لا يوجد دعم للمشاركة المباشرة.
-        ننزل الملف بدلًا من إعطاء خطأ.
-      */
-
-      await downloadPDF();
-
-      toast(
-        "هذا المتصفح لا يدعم مشاركة الملفات مباشرة، تم تنزيل PDF",
-        false
-      );
-
-      return;
-
-    }
-
-    /*
-      بعض المتصفحات لا توفر canShare.
-      لذلك لا نجعل عدم وجودها سببًا لمنع المشاركة.
-    */
-
-    let fileSharingSupported=true;
-
-    if(
-      typeof navigator.canShare==="function"
-    ){
-
-      try{
-
-        fileSharingSupported=
-          navigator.canShare({
-            files:[file]
-          });
-
-      }catch(e){
-
-        fileSharingSupported=false;
-
-      }
-
-    }
-
-    /*
-      إذا كان المتصفح يعلن صراحة أنه لا يدعم
-      مشاركة الملفات، نجرب المشاركة العادية
-      أولًا إذا كانت متاحة.
-    */
-
-    if(!fileSharingSupported){
-
-      /*
-        محاولة المشاركة بالملف مباشرة.
-        بعض إصدارات أندرويد لا تعطي canShare
-        نتيجة صحيحة رغم أن share يعمل.
-      */
-
-      try{
-
-        await navigator.share({
-          title:
-            currentPdfFileName||
-            "كشف PDF",
-
-          text:
-            "كشف البيانات",
-
-          files:[file]
-        });
-
-        toast(
-          "تم فتح خيارات المشاركة"
-        );
-
-        return;
-
-      }catch(shareError){
-
-        /*
-          إذا كان الخطأ بسبب عدم دعم الملفات
-          ننتقل للتنزيل.
-        */
-
-        console.warn(
-          "مشاركة الملف غير مدعومة:",
-          shareError
-        );
-
-      }
-
-    }else{
-
-      /*
-        دعم مشاركة الملفات موجود.
-        نرسل الملف مباشرة.
-      */
-
-      await navigator.share({
-
-        title:
-          currentPdfFileName||
-          "كشف PDF",
-
-        text:
-          "كشف البيانات",
-
-        files:[file]
-
-      });
-
-      toast(
-        "تم فتح خيارات المشاركة"
-      );
-
-      return;
-
-    }
-
-    /*
-      الحل الاحتياطي النهائي.
-    */
-
-    await downloadPDF();
-
-    toast(
-      "تم تنزيل ملف PDF لأن المتصفح لا يسمح بمشاركته مباشرة",
-      false
-    );
-
-  }catch(e){
-
-    /*
-      الضغط على رجوع أو إغلاق نافذة المشاركة
-      ليس خطأ حقيقيًا.
-    */
-
-    if(
-      e?.name==="AbortError"
-    ){
-
-      toast(
-        "تم إلغاء المشاركة"
-      );
-
-      return;
-
-    }
-
-    console.error(
-      "PDF Share Error:",
-      e
-    );
-
-    /*
-      محاولة أخيرة لتنزيل الملف.
-    */
-
-    try{
-
-      await downloadPDF();
-
-      toast(
-        "تعذرت المشاركة المباشرة، تم تنزيل ملف PDF",
-        false
-      );
-
-    }catch(downloadError){
-
-      toast(
-        "تعذر مشاركة أو تنزيل ملف PDF",
-        false
-      );
-
-    }
-
-  }finally{
-
-    button.disabled=false;
-
-  }
-
-}
 
 /* =========================================================
    إغلاق PDF
@@ -2191,15 +2554,11 @@ async function sharePDF(event){
 
 function closePdfModal(){
 
-  $("pdfModal").style.display="none";
-
-  /*
-    لا نحذف الملف فورًا من الذاكرة.
-    حتى لا يحدث تعارض إذا كان المستخدم
-    أغلق النافذة ثم عاد إليها.
-  */
+  $("pdfModal").style.display=
+    "none";
 
 }
+
 
 /* =========================================================
    اسم الملف
@@ -2207,7 +2566,9 @@ function closePdfModal(){
 
 function cleanFileName(name){
 
-  return String(name||"كشف")
+  return String(
+    name||"كشف"
+  )
     .replace(
       /[\\/:*?"<>|]/g,
       "-"
@@ -2215,6 +2576,7 @@ function cleanFileName(name){
     .trim();
 
 }
+
 
 /* =========================================================
    الخطأ
@@ -2237,6 +2599,7 @@ function showError(message){
   `;
 
 }
+
 
 /* =========================================================
    تشغيل
