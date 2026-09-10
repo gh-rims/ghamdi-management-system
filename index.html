@@ -1,324 +1,5305 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام إدارة الجداول الديناميكي - الإصدار 3.0</title>
-    <!-- Bootstrap 5 RTL CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
-    <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <style>
-        body {
-            background-color: #f8f9fa;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        .card-header {
-            background-color: #0d6efd;
-            color: white;
-        }
-        .table-hover tbody tr:hover {
-            background-color: #f1f3f5;
-        }
-        .sortable {
-            cursor: pointer;
-        }
-        .sortable:hover {
-            background-color: rgba(255, 255, 255, 0.2);
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+
+<title>نظام إدارة الجداول الديناميكي – الغامدي</title>
+
+<style>
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+:root{
+    --primary:#0d6efd;
+    --primary-dark:#084298;
+    --success:#198754;
+    --danger:#dc3545;
+    --warning:#ffc107;
+    --bg:#f4f6f9;
+    --card:#ffffff;
+    --text:#212529;
+    --muted:#6c757d;
+    --border:#dee2e6;
+    --shadow:0 4px 18px rgba(0,0,0,.08);
+    --radius:14px;
+}
+
+body{
+    font-family:
+        Tahoma,
+        Arial,
+        "Segoe UI",
+        sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    min-height:100vh;
+}
+
+button,
+input,
+select,
+textarea{
+    font-family:inherit;
+}
+
+button{
+    cursor:pointer;
+}
+
+.hidden{
+    display:none !important;
+}
+
+/* =========================
+   شاشة التحميل
+========================= */
+
+#loadingScreen{
+    position:fixed;
+    inset:0;
+    background:#fff;
+    z-index:99999;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    gap:18px;
+}
+
+.loader{
+    width:46px;
+    height:46px;
+    border:5px solid #e9ecef;
+    border-top-color:var(--primary);
+    border-radius:50%;
+    animation:spin 1s linear infinite;
+}
+
+@keyframes spin{
+    to{transform:rotate(360deg);}
+}
+
+#loadingScreen p{
+    color:var(--muted);
+    font-size:14px;
+}
+
+/* =========================
+   Login
+========================= */
+
+#loginPage{
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:20px;
+}
+
+.login-card{
+    width:100%;
+    max-width:420px;
+    background:#fff;
+    border-radius:20px;
+    padding:30px 24px;
+    box-shadow:var(--shadow);
+}
+
+.login-logo{
+    width:80px;
+    height:80px;
+    border-radius:18px;
+    background:#f1f3f5;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin:0 auto 18px;
+    font-size:38px;
+}
+
+.login-title{
+    text-align:center;
+    font-size:22px;
+    font-weight:700;
+    margin-bottom:7px;
+}
+
+.login-subtitle{
+    text-align:center;
+    color:var(--muted);
+    font-size:13px;
+    margin-bottom:25px;
+}
+
+.form-group{
+    margin-bottom:16px;
+}
+
+.form-label{
+    display:block;
+    font-size:14px;
+    font-weight:700;
+    margin-bottom:7px;
+}
+
+.form-control{
+    width:100%;
+    min-height:46px;
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:10px 13px;
+    font-size:15px;
+    outline:none;
+    background:#fff;
+    transition:.2s;
+}
+
+.form-control:focus{
+    border-color:var(--primary);
+    box-shadow:0 0 0 3px rgba(13,110,253,.1);
+}
+
+textarea.form-control{
+    min-height:100px;
+    resize:vertical;
+}
+
+.btn{
+    border:0;
+    border-radius:10px;
+    min-height:44px;
+    padding:9px 16px;
+    font-size:14px;
+    font-weight:700;
+    transition:.2s;
+}
+
+.btn:disabled{
+    opacity:.55;
+    cursor:not-allowed;
+}
+
+.btn-primary{
+    background:var(--primary);
+    color:#fff;
+}
+
+.btn-primary:hover{
+    background:var(--primary-dark);
+}
+
+.btn-success{
+    background:var(--success);
+    color:#fff;
+}
+
+.btn-danger{
+    background:var(--danger);
+    color:#fff;
+}
+
+.btn-warning{
+    background:var(--warning);
+    color:#212529;
+}
+
+.btn-secondary{
+    background:#6c757d;
+    color:#fff;
+}
+
+.btn-light{
+    background:#f1f3f5;
+    color:#212529;
+}
+
+.btn-block{
+    width:100%;
+}
+
+.error-message{
+    background:#f8d7da;
+    color:#842029;
+    border:1px solid #f5c2c7;
+    border-radius:9px;
+    padding:10px 12px;
+    margin-bottom:15px;
+    font-size:13px;
+}
+
+/* =========================
+   App
+========================= */
+
+#app{
+    min-height:100vh;
+}
+
+.topbar{
+    background:#fff;
+    border-bottom:1px solid var(--border);
+    min-height:64px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:10px 18px;
+    position:sticky;
+    top:0;
+    z-index:1000;
+}
+
+.brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    min-width:0;
+}
+
+.brand-icon{
+    width:42px;
+    height:42px;
+    border-radius:10px;
+    background:#f1f3f5;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:22px;
+    flex:none;
+}
+
+.brand-text{
+    min-width:0;
+}
+
+.brand-title{
+    font-size:16px;
+    font-weight:800;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+.brand-user{
+    font-size:11px;
+    color:var(--muted);
+    margin-top:2px;
+}
+
+.top-actions{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    flex:none;
+}
+
+.icon-btn{
+    width:40px;
+    height:40px;
+    border:0;
+    border-radius:10px;
+    background:#f1f3f5;
+    font-size:18px;
+}
+
+.icon-btn:hover{
+    background:#e9ecef;
+}
+
+/* =========================
+   Main
+========================= */
+
+.main{
+    max-width:1400px;
+    margin:auto;
+    padding:18px;
+}
+
+.page-header{
+    margin-bottom:18px;
+}
+
+.page-title{
+    font-size:23px;
+    font-weight:800;
+    margin-bottom:5px;
+}
+
+.page-description{
+    color:var(--muted);
+    font-size:13px;
+}
+
+/* =========================
+   Tables cards
+========================= */
+
+.tables-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(230px,1fr));
+    gap:15px;
+}
+
+.table-card{
+    background:#fff;
+    border:2px solid transparent;
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:18px;
+    min-height:145px;
+    transition:.2s;
+    cursor:pointer;
+    position:relative;
+}
+
+.table-card:hover{
+    transform:translateY(-2px);
+    border-color:#cfe2ff;
+}
+
+.table-card-icon{
+    width:48px;
+    height:48px;
+    border-radius:12px;
+    background:#eef5ff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:25px;
+    margin-bottom:13px;
+}
+
+.table-card-title{
+    font-size:17px;
+    font-weight:800;
+    margin-bottom:5px;
+}
+
+.table-card-name{
+    font-size:12px;
+    color:var(--muted);
+}
+
+.empty-state{
+    background:#fff;
+    border-radius:var(--radius);
+    padding:40px 20px;
+    text-align:center;
+    color:var(--muted);
+    box-shadow:var(--shadow);
+}
+
+.empty-icon{
+    font-size:40px;
+    margin-bottom:10px;
+}
+
+/* =========================
+   Table page
+========================= */
+
+.table-toolbar{
+    background:#fff;
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:13px;
+    margin-bottom:15px;
+}
+
+.toolbar-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+}
+
+.search-box{
+    flex:1 1 220px;
+    position:relative;
+}
+
+.search-box input{
+    width:100%;
+    min-height:44px;
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:9px 42px 9px 12px;
+    outline:none;
+}
+
+.search-box span{
+    position:absolute;
+    right:14px;
+    top:50%;
+    transform:translateY(-50%);
+    color:var(--muted);
+}
+
+.pages-nav{
+    display:flex;
+    gap:7px;
+    flex-wrap:wrap;
+    margin-top:12px;
+}
+
+.page-btn{
+    border:1px solid var(--border);
+    background:#fff;
+    border-radius:9px;
+    padding:8px 13px;
+    font-size:13px;
+    font-weight:700;
+}
+
+.page-btn.active{
+    background:var(--primary);
+    color:#fff;
+    border-color:var(--primary);
+}
+
+/* =========================
+   Data table
+========================= */
+
+.data-wrapper{
+    background:#fff;
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    overflow:hidden;
+}
+
+.table-scroll{
+    width:100%;
+    overflow:auto;
+    -webkit-overflow-scrolling:touch;
+}
+
+.data-table{
+    width:100%;
+    border-collapse:collapse;
+    min-width:650px;
+}
+
+.data-table th,
+.data-table td{
+    border-bottom:1px solid #edf0f2;
+    padding:11px 12px;
+    text-align:right;
+    vertical-align:middle;
+    font-size:13px;
+}
+
+.data-table th{
+    background:#f8f9fa;
+    font-weight:800;
+    position:sticky;
+    top:0;
+    z-index:2;
+    white-space:nowrap;
+}
+
+.data-table tbody tr:hover{
+    background:#fafcff;
+}
+
+.data-table td{
+    max-width:280px;
+}
+
+.cell-image{
+    width:55px;
+    height:55px;
+    border-radius:8px;
+    object-fit:cover;
+    cursor:pointer;
+    border:1px solid var(--border);
+}
+
+.operation-cell{
+    font-weight:700;
+}
+
+.row-actions{
+    display:flex;
+    gap:5px;
+    white-space:nowrap;
+}
+
+.small-btn{
+    border:0;
+    border-radius:7px;
+    padding:7px 9px;
+    font-size:12px;
+    font-weight:700;
+}
+
+.edit-btn{
+    background:#e7f1ff;
+    color:#084298;
+}
+
+.delete-btn{
+    background:#fde7e9;
+    color:#b02a37;
+}
+
+.pagination{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:7px;
+    padding:14px;
+    flex-wrap:wrap;
+}
+
+.pagination button{
+    min-width:36px;
+    height:36px;
+    border:1px solid var(--border);
+    border-radius:8px;
+    background:#fff;
+}
+
+.pagination button.active{
+    background:var(--primary);
+    color:#fff;
+    border-color:var(--primary);
+}
+
+/* =========================
+   Modal
+========================= */
+
+.modal{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.45);
+    z-index:5000;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:15px;
+}
+
+.modal-box{
+    width:100%;
+    max-width:650px;
+    max-height:92vh;
+    overflow:auto;
+    background:#fff;
+    border-radius:18px;
+    box-shadow:0 20px 60px rgba(0,0,0,.2);
+}
+
+.modal-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:16px 18px;
+    border-bottom:1px solid var(--border);
+    position:sticky;
+    top:0;
+    background:#fff;
+    z-index:3;
+}
+
+.modal-title{
+    font-size:18px;
+    font-weight:800;
+}
+
+.modal-close{
+    width:36px;
+    height:36px;
+    border:0;
+    border-radius:9px;
+    background:#f1f3f5;
+    font-size:20px;
+}
+
+.modal-body{
+    padding:18px;
+}
+
+.modal-footer{
+    display:flex;
+    justify-content:flex-start;
+    gap:8px;
+    padding:14px 18px;
+    border-top:1px solid var(--border);
+    position:sticky;
+    bottom:0;
+    background:#fff;
+}
+
+.dynamic-field{
+    margin-bottom:16px;
+}
+
+.dynamic-field.hidden-field{
+    display:none;
+}
+
+.field-required{
+    color:var(--danger);
+    margin-right:3px;
+}
+
+.condition-message{
+    color:var(--danger);
+    font-size:11px;
+    margin-top:5px;
+}
+
+.readonly-field{
+    background:#f8f9fa;
+    color:#6c757d;
+}
+
+/* =========================
+   Toast
+========================= */
+
+#toastContainer{
+    position:fixed;
+    left:15px;
+    bottom:15px;
+    z-index:10000;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    max-width:calc(100vw - 30px);
+}
+
+.toast{
+    min-width:240px;
+    max-width:380px;
+    background:#212529;
+    color:#fff;
+    border-radius:10px;
+    padding:12px 14px;
+    box-shadow:var(--shadow);
+    font-size:13px;
+    animation:toastIn .25s ease;
+}
+
+.toast.success{
+    background:#198754;
+}
+
+.toast.error{
+    background:#dc3545;
+}
+
+.toast.warning{
+    background:#ffc107;
+    color:#212529;
+}
+
+@keyframes toastIn{
+    from{
+        opacity:0;
+        transform:translateY(10px);
+    }
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+
+/* =========================
+   Alerts
+========================= */
+
+.alert-list{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    margin-bottom:15px;
+}
+
+.system-alert{
+    padding:12px 14px;
+    border-radius:10px;
+    border-right:5px solid var(--danger);
+    background:#fff1f2;
+    color:#842029;
+    font-size:13px;
+}
+
+/* =========================
+   Image viewer
+========================= */
+
+.image-viewer{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.88);
+    z-index:9000;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:20px;
+}
+
+.image-viewer img{
+    max-width:100%;
+    max-height:90vh;
+    object-fit:contain;
+}
+
+.image-close{
+    position:absolute;
+    top:15px;
+    left:15px;
+    width:42px;
+    height:42px;
+    border:0;
+    border-radius:10px;
+    background:#fff;
+    font-size:23px;
+}
+
+/* =========================
+   Mobile
+========================= */
+
+@media(max-width:600px){
+
+    .topbar{
+        padding:9px 11px;
+    }
+
+    .brand-title{
+        font-size:14px;
+    }
+
+    .brand-icon{
+        width:38px;
+        height:38px;
+    }
+
+    .main{
+        padding:12px;
+    }
+
+    .page-title{
+        font-size:20px;
+    }
+
+    .tables-grid{
+        grid-template-columns:1fr;
+    }
+
+    .table-card{
+        min-height:125px;
+    }
+
+    .toolbar-row .btn{
+        flex:1;
+    }
+
+    .modal{
+        padding:7px;
+        align-items:flex-end;
+    }
+
+    .modal-box{
+        max-height:95vh;
+        border-radius:18px 18px 0 0;
+    }
+
+    .modal-footer{
+        flex-wrap:wrap;
+    }
+
+    .modal-footer .btn{
+        flex:1;
+    }
+}
+</style>
 </head>
+
 <body>
 
-<div class="container my-4">
-    <!-- Header Card -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h3 class="mb-0"><i class="fa-solid fa-table me-2"></i>نظام إدارة الجداول الديناميكي v3.0</h3>
-            <span class="badge bg-light text-primary">متوافق مع GitHub Pages</span>
-        </div>
-        <div class="card-body">
-            <!-- Controls Toolbar -->
-            <div class="row g-2 mb-3">
-                <div class="col-md-4">
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="fa-solid fa-search"></i></span>
-                        <input type="text" id="searchInput" class="form-control" placeholder="بحث في الجدول...">
-                    </div>
-                </div>
-                <div class="col-md-8 d-flex gap-2 justify-content-md-end flex-wrap">
-                    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#rowModal" onclick="prepareAddModal()">
-                        <i class="fa-solid fa-plus me-1"></i> إضافة عنصر
-                    </button>
-                    <button class="btn btn-primary" onclick="exportToCSV()">
-                        <i class="fa-solid fa-file-csv me-1"></i> تصدير CSV
-                    </button>
-                    <label class="btn btn-secondary mb-0">
-                        <i class="fa-solid fa-file-import me-1"></i> استيراد CSV
-                        <input type="file" id="importCsvInput" accept=".csv" style="display: none;" onchange="importFromCSV(event)">
-                    </label>
-                    <button class="btn btn-danger" onclick="resetData()">
-                        <i class="fa-solid fa-rotate-right me-1"></i> إعادة ضبط
-                    </button>
-                </div>
-            </div>
+<!-- =========================
+     Loading
+========================= -->
 
-            <!-- Table Section -->
-            <div class="table-responsive">
-                <table class="table table-bordered table-hover align-middle" id="dynamicTable">
-                    <thead class="table-dark">
-                        <tr id="tableHeader">
-                            <!-- Dynamic Columns rendered by JS -->
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody">
-                        <!-- Dynamic Rows rendered by JS -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+<div id="loadingScreen">
+    <div class="loader"></div>
+    <p>جاري تحميل النظام...</p>
 </div>
 
-<!-- Modal for Adding / Editing Rows -->
-<div class="modal fade" id="rowModal" tabindex="-1" aria-labelledby="rowModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="rowModalLabel">إضافة / تعديل عنصر</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+<!-- =========================
+     Login
+========================= -->
+
+<section id="loginPage" class="hidden">
+
+    <div class="login-card">
+
+        <div class="login-logo">📊</div>
+
+        <div class="login-title">
+            نظام إدارة الجداول
+        </div>
+
+        <div class="login-subtitle">
+            الغامدي
+        </div>
+
+        <div id="loginError" class="error-message hidden"></div>
+
+        <form id="loginForm">
+
+            <div class="form-group">
+                <label class="form-label">اسم المستخدم</label>
+                <input
+                    id="loginUsername"
+                    class="form-control"
+                    type="text"
+                    autocomplete="username"
+                    required
+                >
             </div>
-            <div class="modal-body">
-                <form id="rowForm">
-                    <input type="hidden" id="rowIndex">
-                    <div id="dynamicFormFields">
-                        <!-- Form fields generated dynamically -->
+
+            <div class="form-group">
+                <label class="form-label">كلمة المرور</label>
+                <input
+                    id="loginPassword"
+                    class="form-control"
+                    type="password"
+                    autocomplete="current-password"
+                    required
+                >
+            </div>
+
+            <button
+                id="loginBtn"
+                type="submit"
+                class="btn btn-primary btn-block"
+            >
+                تسجيل الدخول
+            </button>
+
+        </form>
+
+    </div>
+
+</section>
+
+<!-- =========================
+     Application
+========================= -->
+
+<section id="app" class="hidden">
+
+    <header class="topbar">
+
+        <div class="brand">
+
+            <div class="brand-icon">
+                📊
+            </div>
+
+            <div class="brand-text">
+
+                <div class="brand-title">
+                    نظام إدارة الجداول
+                </div>
+
+                <div id="currentUser" class="brand-user">
+                    —
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="top-actions">
+
+            <button
+                class="icon-btn"
+                title="الرئيسية"
+                onclick="showHome()"
+            >
+                🏠
+            </button>
+
+            <button
+                class="icon-btn"
+                title="تحديث"
+                onclick="refreshCurrentPage()"
+            >
+                🔄
+            </button>
+
+            <button
+                class="icon-btn"
+                title="تسجيل الخروج"
+                onclick="logout()"
+            >
+                🚪
+            </button>
+
+        </div>
+
+    </header>
+
+    <main class="main">
+
+        <!-- Home -->
+
+        <section id="homeView">
+
+            <div class="page-header">
+
+                <div class="page-title">
+                    الجداول
+                </div>
+
+                <div class="page-description">
+                    اختر الجدول الذي تريد الدخول إليه
+                </div>
+
+            </div>
+
+            <div id="homeAlerts" class="alert-list"></div>
+
+            <div id="tablesContainer"></div>
+
+        </section>
+
+        <!-- Table -->
+
+        <section id="tableView" class="hidden">
+
+            <div class="page-header">
+
+                <div
+                    class="page-title"
+                    id="tableTitle"
+                >
+                    —
+                </div>
+
+                <div
+                    class="page-description"
+                    id="sheetTitle"
+                >
+                    —
+                </div>
+
+            </div>
+
+            <div class="table-toolbar">
+
+                <div class="toolbar-row">
+
+                    <button
+                        class="btn btn-light"
+                        onclick="showHome()"
+                    >
+                        ← الرئيسية
+                    </button>
+
+                    <div class="search-box">
+
+                        <span>🔍</span>
+
+                        <input
+                            id="searchInput"
+                            type="search"
+                            placeholder="بحث في البيانات..."
+                            oninput="handleLocalSearch()"
+                        >
+
                     </div>
-                </form>
+
+                    <button
+                        id="addRecordBtn"
+                        class="btn btn-success"
+                        onclick="openAddModal()"
+                    >
+                        ＋ إضافة
+                    </button>
+
+                </div>
+
+                <div
+                    id="pagesNav"
+                    class="pages-nav"
+                ></div>
+
             </div>
+
+            <div id="tableAlerts" class="alert-list"></div>
+
+            <div id="dataContainer"></div>
+
+        </section>
+
+    </main>
+
+</section>
+
+<!-- =========================
+     Dynamic Modal
+========================= -->
+
+<div
+    id="recordModal"
+    class="modal hidden"
+    onclick="closeModalOutside(event)"
+>
+
+    <div class="modal-box">
+
+        <div class="modal-header">
+
+            <div
+                id="recordModalTitle"
+                class="modal-title"
+            >
+                إضافة سجل
+            </div>
+
+            <button
+                class="modal-close"
+                onclick="closeRecordModal()"
+            >
+                ×
+            </button>
+
+        </div>
+
+        <form id="recordForm">
+
+            <div
+                id="recordFields"
+                class="modal-body"
+            ></div>
+
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
-                <button type="button" class="btn btn-primary" onclick="saveRow()">حفظ التغييرات</button>
+
+                <button
+                    type="button"
+                    class="btn btn-light"
+                    onclick="closeRecordModal()"
+                >
+                    إلغاء
+                </button>
+
+                <button
+                    id="saveRecordBtn"
+                    type="submit"
+                    class="btn btn-primary"
+                >
+                    حفظ
+                </button>
+
             </div>
-        </div>
+
+        </form>
+
     </div>
+
 </div>
 
-<!-- Bootstrap 5 JS Bundle -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- =========================
+     Confirm Modal
+========================= -->
 
-<!-- Main Script v3.0 -->
+<div
+    id="confirmModal"
+    class="modal hidden"
+>
+
+    <div class="modal-box">
+
+        <div class="modal-header">
+
+            <div class="modal-title">
+                تأكيد العملية
+            </div>
+
+            <button
+                class="modal-close"
+                onclick="closeConfirm()"
+            >
+                ×
+            </button>
+
+        </div>
+
+        <div class="modal-body">
+
+            <p id="confirmMessage">
+                هل أنت متأكد؟
+            </p>
+
+        </div>
+
+        <div class="modal-footer">
+
+            <button
+                class="btn btn-light"
+                onclick="closeConfirm()"
+            >
+                إلغاء
+            </button>
+
+            <button
+                id="confirmButton"
+                class="btn btn-danger"
+            >
+                تأكيد
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- =========================
+     Image Viewer
+========================= -->
+
+<div
+    id="imageViewer"
+    class="image-viewer hidden"
+>
+
+    <button
+        class="image-close"
+        onclick="closeImageViewer()"
+    >
+        ×
+    </button>
+
+    <img
+        id="viewerImage"
+        src=""
+        alt="صورة"
+    >
+
+</div>
+
+<div id="toastContainer"></div>
+
 <script>
-    // System Schema and Initial Data
-    const defaultSchema = [
-        { key: 'id', title: 'المعرف', type: 'number' },
-        { key: 'name', title: 'الاسم', type: 'text' },
-        { key: 'category', title: 'الفئة', type: 'text' },
-        { key: 'status', title: 'الحالة', type: 'text' },
-        { key: 'price', title: 'السعر ($)', type: 'number' }
-    ];
 
-    const initialData = [
-        { id: 1, name: 'خادم سحابي', category: 'البنية التحتية', status: 'نشط', price: 120 },
-        { id: 2, name: 'قاعدة بيانات PostgreSQL', category: 'البيانات', status: 'نشط', price: 80 },
-        { id: 3, name: 'نظام التخزين الموزع', category: 'التخزين', status: 'متوقف', price: 45 }
-    ];
+/* =========================================================
+   CONFIG
+========================================================= */
 
-    let schema = JSON.parse(localStorage.getItem('dt_schema')) || defaultSchema;
-    let tableData = JSON.parse(localStorage.getItem('dt_data')) || initialData;
-    let currentSort = { column: null, ascending: true };
+const API_URL =
+"https://script.google.com/macros/s/AKfycbw2FA_As7StLELc0xApapxVDYNa1dcYJT8dxQe06JBMp_fd8OsyLOq57KAECkG3MuxaGA/exec";
 
-    // Initialize App
-    document.addEventListener('DOMContentLoaded', () => {
-        renderTable();
-        document.getElementById('searchInput').addEventListener('input', renderTable);
+const SESSION_KEY =
+"ghamdi_management_session";
+
+const REQUEST_PREFIX =
+"GHAMDI_REQ_";
+
+/* =========================================================
+   STATE
+========================================================= */
+
+const state = {
+
+    sessionToken: null,
+
+    userType: null,
+
+    userId: null,
+
+    username: null,
+
+    displayName: null,
+
+    tables: [],
+
+    currentTable: null,
+
+    currentSheet: null,
+
+    currentPermission: null,
+
+    columns: [],
+
+    rows: [],
+
+    filteredRows: [],
+
+    dropdowns: {},
+
+    editingRow: null,
+
+    editingIndex: -1,
+
+    page: 1,
+
+    pageSize: 25,
+
+    loading: false
+
+};
+
+/* =========================================================
+   DOM
+========================================================= */
+
+const $ = id => document.getElementById(id);
+
+/* =========================================================
+   INIT
+========================================================= */
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    $("loadingScreen").classList.remove("hidden");
+
+    restoreSession();
+
+});
+
+/* =========================================================
+   SESSION STORAGE
+========================================================= */
+
+function saveSession(data){
+
+    const session = {
+
+        sessionToken:data.sessionToken,
+
+        userType:data.userType,
+
+        userId:data.userId || null,
+
+        username:data.username || null,
+
+        displayName:data.displayName || null,
+
+        sessionExpiresAt:data.sessionExpiresAt || null
+
+    };
+
+    localStorage.setItem(
+        SESSION_KEY,
+        JSON.stringify(session)
+    );
+
+}
+
+function getSavedSession(){
+
+    try{
+
+        const raw =
+            localStorage.getItem(SESSION_KEY);
+
+        if(!raw) return null;
+
+        return JSON.parse(raw);
+
+    }catch(e){
+
+        return null;
+
+    }
+
+}
+
+function clearSession(){
+
+    localStorage.removeItem(SESSION_KEY);
+
+    state.sessionToken = null;
+    state.userType = null;
+    state.userId = null;
+    state.username = null;
+    state.displayName = null;
+
+}
+
+/* =========================================================
+   RESTORE SESSION
+========================================================= */
+
+async function restoreSession(){
+
+    const session =
+        getSavedSession();
+
+    if(!session || !session.sessionToken){
+
+        showLogin();
+
+        return;
+
+    }
+
+    state.sessionToken =
+        session.sessionToken;
+
+    state.userType =
+        session.userType;
+
+    state.userId =
+        session.userId;
+
+    state.username =
+        session.username;
+
+    state.displayName =
+        session.displayName;
+
+    try{
+
+        const result =
+            await api("session", {});
+
+        if(result.success){
+
+            applySessionData(
+                result.data || {}
+            );
+
+            showApp();
+
+            await loadTables();
+
+        }else{
+
+            clearSession();
+
+            showLogin();
+
+        }
+
+    }catch(error){
+
+        /*
+         * إذا كان الاتصال متعذراً نحتفظ بالجلسة
+         * ونحاول الدخول للنظام.
+         */
+
+        showApp();
+
+        await loadTables();
+
+    }
+
+}
+
+/* =========================================================
+   LOGIN
+========================================================= */
+
+$("loginForm").addEventListener(
+    "submit",
+    async function(event){
+
+        event.preventDefault();
+
+        const username =
+            $("loginUsername").value.trim();
+
+        const password =
+            $("loginPassword").value;
+
+        if(!username || !password){
+
+            showLoginError(
+                "أدخل اسم المستخدم وكلمة المرور."
+            );
+
+            return;
+
+        }
+
+        setLoginLoading(true);
+
+        try{
+
+            const result =
+                await api(
+                    "login",
+                    {
+                        username:username,
+                        password:password
+                    },
+                    false
+                );
+
+            if(!result.success){
+
+                showLoginError(
+                    result.message ||
+                    "بيانات تسجيل الدخول غير صحيحة."
+                );
+
+                return;
+
+            }
+
+            applySessionData(
+                result.data || {}
+            );
+
+            saveSession(
+                result.data || {}
+            );
+
+            $("loginPassword").value = "";
+
+            showApp();
+
+            await loadTables();
+
+        }catch(error){
+
+            showLoginError(
+                "تعذر الاتصال بالخادم."
+            );
+
+        }finally{
+
+            setLoginLoading(false);
+
+        }
+
+    }
+);
+
+/* =========================================================
+   SESSION DATA
+========================================================= */
+
+function applySessionData(data){
+
+    state.sessionToken =
+        data.sessionToken ||
+        state.sessionToken;
+
+    state.userType =
+        data.userType ||
+        state.userType;
+
+    state.userId =
+        data.userId ||
+        state.userId;
+
+    state.username =
+        data.username ||
+        state.username;
+
+    state.displayName =
+        data.displayName ||
+        state.displayName;
+
+    $("currentUser").textContent =
+        state.displayName ||
+        state.username ||
+        (state.userType === "admin"
+            ? "المدير"
+            : "المستخدم");
+
+}
+
+/* =========================================================
+   LOGIN UI
+========================================================= */
+
+function showLogin(){
+
+    $("loadingScreen")
+        .classList.add("hidden");
+
+    $("app")
+        .classList.add("hidden");
+
+    $("loginPage")
+        .classList.remove("hidden");
+
+    $("loginUsername").focus();
+
+}
+
+function showApp(){
+
+    $("loadingScreen")
+        .classList.add("hidden");
+
+    $("loginPage")
+        .classList.add("hidden");
+
+    $("app")
+        .classList.remove("hidden");
+
+}
+
+function setLoginLoading(loading){
+
+    const btn =
+        $("loginBtn");
+
+    btn.disabled =
+        loading;
+
+    btn.textContent =
+        loading
+        ? "جاري تسجيل الدخول..."
+        : "تسجيل الدخول";
+
+}
+
+function showLoginError(message){
+
+    const box =
+        $("loginError");
+
+    box.textContent =
+        message;
+
+    box.classList.remove(
+        "hidden"
+    );
+
+}
+
+/* =========================================================
+   API
+========================================================= */
+
+async function api(
+    action,
+    payload = {},
+    useSession = true
+){
+
+    const body = {
+
+        action:action,
+
+        payload:payload
+
+    };
+
+    if(useSession){
+
+        body.sessionToken =
+            state.sessionToken;
+
+    }
+
+    const response =
+        await fetch(
+            API_URL,
+            {
+                method:"POST",
+                headers:{
+                    "Content-Type":
+                        "text/plain;charset=utf-8"
+                },
+                body:JSON.stringify(body)
+            }
+        );
+
+    if(!response.ok){
+
+        throw new Error(
+            "HTTP " + response.status
+        );
+
+    }
+
+    const text =
+        await response.text();
+
+    let result;
+
+    try{
+
+        result =
+            JSON.parse(text);
+
+    }catch(e){
+
+        throw new Error(
+            "Invalid server response"
+        );
+
+    }
+
+    if(
+        result &&
+        result.success === false &&
+        isSessionError(result.message)
+    ){
+
+        handleExpiredSession();
+
+    }
+
+    return result;
+
+}
+
+/* =========================================================
+   SESSION ERROR
+========================================================= */
+
+function isSessionError(message){
+
+    if(!message) return false;
+
+    const text =
+        String(message);
+
+    return (
+        text.includes("الجلسة") ||
+        text.includes("انتهت") ||
+        text.includes("تسجيل الدخول") ||
+        text.includes("جلسة غير")
+    );
+
+}
+
+function handleExpiredSession(){
+
+    clearSession();
+
+    showLogin();
+
+    showToast(
+        "انتهت الجلسة، يرجى تسجيل الدخول مرة أخرى.",
+        "warning"
+    );
+
+}
+
+/* =========================================================
+   LOGOUT
+========================================================= */
+
+async function logout(){
+
+    try{
+
+        if(state.sessionToken){
+
+            await api(
+                "logout",
+                {}
+            );
+
+        }
+
+    }catch(e){
+
+        // تجاهل خطأ الاتصال عند تسجيل الخروج
+
+    }
+
+    clearSession();
+
+    state.tables = [];
+
+    state.rows = [];
+
+    showLogin();
+
+}
+
+/* =========================================================
+   TABLES
+========================================================= */
+
+async function loadTables(){
+
+    showLoadingText(
+        "جاري تحميل الجداول..."
+    );
+
+    try{
+
+        const result =
+            await api(
+                "tables",
+                {}
+            );
+
+        if(!result.success){
+
+            renderEmpty(
+                $("tablesContainer"),
+                result.message ||
+                "تعذر تحميل الجداول."
+            );
+
+            return;
+
+        }
+
+        state.tables =
+            Array.isArray(result.data)
+            ? result.data
+            : [];
+
+        renderTables();
+
+    }catch(error){
+
+        renderEmpty(
+            $("tablesContainer"),
+            "تعذر الاتصال بالخادم."
+        );
+
+    }
+
+}
+
+function renderTables(){
+
+    const container =
+        $("tablesContainer");
+
+    if(!state.tables.length){
+
+        renderEmpty(
+            container,
+            "لا توجد جداول متاحة."
+        );
+
+        return;
+
+    }
+
+    const grid =
+        document.createElement("div");
+
+    grid.className =
+        "tables-grid";
+
+    state.tables.forEach(table => {
+
+        const card =
+            document.createElement("div");
+
+        card.className =
+            "table-card";
+
+        card.onclick = () =>
+            openTable(table);
+
+        card.innerHTML = `
+
+            <div class="table-card-icon">
+                ${escapeHtml(
+                    table.Icon || "📊"
+                )}
+            </div>
+
+            <div class="table-card-title">
+                ${escapeHtml(
+                    table.Table_Title ||
+                    table.Table_Name ||
+                    "جدول"
+                )}
+            </div>
+
+            <div class="table-card-name">
+                ${escapeHtml(
+                    table.Table_Name || ""
+                )}
+            </div>
+
+        `;
+
+        grid.appendChild(card);
+
     });
 
-    // Save state to LocalStorage
-    function saveData() {
-        localStorage.setItem('dt_data', JSON.stringify(tableData));
-        localStorage.setItem('dt_schema', JSON.stringify(schema));
+    container.innerHTML = "";
+
+    container.appendChild(grid);
+
+}
+
+/* =========================================================
+   OPEN TABLE
+========================================================= */
+
+async function openTable(table){
+
+    state.currentTable =
+        table;
+
+    state.currentSheet =
+        findMainSheet(table);
+
+    if(!state.currentSheet){
+
+        showToast(
+            "لا توجد صفحة رئيسية لهذا الجدول.",
+            "error"
+        );
+
+        return;
+
     }
 
-    // Render Table
-    function renderTable() {
-        const headerRow = document.getElementById('tableHeader');
-        const body = document.getElementById('tableBody');
-        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    $("homeView")
+        .classList.add("hidden");
 
-        // Render Headers
-        headerRow.innerHTML = schema.map(col => `
-            <th class="sortable" onclick="sortTable('${col.key}')">
-                ${col.title} <i class="fa-solid fa-sort fs-6"></i>
-            </th>
-        `).join('') + '<th class="text-center">الإجراءات</th>';
+    $("tableView")
+        .classList.remove("hidden");
 
-        // Filter Data
-        let filteredData = tableData.filter(row => {
-            return schema.some(col => String(row[col.key] || '').toLowerCase().includes(searchTerm));
-        });
+    $("tableTitle").textContent =
+        table.Table_Title ||
+        table.Table_Name ||
+        "الجدول";
 
-        // Render Body
-        if (filteredData.length === 0) {
-            body.innerHTML = `<tr><td colspan="${schema.length + 1}" class="text-center text-muted">لا توجد بيانات للعرض</td></tr>`;
-            return;
-        }
+    await loadTablePages();
 
-        body.innerHTML = filteredData.map((row, index) => `
-            <tr>
-                ${schema.map(col => `<td>${row[col.key] !== undefined ? row[col.key] : ''}</td>`).join('')}
-                <td class="text-center">
-                    <button class="btn btn-sm btn-outline-primary me-1" onclick="prepareEditModal(${index})">
-                        <i class="fa-solid fa-pen"></i>
-                    </button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="deleteRow(${index})">
-                        <i class="fa-solid fa-trash"></i>
-                    </button>
-                </td>
-            </tr>
-        `).join('');
+}
+
+/* =========================================================
+   FIND MAIN SHEET
+========================================================= */
+
+function findMainSheet(table){
+
+    if(!table) return null;
+
+    if(Array.isArray(table.pages)){
+
+        return (
+            table.pages.find(
+                page =>
+                    Number(page.Sheet_ID) === 1
+            ) ||
+            table.pages[0] ||
+            null
+        );
+
     }
 
-    // Sort Functionality
-    function sortTable(columnKey) {
-        if (currentSort.column === columnKey) {
-            currentSort.ascending = !currentSort.ascending;
-        } else {
-            currentSort.column = columnKey;
-            currentSort.ascending = true;
-        }
+    return table;
 
-        tableData.sort((a, b) => {
-            let valA = a[columnKey] ?? '';
-            let valB = b[columnKey] ?? '';
-            if (typeof valA === 'number' && typeof valB === 'number') {
-                return currentSort.ascending ? valA - valB : valB - valA;
+}
+
+/* =========================================================
+   TABLE PAGES
+========================================================= */
+
+async function loadTablePages(){
+
+    /*
+     * البيانات الأساسية للجداول تأتي من A.
+     * إذا كان backend يعيد الصفحات داخل table.pages
+     * نستخدمها مباشرة.
+     */
+
+    let pages =
+        Array.isArray(
+            state.currentTable &&
+            state.currentTable.pages
+        )
+        ? state.currentTable.pages
+        : [];
+
+    pages =
+        pages.filter(
+            page =>
+                String(
+                    page.Status || "فعال"
+                ) === "فعال"
+        );
+
+    /*
+     * إذا لم توجد الصفحات في الاستجابة،
+     * نطلب إعداد الجدول من backend.
+     */
+
+    if(!pages.length){
+
+        try{
+
+            const result =
+                await api(
+                    "table",
+                    {
+                        Table_ID:
+                            state.currentTable.Table_ID
+                    }
+                );
+
+            if(
+                result.success &&
+                result.data
+            ){
+
+                const data =
+                    result.data;
+
+                if(
+                    Array.isArray(data.pages)
+                ){
+
+                    pages =
+                        data.pages.filter(
+                            page =>
+                                String(
+                                    page.Status ||
+                                    "فعال"
+                                ) === "فعال"
+                        );
+
+                }
+
             }
-            return currentSort.ascending 
-                ? String(valA).localeCompare(String(valB)) 
-                : String(valB).localeCompare(String(valA));
-        });
 
-        saveData();
-        renderTable();
+        }catch(e){}
+
     }
 
-    // Modal Form Preparation
-    function prepareAddModal() {
-        document.getElementById('rowIndex').value = '';
-        document.getElementById('rowModalLabel').innerText = 'إضافة عنصر جديد';
-        generateFormFields({});
+    state.currentTable.pages =
+        pages;
+
+    renderPages(
+        pages
+    );
+
+    const main =
+        pages.find(
+            p =>
+                Number(p.Sheet_ID) ===
+                Number(
+                    state.currentSheet.Sheet_ID
+                )
+        ) ||
+        pages[0];
+
+    if(main){
+
+        await openSheet(
+            main
+        );
+
     }
 
-    function prepareEditModal(index) {
-        document.getElementById('rowIndex').value = index;
-        document.getElementById('rowModalLabel').innerText = 'تعديل العنصر';
-        generateFormFields(tableData[index]);
-        const modal = new bootstrap.Modal(document.getElementById('rowModal'));
-        modal.show();
-    }
+}
 
-    function generateFormFields(data) {
-        const container = document.getElementById('dynamicFormFields');
-        container.innerHTML = schema.map(col => `
-            <div class="mb-3">
-                <label class="form-label">${col.title}</label>
-                <input type="${col.type || 'text'}" class="form-control" id="field_${col.key}" value="${data[col.key] ?? ''}">
-            </div>
-        `).join('');
-    }
+/* =========================================================
+   RENDER PAGES
+========================================================= */
 
-    // Add/Edit Save Handler
-    function saveRow() {
-        const index = document.getElementById('rowIndex').value;
-        let newRow = {};
+function renderPages(pages){
 
-        schema.forEach(col => {
-            const inputVal = document.getElementById(`field_${col.key}`).value;
-            newRow[col.key] = col.type === 'number' ? Number(inputVal) : inputVal;
-        });
+    const nav =
+        $("pagesNav");
 
-        if (index === '') {
-            tableData.push(newRow);
-        } else {
-            tableData[index] = newRow;
+    nav.innerHTML = "";
+
+    pages.forEach(page => {
+
+        const button =
+            document.createElement("button");
+
+        button.className =
+            "page-btn";
+
+        if(
+            state.currentSheet &&
+            Number(page.Sheet_ID) ===
+            Number(
+                state.currentSheet.Sheet_ID
+            )
+        ){
+
+            button.classList.add(
+                "active"
+            );
+
         }
 
-        saveData();
-        renderTable();
+        button.textContent =
+            page.Sheet_Title ||
+            page.Sheet_Name ||
+            ("صفحة " + page.Sheet_ID);
 
-        const modalElement = document.getElementById('rowModal');
-        const modal = bootstrap.Modal.getInstance(modalElement);
-        modal.hide();
-    }
+        button.onclick = () =>
+            openSheet(page);
 
-    // Delete Row
-    function deleteRow(index) {
-        if (confirm('هل أنت تأكد من إزالة هذا العنصر؟')) {
-            tableData.splice(index, 1);
-            saveData();
-            renderTable();
+        nav.appendChild(button);
+
+    });
+
+}
+
+/* =========================================================
+   OPEN SHEET
+========================================================= */
+
+async function openSheet(sheet){
+
+    state.currentSheet =
+        sheet;
+
+    state.page =
+        1;
+
+    $("sheetTitle").textContent =
+        sheet.Sheet_Title ||
+        sheet.Sheet_Name ||
+        "";
+
+    renderPages(
+        state.currentTable.pages || []
+    );
+
+    await loadSheetData();
+
+}
+
+/* =========================================================
+   LOAD SHEET DATA
+========================================================= */
+
+async function loadSheetData(){
+
+    showLoadingText(
+        "جاري تحميل البيانات..."
+    );
+
+    try{
+
+        const result =
+            await api(
+                "table",
+                {
+                    Table_ID:
+                        state.currentTable.Table_ID,
+
+                    Sheet_ID:
+                        state.currentSheet.Sheet_ID
+                }
+            );
+
+        if(!result.success){
+
+            renderEmpty(
+                $("dataContainer"),
+                result.message ||
+                "تعذر تحميل البيانات."
+            );
+
+            return;
+
         }
+
+        const data =
+            result.data || {};
+
+        /*
+         * الأعمدة
+         */
+
+        state.columns =
+            Array.isArray(data.columns)
+            ? data.columns
+            : [];
+
+        /*
+         * البيانات
+         */
+
+        state.rows =
+            Array.isArray(data.rows)
+            ? data.rows
+            : [];
+
+        /*
+         * الصلاحية
+         */
+
+        state.currentPermission =
+            data.permission ||
+            data.permissions ||
+            null;
+
+        /*
+         * dropdowns
+         */
+
+        state.dropdowns =
+            data.dropdowns ||
+            extractDropdownsFromRows();
+
+        state.filteredRows =
+            [...state.rows];
+
+        updateActionButtons();
+
+        renderDataTable();
+
+        renderAlerts(
+            data.alerts || []
+        );
+
+    }catch(error){
+
+        renderEmpty(
+            $("dataContainer"),
+            "تعذر تحميل البيانات."
+        );
+
     }
 
-    // Reset Data
-    function resetData() {
-        if (confirm('هل ترغب في إعادة ضبط البيانات إلى الحالة الافتراضية؟')) {
-            schema = defaultSchema;
-            tableData = initialData;
-            saveData();
-            renderTable();
+}
+
+/* =========================================================
+   ACTION BUTTONS
+========================================================= */
+
+function updateActionButtons(){
+
+    const btn =
+        $("addRecordBtn");
+
+    const permission =
+        state.currentPermission;
+
+    if(state.userType === "admin"){
+
+        btn.classList.remove(
+            "hidden"
+        );
+
+        return;
+
+    }
+
+    if(!permission){
+
+        /*
+         * إذا لم يرجع backend الصلاحية،
+         * لا نسمح بالإضافة.
+         */
+
+        btn.classList.add(
+            "hidden"
+        );
+
+        return;
+
+    }
+
+    const role =
+        permission.Role ||
+        permission.role ||
+        "";
+
+    const canAdd =
+        role === "مدخل بيانات" ||
+        role === "مدخل بيانات ومحرر";
+
+    if(canAdd){
+
+        btn.classList.remove(
+            "hidden"
+        );
+
+    }else{
+
+        btn.classList.add(
+            "hidden"
+        );
+
+    }
+
+}
+
+/* =========================================================
+   DATA TABLE
+========================================================= */
+
+function renderDataTable(){
+
+    const container =
+        $("dataContainer");
+
+    const permission =
+        state.currentPermission;
+
+    const showTable =
+        state.userType === "admin" ||
+        !permission ||
+        permission.Show_Data_Table !== "لا";
+
+    if(
+        state.userType !== "admin" &&
+        permission &&
+        permission.Show_Data_Table === "لا"
+    ){
+
+        renderEmpty(
+            container,
+            "عرض البيانات غير متاح لهذه الصلاحية."
+        );
+
+        return;
+
+    }
+
+    if(!showTable){
+
+        renderEmpty(
+            container,
+            "عرض البيانات غير متاح."
+        );
+
+        return;
+
+    }
+
+    const visibleColumns =
+        getVisibleColumns();
+
+    if(!visibleColumns.length){
+
+        renderEmpty(
+            container,
+            "لا توجد أعمدة ظاهرة."
+        );
+
+        return;
+
+    }
+
+    const wrapper =
+        document.createElement("div");
+
+    wrapper.className =
+        "data-wrapper";
+
+    const scroll =
+        document.createElement("div");
+
+    scroll.className =
+        "table-scroll";
+
+    const table =
+        document.createElement("table");
+
+    table.className =
+        "data-table";
+
+    const thead =
+        document.createElement("thead");
+
+    const headerRow =
+        document.createElement("tr");
+
+    visibleColumns.forEach(column => {
+
+        const th =
+            document.createElement("th");
+
+        th.textContent =
+            column.Column_Name || "";
+
+        headerRow.appendChild(th);
+
+    });
+
+    if(canEditCurrentSheet()){
+
+        const th =
+            document.createElement("th");
+
+        th.textContent =
+            "العمليات";
+
+        headerRow.appendChild(th);
+
+    }
+
+    thead.appendChild(headerRow);
+
+    table.appendChild(thead);
+
+    const tbody =
+        document.createElement("tbody");
+
+    const start =
+        (state.page - 1) *
+        state.pageSize;
+
+    const end =
+        start +
+        state.pageSize;
+
+    const pageRows =
+        state.filteredRows.slice(
+            start,
+            end
+        );
+
+    pageRows.forEach(
+        (row, localIndex) => {
+
+            const realIndex =
+                state.rows.indexOf(row);
+
+            const tr =
+                document.createElement("tr");
+
+            visibleColumns.forEach(
+                column => {
+
+                    const td =
+                        document.createElement("td");
+
+                    const value =
+                        getRowValue(
+                            row,
+                            column
+                        );
+
+                    td.innerHTML =
+                        formatCell(
+                            value,
+                            column
+                        );
+
+                    tr.appendChild(td);
+
+                }
+            );
+
+            if(canEditCurrentSheet()){
+
+                const td =
+                    document.createElement("td");
+
+                td.innerHTML =
+                    createRowActions(
+                        realIndex,
+                        row
+                    );
+
+                tr.appendChild(td);
+
+            }
+
+            tbody.appendChild(tr);
+
         }
+    );
+
+    table.appendChild(tbody);
+
+    scroll.appendChild(table);
+
+    wrapper.appendChild(scroll);
+
+    const pagination =
+        createPagination();
+
+    wrapper.appendChild(
+        pagination
+    );
+
+    container.innerHTML = "";
+
+    container.appendChild(
+        wrapper
+    );
+
+}
+
+/* =========================================================
+   VISIBLE COLUMNS
+========================================================= */
+
+function getVisibleColumns(){
+
+    return state.columns.filter(
+        column =>
+            String(
+                column.Visible || "ظاهر"
+            ) === "ظاهر"
+    );
+
+}
+
+/* =========================================================
+   ROW VALUE
+========================================================= */
+
+function getRowValue(
+    row,
+    column
+){
+
+    if(row == null) return "";
+
+    const name =
+        column.Column_Name;
+
+    const no =
+        Number(
+            column.Column_No
+        );
+
+    if(
+        typeof row === "object" &&
+        !Array.isArray(row)
+    ){
+
+        if(
+            Object.prototype.hasOwnProperty.call(
+                row,
+                name
+            )
+        ){
+
+            return row[name];
+
+        }
+
+        if(
+            Object.prototype.hasOwnProperty.call(
+                row,
+                String(no)
+            )
+        ){
+
+            return row[String(no)];
+
+        }
+
     }
 
-    // Export CSV
-    function exportToCSV() {
-        let csvContent = "\uFEFF"; // UTF-8 BOM for Arabic support
-        csvContent += schema.map(c => `"${c.title}"`).join(",") + "\n";
+    if(Array.isArray(row)){
 
-        tableData.forEach(row => {
-            let rowArray = schema.map(c => `"${row[c.key] ?? ''}"`);
-            csvContent += rowArray.join(",") + "\n";
-        });
+        return (
+            row[no - 1] ??
+            ""
+        );
 
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.setAttribute("download", "table_data_v3.csv");
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
     }
 
-    // Import CSV
-    function importFromCSV(event) {
-        const file = event.target.files[0];
-        if (!file) return;
+    return "";
 
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const lines = e.target.result.split('\n').filter(line => line.trim() !== '');
-            if (lines.length < 2) return;
+}
 
-            const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
-            
-            // Re-generate schema based on imported header
-            schema = headers.map((h, i) => ({ key: `col_${i}`, title: h, type: 'text' }));
+/* =========================================================
+   FORMAT CELL
+========================================================= */
 
-            tableData = lines.slice(1).map(line => {
-                const values = line.split(',').map(v => v.replace(/"/g, '').trim());
-                let row = {};
-                headers.forEach((_, i) => {
-                    row[`col_${i}`] = values[i] || '';
-                });
-                return row;
-            });
+function formatCell(
+    value,
+    column
+){
 
-            saveData();
-            renderTable();
+    if(
+        value === null ||
+        value === undefined ||
+        value === ""
+    ){
+
+        return "";
+
+    }
+
+    const type =
+        column.Data_Type || "";
+
+    if(type === "صورة"){
+
+        const src =
+            String(value);
+
+        return `
+            <img
+                class="cell-image"
+                src="${escapeAttribute(src)}"
+                alt="صورة"
+                onclick="openImageViewer('${escapeAttribute(src)}')"
+            >
+        `;
+
+    }
+
+    if(type === "True / False"){
+
+        const truth =
+            value === true ||
+            value === "true" ||
+            value === "TRUE" ||
+            value === "نعم";
+
+        return truth
+            ? "✓"
+            : "✕";
+
+    }
+
+    if(type === "رابط"){
+
+        const url =
+            String(value);
+
+        if(
+            url.startsWith("http://") ||
+            url.startsWith("https://")
+        ){
+
+            return `
+                <a
+                    href="${escapeAttribute(url)}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    فتح الرابط
+                </a>
+            `;
+
+        }
+
+    }
+
+    return escapeHtml(
+        String(value)
+    );
+
+}
+
+/* =========================================================
+   ROW ACTIONS
+========================================================= */
+
+function createRowActions(
+    index,
+    row
+){
+
+    let html = "";
+
+    if(canEditCurrentSheet()){
+
+        html += `
+            <button
+                class="small-btn edit-btn"
+                onclick="openEditModal(${index})"
+            >
+                تعديل
+            </button>
+        `;
+
+    }
+
+    if(canDeleteCurrentSheet()){
+
+        html += `
+            <button
+                class="small-btn delete-btn"
+                onclick="confirmDelete(${index})"
+            >
+                حذف
+            </button>
+        `;
+
+    }
+
+    return `
+        <div class="row-actions">
+            ${html}
+        </div>
+    `;
+
+}
+
+/* =========================================================
+   PERMISSION HELPERS
+========================================================= */
+
+function getCurrentRole(){
+
+    if(state.userType === "admin"){
+
+        return "admin";
+
+    }
+
+    if(!state.currentPermission){
+
+        return "";
+
+    }
+
+    return (
+        state.currentPermission.Role ||
+        state.currentPermission.role ||
+        ""
+    );
+
+}
+
+function canEditCurrentSheet(){
+
+    if(state.userType === "admin"){
+
+        return true;
+
+    }
+
+    return (
+        getCurrentRole() ===
+        "مدخل بيانات ومحرر"
+    );
+
+}
+
+function canDeleteCurrentSheet(){
+
+    if(state.userType === "admin"){
+
+        return true;
+
+    }
+
+    if(
+        getCurrentRole() !==
+        "مدخل بيانات ومحرر"
+    ){
+
+        return false;
+
+    }
+
+    return (
+        state.currentPermission &&
+        (
+            state.currentPermission.Can_Delete ===
+            "نعم" ||
+            state.currentPermission.canDelete ===
+            true
+        )
+    );
+
+}
+
+/* =========================================================
+   ADD MODAL
+========================================================= */
+
+async function openAddModal(){
+
+    if(
+        state.userType !== "admin" &&
+        !(
+            getCurrentRole() === "مدخل بيانات" ||
+            getCurrentRole() === "مدخل بيانات ومحرر"
+        )
+    ){
+
+        showToast(
+            "ليس لديك صلاحية إضافة البيانات.",
+            "error"
+        );
+
+        return;
+
+    }
+
+    state.editingRow = null;
+
+    state.editingIndex = -1;
+
+    $("recordModalTitle").textContent =
+        "إضافة سجل";
+
+    await loadFormConfig(
+        "add"
+    );
+
+}
+
+/* =========================================================
+   EDIT MODAL
+========================================================= */
+
+async function openEditModal(index){
+
+    if(!canEditCurrentSheet()){
+
+        showToast(
+            "ليس لديك صلاحية تعديل البيانات.",
+            "error"
+        );
+
+        return;
+
+    }
+
+    const row =
+        state.rows[index];
+
+    if(!row){
+
+        showToast(
+            "السجل غير موجود.",
+            "error"
+        );
+
+        return;
+
+    }
+
+    state.editingRow =
+        row;
+
+    state.editingIndex =
+        index;
+
+    $("recordModalTitle").textContent =
+        "تعديل السجل";
+
+    await loadFormConfig(
+        "edit",
+        row
+    );
+
+}
+
+/* =========================================================
+   FORM CONFIG
+========================================================= */
+
+async function loadFormConfig(
+    mode,
+    row = null
+){
+
+    try{
+
+        const result =
+            await api(
+                "form",
+                {
+                    Table_ID:
+                        state.currentTable.Table_ID,
+
+                    Sheet_ID:
+                        state.currentSheet.Sheet_ID
+                }
+            );
+
+        if(!result.success){
+
+            showToast(
+                result.message ||
+                "تعذر تحميل النموذج.",
+                "error"
+            );
+
+            return;
+
+        }
+
+        const data =
+            result.data || {};
+
+        if(
+            Array.isArray(data.columns)
+        ){
+
+            state.columns =
+                data.columns;
+
+        }
+
+        if(data.dropdowns){
+
+            state.dropdowns =
+                data.dropdowns;
+
+        }
+
+        renderForm(
+            mode,
+            row,
+            data.defaults || {}
+        );
+
+        $("recordModal")
+            .classList.remove(
+                "hidden"
+            );
+
+    }catch(error){
+
+        showToast(
+            "تعذر تحميل نموذج الإدخال.",
+            "error"
+        );
+
+    }
+
+}
+
+/* =========================================================
+   RENDER FORM
+========================================================= */
+
+function renderForm(
+    mode,
+    row,
+    defaults
+){
+
+    const container =
+        $("recordFields");
+
+    container.innerHTML = "";
+
+    const columns =
+        state.columns;
+
+    columns.forEach(
+        column => {
+
+            const type =
+                column.Data_Type || "";
+
+            /*
+             * CREATED_AT وحقول العمليات
+             * لا يحررها المستخدم.
+             */
+
+            if(
+                column.Column_Name ===
+                "CREATED_AT"
+            ){
+
+                return;
+
+            }
+
+            if(
+                type === "عمليات" ||
+                String(column.Required) ===
+                "للعرض فقط"
+            ){
+
+                return;
+
+            }
+
+            const field =
+                document.createElement("div");
+
+            field.className =
+                "dynamic-field";
+
+            if(
+                String(
+                    column.Visible || "ظاهر"
+                ) === "مخفي"
+            ){
+
+                field.classList.add(
+                    "hidden-field"
+                );
+
+            }
+
+            const label =
+                document.createElement("label");
+
+            label.className =
+                "form-label";
+
+            label.innerHTML =
+                escapeHtml(
+                    column.Column_Name || ""
+                ) +
+                (
+                    String(
+                        column.Required
+                    ) === "إلزامي"
+                    ? ' <span class="field-required">*</span>'
+                    : ""
+                );
+
+            field.appendChild(
+                label
+            );
+
+            const input =
+                createInputForColumn(
+                    column,
+                    row,
+                    defaults
+                );
+
+            field.appendChild(
+                input
+            );
+
+            if(
+                column.Condition_Message
+            ){
+
+                const msg =
+                    document.createElement("div");
+
+                msg.className =
+                    "condition-message";
+
+                msg.textContent =
+                    column.Condition_Message;
+
+                field.appendChild(
+                    msg
+                );
+
+            }
+
+            container.appendChild(
+                field
+            );
+
+        }
+    );
+
+}
+
+/* =========================================================
+   CREATE INPUT
+========================================================= */
+
+function createInputForColumn(
+    column,
+    row,
+    defaults
+){
+
+    const type =
+        column.Data_Type || "";
+
+    const name =
+        "field_" +
+        column.Column_No;
+
+    const value =
+        row
+        ? getRowValue(row,column)
+        : getDefaultValue(
+            column,
+            defaults
+        );
+
+    let input;
+
+    if(type === "قائمة منسدلة"){
+
+        input =
+            document.createElement(
+                "select"
+            );
+
+        input.className =
+            "form-control";
+
+        input.name =
+            name;
+
+        const empty =
+            document.createElement(
+                "option"
+            );
+
+        empty.value = "";
+
+        empty.textContent =
+            "اختر...";
+
+        input.appendChild(
+            empty
+        );
+
+        const options =
+            getDropdownOptions(
+                column
+            );
+
+        options.forEach(
+            option => {
+
+                const opt =
+                    document.createElement(
+                        "option"
+                    );
+
+                opt.value =
+                    option;
+
+                opt.textContent =
+                    option;
+
+                if(
+                    String(value) ===
+                    String(option)
+                ){
+
+                    opt.selected =
+                        true;
+
+                }
+
+                input.appendChild(
+                    opt
+                );
+
+            }
+        );
+
+        /*
+         * إذا كان مسموحاً بإضافة خيار جديد،
+         * يظهر زر بسيط للإضافة.
+         */
+
+        if(
+            column.Allow_New_Option ===
+            "نعم"
+        ){
+
+            const wrapper =
+                document.createElement(
+                    "div"
+                );
+
+            wrapper.style.display =
+                "flex";
+
+            wrapper.style.gap =
+                "6px";
+
+            wrapper.style.marginTop =
+                "6px";
+
+            wrapper.appendChild(
+                input
+            );
+
+            const add =
+                document.createElement(
+                    "button"
+                );
+
+            add.type = "button";
+
+            add.className =
+                "btn btn-light";
+
+            add.textContent =
+                "＋";
+
+            add.title =
+                "إضافة خيار";
+
+            add.onclick =
+                () => {
+
+                    const newValue =
+                        prompt(
+                            "أدخل الخيار الجديد:"
+                        );
+
+                    if(
+                        newValue &&
+                        newValue.trim()
+                    ){
+
+                        const text =
+                            newValue.trim();
+
+                        const exists =
+                            Array.from(
+                                input.options
+                            ).some(
+                                o =>
+                                    o.value ===
+                                    text
+                            );
+
+                        if(!exists){
+
+                            const opt =
+                                document.createElement(
+                                    "option"
+                                );
+
+                            opt.value =
+                                text;
+
+                            opt.textContent =
+                                text;
+
+                            opt.selected =
+                                true;
+
+                            input.appendChild(
+                                opt
+                            );
+
+                        }
+
+                    }
+
+                };
+
+            wrapper.appendChild(
+                add
+            );
+
+            return wrapper;
+
+        }
+
+        return input;
+
+    }
+
+    if(type === "True / False"){
+
+        input =
+            document.createElement(
+                "select"
+            );
+
+        input.className =
+            "form-control";
+
+        input.name =
+            name;
+
+        [
+            ["","اختر..."],
+            ["true","نعم"],
+            ["false","لا"]
+        ].forEach(
+            item => {
+
+                const opt =
+                    document.createElement(
+                        "option"
+                    );
+
+                opt.value =
+                    item[0];
+
+                opt.textContent =
+                    item[1];
+
+                if(
+                    String(value) ===
+                    item[0]
+                ){
+
+                    opt.selected =
+                        true;
+
+                }
+
+                input.appendChild(
+                    opt
+                );
+
+            }
+        );
+
+        return input;
+
+    }
+
+    if(type === "صورة"){
+
+        input =
+            document.createElement(
+                "input"
+            );
+
+        input.type =
+            "file";
+
+        input.accept =
+            "image/*";
+
+        input.className =
+            "form-control";
+
+        input.name =
+            name;
+
+        /*
+         * لا نضع رابط الصورة كقيمة للـ file input.
+         */
+
+        if(value){
+
+            const note =
+                document.createElement(
+                    "small"
+                );
+
+            note.textContent =
+                "توجد صورة محفوظة مسبقاً. اختر صورة جديدة لاستبدالها.";
+
+            note.style.display =
+                "block";
+
+            note.style.marginTop =
+                "5px";
+
+            note.style.color =
+                "#6c757d";
+
+            const wrapper =
+                document.createElement(
+                    "div"
+                );
+
+            wrapper.appendChild(
+                input
+            );
+
+            wrapper.appendChild(
+                note
+            );
+
+            return wrapper;
+
+        }
+
+        return input;
+
+    }
+
+    if(type === "تاريخ"){
+
+        input =
+            document.createElement(
+                "input"
+            );
+
+        input.type =
+            "date";
+
+        input.className =
+            "form-control";
+
+        input.name =
+            name;
+
+        input.value =
+            normalizeDateInput(
+                value
+            );
+
+        return input;
+
+    }
+
+    if(type === "وقت"){
+
+        input =
+            document.createElement(
+                "input"
+            );
+
+        input.type =
+            "time";
+
+        input.className =
+            "form-control";
+
+        input.name =
+            name;
+
+        input.value =
+            normalizeTimeInput(
+                value
+            );
+
+        return input;
+
+    }
+
+    if(type === "رقم"){
+
+        input =
+            document.createElement(
+                "input"
+            );
+
+        input.type =
+            "number";
+
+        input.step =
+            "any";
+
+        input.className =
+            "form-control";
+
+        input.name =
+            name;
+
+        input.value =
+            value ?? "";
+
+        return input;
+
+    }
+
+    if(type === "مبلغ مالي"){
+
+        input =
+            document.createElement(
+                "input"
+            );
+
+        input.type =
+            "number";
+
+        input.step =
+            "0.01";
+
+        input.className =
+            "form-control";
+
+        input.name =
+            name;
+
+        input.value =
+            value ?? "";
+
+        return input;
+
+    }
+
+    if(type === "نسبة مئوية"){
+
+        input =
+            document.createElement(
+                "input"
+            );
+
+        input.type =
+            "number";
+
+        input.step =
+            "0.01";
+
+        input.min =
+            "0";
+
+        input.max =
+            "100";
+
+        input.className =
+            "form-control";
+
+        input.name =
+            name;
+
+        input.value =
+            value ?? "";
+
+        return input;
+
+    }
+
+    if(type === "رابط"){
+
+        input =
+            document.createElement(
+                "input"
+            );
+
+        input.type =
+            "url";
+
+        input.className =
+            "form-control";
+
+        input.name =
+            name;
+
+        input.value =
+            value ?? "";
+
+        return input;
+
+    }
+
+    /*
+     * نص + رقم جوال + الأنواع غير الخاصة
+     */
+
+    if(
+        type === "نص" ||
+        type === "رقم جوال" ||
+        type === ""
+    ){
+
+        input =
+            document.createElement(
+                "input"
+            );
+
+        input.type =
+            type === "رقم جوال"
+            ? "tel"
+            : "text";
+
+        input.className =
+            "form-control";
+
+        input.name =
+            name;
+
+        input.value =
+            value ?? "";
+
+        return input;
+
+    }
+
+    input =
+        document.createElement(
+            "input"
+        );
+
+    input.type =
+        "text";
+
+    input.className =
+        "form-control";
+
+    input.name =
+        name;
+
+    input.value =
+        value ?? "";
+
+    return input;
+
+}
+
+/* =========================================================
+   DEFAULT VALUE
+========================================================= */
+
+function getDefaultValue(
+    column,
+    defaults
+){
+
+    const name =
+        column.Column_Name;
+
+    if(
+        defaults &&
+        Object.prototype.hasOwnProperty.call(
+            defaults,
+            name
+        )
+    ){
+
+        return defaults[name];
+
+    }
+
+    if(
+        column.Default_Value !==
+        undefined &&
+        column.Default_Value !==
+        null &&
+        column.Default_Value !== ""
+    ){
+
+        return column.Default_Value;
+
+    }
+
+    if(
+        column.Data_Type ===
+        "تاريخ"
+    ){
+
+        return getRiyadhDate();
+
+    }
+
+    if(
+        column.Data_Type ===
+        "وقت"
+    ){
+
+        return getRiyadhTime();
+
+    }
+
+    return "";
+
+}
+
+/* =========================================================
+   DROPDOWNS
+========================================================= */
+
+function getDropdownOptions(
+    column
+){
+
+    const name =
+        column.Column_Name;
+
+    let options = [];
+
+    /*
+     * يدعم أكثر من شكل محتمل لإجابة backend
+     */
+
+    if(
+        state.dropdowns &&
+        Array.isArray(
+            state.dropdowns[name]
+        )
+    ){
+
+        options =
+            state.dropdowns[name];
+
+    }
+
+    /*
+     * استخراج القيم من البيانات الحالية
+     */
+
+    if(!options.length){
+
+        state.rows.forEach(
+            row => {
+
+                const value =
+                    getRowValue(
+                        row,
+                        column
+                    );
+
+                if(
+                    value !== null &&
+                    value !== undefined &&
+                    String(value).trim() !== ""
+                ){
+
+                    options.push(
+                        String(value)
+                    );
+
+                }
+
+            }
+        );
+
+    }
+
+    return [
+        ...new Set(
+            options.map(
+                x => String(x)
+            )
+        )
+    ].sort(
+        (a,b) =>
+            a.localeCompare(
+                b,
+                "ar"
+            )
+    );
+
+}
+
+function extractDropdownsFromRows(){
+
+    const result = {};
+
+    state.columns.forEach(
+        column => {
+
+            if(
+                column.Data_Type !==
+                "قائمة منسدلة"
+            ){
+
+                return;
+
+            }
+
+            result[
+                column.Column_Name
+            ] = getUniqueColumnValues(
+                column
+            );
+
+        }
+    );
+
+    return result;
+
+}
+
+function getUniqueColumnValues(
+    column
+){
+
+    const values =
+        state.rows.map(
+            row =>
+                getRowValue(
+                    row,
+                    column
+                )
+        )
+        .filter(
+            value =>
+                value !== null &&
+                value !== undefined &&
+                String(value).trim() !== ""
+        )
+        .map(
+            value =>
+                String(value)
+        );
+
+    return [
+        ...new Set(values)
+    ];
+
+}
+
+/* =========================================================
+   FORM SUBMIT
+========================================================= */
+
+$("recordForm").addEventListener(
+    "submit",
+    async function(event){
+
+        event.preventDefault();
+
+        const btn =
+            $("saveRecordBtn");
+
+        if(btn.disabled){
+
+            return;
+
+        }
+
+        const payload =
+            await collectFormData();
+
+        if(!payload){
+
+            return;
+
+        }
+
+        btn.disabled = true;
+
+        btn.textContent =
+            "جاري الحفظ...";
+
+        try{
+
+            const action =
+                state.editingRow
+                ? "update"
+                : "add";
+
+            /*
+             * Request_ID لمنع التكرار
+             */
+
+            payload.Request_ID =
+                generateRequestId();
+
+            const pendingKey =
+                REQUEST_PREFIX +
+                payload.Request_ID;
+
+            localStorage.setItem(
+                pendingKey,
+                JSON.stringify({
+                    action:action,
+                    payload:payload,
+                    createdAt:Date.now()
+                })
+            );
+
+            const result =
+                await api(
+                    action,
+                    payload
+                );
+
+            if(!result.success){
+
+                showToast(
+                    result.message ||
+                    "تعذر حفظ البيانات.",
+                    "error"
+                );
+
+                return;
+
+            }
+
+            localStorage.removeItem(
+                pendingKey
+            );
+
+            showToast(
+                result.message ||
+                "تم حفظ البيانات بنجاح.",
+                "success"
+            );
+
+            closeRecordModal();
+
+            /*
+             * تحديث السجل مباشرة من الاستجابة
+             * دون إعادة تحميل الجدول بالكامل.
+             */
+
+            const saved =
+                result.data &&
+                (
+                    result.data.record ||
+                    result.data.row ||
+                    result.data
+                );
+
+            if(state.editingRow){
+
+                if(saved){
+
+                    state.rows[
+                        state.editingIndex
+                    ] = saved;
+
+                }
+
+            }else{
+
+                if(saved){
+
+                    state.rows.push(
+                        saved
+                    );
+
+                }
+
+            }
+
+            state.filteredRows =
+                [...state.rows];
+
+            renderDataTable();
+
+        }catch(error){
+
+            showToast(
+                "تعذر حفظ البيانات بسبب مشكلة في الاتصال. تم الاحتفاظ بالبيانات وسيتم إعادة المحاولة تلقائيًا.",
+                "error"
+            );
+
+            startAutoRetry();
+
+        }finally{
+
+            btn.disabled = false;
+
+            btn.textContent =
+                "حفظ";
+
+        }
+
+    }
+);
+
+/* =========================================================
+   COLLECT FORM
+========================================================= */
+
+async function collectFormData(){
+
+    const form =
+        $("recordForm");
+
+    const data = {};
+
+    for(
+        const column of state.columns
+    ){
+
+        const type =
+            column.Data_Type || "";
+
+        if(
+            column.Column_Name ===
+            "CREATED_AT"
+        ){
+
+            continue;
+
+        }
+
+        if(
+            type === "عمليات" ||
+            String(column.Required) ===
+            "للعرض فقط"
+        ){
+
+            continue;
+
+        }
+
+        const field =
+            form.querySelector(
+                '[name="field_' +
+                column.Column_No +
+                '"]'
+            );
+
+        if(!field){
+
+            continue;
+
+        }
+
+        let value;
+
+        if(
+            type === "صورة" &&
+            field.type === "file"
+        ){
+
+            const file =
+                field.files &&
+                field.files[0];
+
+            if(file){
+
+                value =
+                    await fileToDataUrl(
+                        file
+                    );
+
+            }else{
+
+                value = "";
+
+            }
+
+        }else{
+
+            value =
+                field.value;
+
+        }
+
+        /*
+         * required
+         */
+
+        if(
+            String(column.Required) ===
+            "إلزامي" &&
+            (
+                value === null ||
+                value === undefined ||
+                String(value).trim() === ""
+            )
+        ){
+
+            showToast(
+                "الحقل «" +
+                column.Column_Name +
+                "» إلزامي.",
+                "error"
+            );
+
+            field.focus();
+
+            return null;
+
+        }
+
+        /*
+         * Validation frontend إضافي
+         * والـ backend يبقى المصدر النهائي.
+         */
+
+        const validation =
+            validateFieldFrontend(
+                value,
+                column
+            );
+
+        if(!validation.valid){
+
+            showToast(
+                validation.message ||
+                column.Condition_Message ||
+                "قيمة غير صحيحة.",
+                "error"
+            );
+
+            field.focus();
+
+            return null;
+
+        }
+
+        data[
+            column.Column_Name
+        ] = value;
+
+    }
+
+    return {
+
+        Table_ID:
+            state.currentTable.Table_ID,
+
+        Sheet_ID:
+            state.currentSheet.Sheet_ID,
+
+        record:
+            data
+
+    };
+
+}
+
+/* =========================================================
+   FRONTEND VALIDATION
+========================================================= */
+
+function validateFieldFrontend(
+    value,
+    column
+){
+
+    const text =
+        String(
+            value ?? ""
+        ).trim();
+
+    if(
+        !text &&
+        String(column.Required) !==
+        "إلزامي"
+    ){
+
+        return {
+            valid:true
         };
-        reader.readAsText(file, 'UTF-8');
+
     }
+
+    const type =
+        column.Data_Type || "";
+
+    if(type === "رقم جوال"){
+
+        const normalized =
+            text.replace(
+                /[\s-]/g,
+                ""
+            );
+
+        if(
+            !/^(?:\+?966|0)?5\d{8}$/.test(
+                normalized
+            )
+        ){
+
+            return {
+                valid:false,
+                message:
+                    column.Condition_Message ||
+                    "أدخل رقم جوال صحيح."
+            };
+
+        }
+
+    }
+
+    if(
+        type === "رقم" ||
+        type === "مبلغ مالي" ||
+        type === "نسبة مئوية"
+    ){
+
+        if(
+            text !== "" &&
+            isNaN(Number(text))
+        ){
+
+            return {
+                valid:false,
+                message:
+                    "أدخل رقماً صحيحاً."
+            };
+
+        }
+
+    }
+
+    if(
+        type === "نسبة مئوية" &&
+        Number(text) >= 0 &&
+        Number(text) <= 100
+    ){
+
+        // صحيح
+
+    }
+
+    const condition =
+        column.Input_Condition;
+
+    if(condition){
+
+        const number =
+            Number(text);
+
+        if(condition === "رقم موجب"){
+
+            if(
+                isNaN(number) ||
+                number <= 0
+            ){
+
+                return {
+                    valid:false,
+                    message:
+                        column.Condition_Message ||
+                        "يجب أن يكون الرقم موجباً."
+                };
+
+            }
+
+        }
+
+        if(condition === "0-100"){
+
+            if(
+                isNaN(number) ||
+                number < 0 ||
+                number > 100
+            ){
+
+                return {
+                    valid:false,
+                    message:
+                        column.Condition_Message ||
+                        "القيمة يجب أن تكون بين 0 و100."
+                };
+
+            }
+
+        }
+
+        const match =
+            condition.match(
+                /^(min|max|<|<=|=|==|!=)(-?\d+(?:\.\d+)?)$/
+            );
+
+        if(match){
+
+            const op =
+                match[1];
+
+            const target =
+                Number(match[2]);
+
+            let valid = true;
+
+            if(op === "min")
+                valid = number >= target;
+
+            if(op === "max")
+                valid = number <= target;
+
+            if(op === "<")
+                valid = number < target;
+
+            if(op === "<=")
+                valid = number <= target;
+
+            if(op === "=" || op === "==")
+                valid = number === target;
+
+            if(op === "!=")
+                valid = number !== target;
+
+            if(!valid){
+
+                return {
+                    valid:false,
+                    message:
+                        column.Condition_Message ||
+                        "القيمة غير مطابقة للشرط."
+                };
+
+            }
+
+        }
+
+    }
+
+    return {
+        valid:true
+    };
+
+}
+
+/* =========================================================
+   IMAGE TO DATA URL
+========================================================= */
+
+function fileToDataUrl(file){
+
+    return new Promise(
+        (resolve,reject) => {
+
+            const reader =
+                new FileReader();
+
+            reader.onload =
+                () =>
+                    resolve(
+                        reader.result
+                    );
+
+            reader.onerror =
+                reject;
+
+            reader.readAsDataURL(
+                file
+            );
+
+        }
+    );
+
+}
+
+/* =========================================================
+   DELETE
+========================================================= */
+
+function confirmDelete(index){
+
+    if(!canDeleteCurrentSheet()){
+
+        showToast(
+            "ليس لديك صلاحية حذف البيانات.",
+            "error"
+        );
+
+        return;
+
+    }
+
+    const row =
+        state.rows[index];
+
+    if(!row){
+
+        return;
+
+    }
+
+    $("confirmMessage").textContent =
+        "هل أنت متأكد من حذف هذا السجل؟ لا يمكن التراجع عن العملية.";
+
+    $("confirmButton").onclick =
+        () => executeDelete(index);
+
+    $("confirmModal")
+        .classList.remove(
+            "hidden"
+        );
+
+}
+
+async function executeDelete(index){
+
+    closeConfirm();
+
+    const row =
+        state.rows[index];
+
+    if(!row){
+
+        return;
+
+    }
+
+    try{
+
+        const result =
+            await api(
+                "delete",
+                {
+                    Table_ID:
+                        state.currentTable.Table_ID,
+
+                    Sheet_ID:
+                        state.currentSheet.Sheet_ID,
+
+                    record:row,
+
+                    index:index
+                }
+            );
+
+        if(!result.success){
+
+            showToast(
+                result.message ||
+                "تعذر حذف السجل.",
+                "error"
+            );
+
+            return;
+
+        }
+
+        state.rows.splice(
+            index,
+            1
+        );
+
+        state.filteredRows =
+            [...state.rows];
+
+        renderDataTable();
+
+        showToast(
+            result.message ||
+            "تم حذف السجل.",
+            "success"
+        );
+
+    }catch(error){
+
+        showToast(
+            "تعذر الاتصال بالخادم.",
+            "error"
+        );
+
+    }
+
+}
+
+/* =========================================================
+   SEARCH
+========================================================= */
+
+function handleLocalSearch(){
+
+    const input =
+        $("searchInput");
+
+    const query =
+        String(
+            input.value || ""
+        )
+        .trim()
+        .toLowerCase();
+
+    if(!query){
+
+        state.filteredRows =
+            [...state.rows];
+
+        state.page = 1;
+
+        renderDataTable();
+
+        return;
+
+    }
+
+    state.filteredRows =
+        state.rows.filter(
+            row => {
+
+                return state.columns.some(
+                    column => {
+
+                        const value =
+                            getRowValue(
+                                row,
+                                column
+                            );
+
+                        return String(
+                            value ?? ""
+                        )
+                        .toLowerCase()
+                        .includes(
+                            query
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+    state.page = 1;
+
+    renderDataTable();
+
+}
+
+/* =========================================================
+   PAGINATION
+========================================================= */
+
+function createPagination(){
+
+    const wrapper =
+        document.createElement("div");
+
+    wrapper.className =
+        "pagination";
+
+    const total =
+        state.filteredRows.length;
+
+    const pages =
+        Math.max(
+            1,
+            Math.ceil(
+                total /
+                state.pageSize
+            )
+        );
+
+    if(state.page > pages){
+
+        state.page =
+            pages;
+
+    }
+
+    if(pages <= 1){
+
+        return wrapper;
+
+    }
+
+    const previous =
+        document.createElement(
+            "button"
+        );
+
+    previous.textContent =
+        "‹";
+
+    previous.disabled =
+        state.page <= 1;
+
+    previous.onclick =
+        () => {
+
+            if(
+                state.page > 1
+            ){
+
+                state.page--;
+
+                renderDataTable();
+
+            }
+
+        };
+
+    wrapper.appendChild(
+        previous
+    );
+
+    const maxButtons =
+        7;
+
+    let start =
+        Math.max(
+            1,
+            state.page -
+            Math.floor(
+                maxButtons / 2
+            )
+        );
+
+    let end =
+        Math.min(
+            pages,
+            start +
+            maxButtons -
+            1
+        );
+
+    if(
+        end - start + 1 <
+        maxButtons
+    ){
+
+        start =
+            Math.max(
+                1,
+                end -
+                maxButtons +
+                1
+            );
+
+    }
+
+    for(
+        let i = start;
+        i <= end;
+        i++
+    ){
+
+        const button =
+            document.createElement(
+                "button"
+            );
+
+        button.textContent =
+            i;
+
+        if(i === state.page){
+
+            button.classList.add(
+                "active"
+            );
+
+        }
+
+        button.onclick =
+            () => {
+
+                state.page =
+                    i;
+
+                renderDataTable();
+
+            };
+
+        wrapper.appendChild(
+            button
+        );
+
+    }
+
+    const next =
+        document.createElement(
+            "button"
+        );
+
+    next.textContent =
+        "›";
+
+    next.disabled =
+        state.page >= pages;
+
+    next.onclick =
+        () => {
+
+            if(
+                state.page < pages
+            ){
+
+                state.page++;
+
+                renderDataTable();
+
+            }
+
+        };
+
+    wrapper.appendChild(
+        next
+    );
+
+    return wrapper;
+
+}
+
+/* =========================================================
+   ALERTS
+========================================================= */
+
+function renderAlerts(
+    alerts
+){
+
+    const container =
+        $("tableAlerts");
+
+    container.innerHTML = "";
+
+    if(
+        !Array.isArray(alerts) ||
+        !alerts.length
+    ){
+
+        return;
+
+    }
+
+    alerts.forEach(
+        alert => {
+
+            const box =
+                document.createElement(
+                    "div"
+                );
+
+            box.className =
+                "system-alert";
+
+            if(
+                typeof alert ===
+                "object"
+            ){
+
+                box.textContent =
+                    alert.message ||
+                    alert.Message ||
+                    "";
+
+            }else{
+
+                box.textContent =
+                    String(alert);
+
+            }
+
+            if(
+                box.textContent
+            ){
+
+                container.appendChild(
+                    box
+                );
+
+            }
+
+        }
+    );
+
+}
+
+/* =========================================================
+   MODALS
+========================================================= */
+
+function closeRecordModal(){
+
+    $("recordModal")
+        .classList.add(
+            "hidden"
+        );
+
+    $("recordFields")
+        .innerHTML = "";
+
+    state.editingRow = null;
+
+    state.editingIndex = -1;
+
+}
+
+function closeConfirm(){
+
+    $("confirmModal")
+        .classList.add(
+            "hidden"
+        );
+
+}
+
+function closeModalOutside(event){
+
+    if(
+        event.target ===
+        $("recordModal")
+    ){
+
+        closeRecordModal();
+
+    }
+
+}
+
+/* =========================================================
+   IMAGE VIEWER
+========================================================= */
+
+function openImageViewer(src){
+
+    if(!src){
+
+        return;
+
+    }
+
+    $("viewerImage").src =
+        src;
+
+    $("imageViewer")
+        .classList.remove(
+            "hidden"
+        );
+
+}
+
+function closeImageViewer(){
+
+    $("imageViewer")
+        .classList.add(
+            "hidden"
+        );
+
+    $("viewerImage").src =
+        "";
+
+}
+
+/* =========================================================
+   HOME
+========================================================= */
+
+function showHome(){
+
+    $("tableView")
+        .classList.add(
+            "hidden"
+        );
+
+    $("homeView")
+        .classList.remove(
+            "hidden"
+        );
+
+    state.currentTable =
+        null;
+
+    state.currentSheet =
+        null;
+
+    state.columns = [];
+
+    state.rows = [];
+
+    state.filteredRows = [];
+
+    $("searchInput").value = "";
+
+    loadTables();
+
+}
+
+/* =========================================================
+   REFRESH
+========================================================= */
+
+async function refreshCurrentPage(){
+
+    if(
+        state.currentTable &&
+        state.currentSheet
+    ){
+
+        await loadSheetData();
+
+    }else{
+
+        await loadTables();
+
+    }
+
+}
+
+/* =========================================================
+   LOADING MESSAGE
+========================================================= */
+
+function showLoadingText(
+    text
+){
+
+    const screen =
+        $("loadingScreen");
+
+    screen.classList.remove(
+        "hidden"
+    );
+
+    screen.querySelector(
+        "p"
+    ).textContent =
+        text;
+
+    setTimeout(
+        () => {
+
+            if(
+                $("app").classList.contains(
+                    "hidden"
+                ) === false
+            ){
+
+                screen.classList.add(
+                    "hidden"
+                );
+
+            }
+
+        },
+        300
+    );
+
+}
+
+/* =========================================================
+   EMPTY
+========================================================= */
+
+function renderEmpty(
+    container,
+    message
+){
+
+    container.innerHTML = `
+
+        <div class="empty-state">
+
+            <div class="empty-icon">
+                📭
+            </div>
+
+            <div>
+                ${escapeHtml(message)}
+            </div>
+
+        </div>
+
+    `;
+
+}
+
+/* =========================================================
+   TOAST
+========================================================= */
+
+function showToast(
+    message,
+    type = ""
+){
+
+    const toast =
+        document.createElement(
+            "div"
+        );
+
+    toast.className =
+        "toast " + type;
+
+    toast.textContent =
+        message;
+
+    $("toastContainer")
+        .appendChild(toast);
+
+    setTimeout(
+        () => {
+
+            toast.remove();
+
+        },
+        4000
+    );
+
+}
+
+/* =========================================================
+   REQUEST ID
+========================================================= */
+
+function generateRequestId(){
+
+    if(
+        window.crypto &&
+        crypto.randomUUID
+    ){
+
+        return crypto.randomUUID();
+
+    }
+
+    return (
+        Date.now() +
+        "_" +
+        Math.random()
+            .toString(36)
+            .slice(2) +
+        "_" +
+        Math.random()
+            .toString(36)
+            .slice(2)
+    );
+
+}
+
+/* =========================================================
+   AUTO RETRY
+========================================================= */
+
+let retryTimer = null;
+
+function startAutoRetry(){
+
+    if(retryTimer){
+
+        return;
+
+    }
+
+    retryTimer =
+        setInterval(
+            async () => {
+
+                if(
+                    !navigator.onLine
+                ){
+
+                    return;
+
+                }
+
+                try{
+
+                    await retryPendingRequests();
+
+                }catch(e){}
+
+            },
+            15000
+        );
+
+}
+
+async function retryPendingRequests(){
+
+    const keys = [];
+
+    for(
+        let i = 0;
+        i < localStorage.length;
+        i++
+    ){
+
+        const key =
+            localStorage.key(i);
+
+        if(
+            key &&
+            key.startsWith(
+                REQUEST_PREFIX
+            )
+        ){
+
+            keys.push(key);
+
+        }
+
+    }
+
+    if(!keys.length){
+
+        if(retryTimer){
+
+            clearInterval(
+                retryTimer
+            );
+
+            retryTimer = null;
+
+        }
+
+        return;
+
+    }
+
+    for(
+        const key of keys
+    ){
+
+        try{
+
+            const item =
+                JSON.parse(
+                    localStorage.getItem(
+                        key
+                    )
+                );
+
+            if(!item){
+
+                localStorage.removeItem(
+                    key
+                );
+
+                continue;
+
+            }
+
+            const result =
+                await api(
+                    item.action,
+                    item.payload
+                );
+
+            if(result.success){
+
+                localStorage.removeItem(
+                    key
+                );
+
+                showToast(
+                    "تمت إعادة محاولة حفظ البيانات بنجاح.",
+                    "success"
+                );
+
+            }
+
+        }catch(e){
+
+            // المحاولة القادمة
+
+        }
+
+    }
+
+}
+
+/* =========================================================
+   DATE / TIME – RIYADH
+========================================================= */
+
+function getRiyadhDate(){
+
+    const parts =
+        new Intl.DateTimeFormat(
+            "en-CA",
+            {
+                timeZone:"Asia/Riyadh",
+                year:"numeric",
+                month:"2-digit",
+                day:"2-digit"
+            }
+        ).formatToParts(
+            new Date()
+        );
+
+    const map = {};
+
+    parts.forEach(
+        p =>
+            map[p.type] =
+            p.value
+    );
+
+    return (
+        map.year +
+        "-" +
+        map.month +
+        "-" +
+        map.day
+    );
+
+}
+
+function getRiyadhTime(){
+
+    const parts =
+        new Intl.DateTimeFormat(
+            "en-GB",
+            {
+                timeZone:"Asia/Riyadh",
+                hour:"2-digit",
+                minute:"2-digit",
+                hour12:false
+            }
+        ).formatToParts(
+            new Date()
+        );
+
+    const map = {};
+
+    parts.forEach(
+        p =>
+            map[p.type] =
+            p.value
+    );
+
+    return (
+        map.hour +
+        ":" +
+        map.minute
+    );
+
+}
+
+/* =========================================================
+   NORMALIZE DATE / TIME
+========================================================= */
+
+function normalizeDateInput(
+    value
+){
+
+    if(!value){
+
+        return "";
+
+    }
+
+    const text =
+        String(value);
+
+    if(
+        /^\d{4}-\d{2}-\d{2}$/.test(
+            text
+        )
+    ){
+
+        return text;
+
+    }
+
+    const date =
+        new Date(value);
+
+    if(
+        isNaN(date.getTime())
+    ){
+
+        return "";
+
+    }
+
+    return date.toISOString()
+        .slice(
+            0,
+            10
+        );
+
+}
+
+function normalizeTimeInput(
+    value
+){
+
+    if(!value){
+
+        return "";
+
+    }
+
+    const text =
+        String(value);
+
+    const match =
+        text.match(
+            /(\d{1,2}):(\d{2})/
+        );
+
+    if(!match){
+
+        return "";
+
+    }
+
+    return (
+        String(
+            match[1]
+        ).padStart(
+            2,
+            "0"
+        ) +
+        ":" +
+        match[2]
+    );
+
+}
+
+/* =========================================================
+   HTML ESCAPING
+========================================================= */
+
+function escapeHtml(
+    value
+){
+
+    return String(
+        value ?? ""
+    )
+    .replace(
+        /&/g,
+        "&amp;"
+    )
+    .replace(
+        /</g,
+        "&lt;"
+    )
+    .replace(
+        />/g,
+        "&gt;"
+    )
+    .replace(
+        /"/g,
+        "&quot;"
+    )
+    .replace(
+        /'/g,
+        "&#039;"
+    );
+
+}
+
+function escapeAttribute(
+    value
+){
+
+    return escapeHtml(
+        value
+    );
+
+}
+
+/* =========================================================
+   ONLINE / OFFLINE
+========================================================= */
+
+window.addEventListener(
+    "online",
+    () => {
+
+        showToast(
+            "عاد الاتصال بالإنترنت.",
+            "success"
+        );
+
+        retryPendingRequests();
+
+    }
+);
+
+window.addEventListener(
+    "offline",
+    () => {
+
+        showToast(
+            "لا يوجد اتصال بالإنترنت حالياً.",
+            "warning"
+        );
+
+    }
+);
+
+/* =========================================================
+   KEYBOARD
+========================================================= */
+
+document.addEventListener(
+    "keydown",
+    event => {
+
+        if(
+            event.key ===
+            "Escape"
+        ){
+
+            closeRecordModal();
+            closeConfirm();
+            closeImageViewer();
+
+        }
+
+    }
+);
+
+/* =========================================================
+   PREVENT ACCIDENTAL SUBMIT
+========================================================= */
+
+document.addEventListener(
+    "submit",
+    event => {
+
+        if(
+            event.target !==
+            $("recordForm") &&
+            event.target !==
+            $("loginForm")
+        ){
+
+            event.preventDefault();
+
+        }
+
+    }
+);
+
 </script>
+
 </body>
 </html>
