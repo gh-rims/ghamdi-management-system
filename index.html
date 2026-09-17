@@ -73,6 +73,7 @@
       border-radius: 4px;
       font-size: 14px;
       outline: none;
+      background-color: white;
     }
 
     .input-group input:focus, .input-group select:focus {
@@ -219,7 +220,8 @@
         document.getElementById("loading").style.display = "none";
         if (response.status === "success") {
           headersList = response.headers;
-          renderFormInputs(headersList);
+          const validations = response.validations || {};
+          renderFormInputs(headersList, validations);
           renderTable(headersList, response.data);
         } else {
           alert("خطأ في جلب البيانات: " + response.message);
@@ -231,8 +233,8 @@
       });
   }
 
-  // بناء حقول الإدخال بناءً على أسماء ورؤوس الأعمدة
-  function renderFormInputs(headers) {
+  // بناء حقول الإدخال بناءً على أسماء الأعمدة وقواعد التثبت (Dropdowns)
+  function renderFormInputs(headers, validations) {
     const container = document.getElementById("dynamic-inputs");
     container.innerHTML = "";
 
@@ -244,29 +246,51 @@
       label.innerText = header;
 
       let input;
+      const hName = header ? header.toString().trim() : "";
+      const dropdownOptions = validations[index];
 
-      const hName = header.toString().trim();
+      // 1. إذا كان للعمود قائمة منسدلة معرفة في الشيت
+      if (dropdownOptions && Array.isArray(dropdownOptions) && dropdownOptions.length > 0) {
+        input = document.createElement("select");
+        
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.innerText = "-- اختر --";
+        input.appendChild(defaultOption);
 
-      // التمييز التلقائي لخصائص أنواع الحقول
-      if (hName === "م" || hName.includes("تسلسل") || hName.includes("رصيد") || hName.includes("تراكمي")) {
+        dropdownOptions.forEach(opt => {
+          const option = document.createElement("option");
+          option.value = opt;
+          option.innerText = opt;
+          input.appendChild(option);
+        });
+
+      // 2. إذا كان العمود محدد كـ "م" أو "تسلسل" أو "رصيد" أو "تراكمي"
+      } else if (hName === "م" || hName.includes("تسلسل") || hName.includes("رصيد") || hName.includes("تراكمي")) {
         input = document.createElement("input");
         input.type = "text";
         input.readOnly = true;
         input.className = "readonly-input";
         input.placeholder = "يحسب آلياً";
-      } else if (hName.includes("تاريخ") || hName.includes("Date")) {
+
+      // 3. التمييز التلقائي لنوع البيانات (تاريخ)
+      } else if (hName.includes("تاريخ") || hName.toLowerCase().includes("date")) {
         input = document.createElement("input");
         input.type = "date";
-        input.required = true;
+
+      // 4. التمييز التلقائي لنوع البيانات (أرقام / مبالغ)
       } else if (hName.includes("مبلغ") || hName.includes("وارد") || hName.includes("منصرف") || hName.includes("سعر") || hName.includes("كمية")) {
         input = document.createElement("input");
         input.type = "number";
         input.step = "any";
         input.value = "0";
-        input.required = true;
+
+      // 5. التمييز التلقائي لنوع البيانات (جوال / هاتف)
       } else if (hName.includes("جوال") || hName.includes("هاتف")) {
         input = document.createElement("input");
         input.type = "tel";
+
+      // 6. نص عادي
       } else {
         input = document.createElement("input");
         input.type = "text";
@@ -328,7 +352,19 @@
 
     row.values.forEach((val, index) => {
       const input = document.getElementById(`col-${index}`);
-      if (input) input.value = val;
+      if (input) {
+        // التعامل مع صيغ التواريخ في مدخلات date
+        if (input.type === "date" && val) {
+          const dateVal = new Date(val);
+          if (!isNaN(dateVal.getTime())) {
+            input.value = dateVal.toISOString().split('T')[0];
+          } else {
+            input.value = val;
+          }
+        } else {
+          input.value = val !== undefined ? val : "";
+        }
+      }
     });
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
