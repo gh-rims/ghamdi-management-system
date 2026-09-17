@@ -80,12 +80,6 @@
       border-color: var(--secondary-color);
     }
 
-    .readonly-input {
-      background-color: #e9ecef !important;
-      cursor: not-allowed;
-      color: #6c757d;
-    }
-
     .form-actions {
       grid-column: 1 / -1;
       display: flex;
@@ -185,7 +179,7 @@
     </form>
   </div>
 
-  <!-- جدول عرض البيانات -->
+  <!-- جدول عرض البيانات الحالية -->
   <div class="card table-container">
     <h3 style="margin-top: 0; color: var(--primary-color);">البيانات الحالية</h3>
     <div id="loading" class="loading">جاري تحميل البيانات...</div>
@@ -199,7 +193,6 @@
 </div>
 
 <script>
-  // رابط التطبيق المباشر المخصص للجدول
   const API_URL = "https://script.google.com/macros/s/AKfycbw2FA_As7StLELc0xApapxVDYNa1dcYJT8dxQe06JBMp_fd8OsyLOq57KAECkG3MuxaGA/exec";
 
   let headersList = [];
@@ -209,7 +202,6 @@
     document.getElementById("data-form").addEventListener("submit", handleSubmit);
   });
 
-  // جلب البيانات من Google Sheets
   function fetchData() {
     document.getElementById("loading").style.display = "block";
     document.getElementById("data-table").style.display = "none";
@@ -220,8 +212,8 @@
         document.getElementById("loading").style.display = "none";
         if (response.status === "success") {
           headersList = response.headers;
-          const validations = response.validations || {};
-          renderFormInputs(headersList, validations);
+          const dropdowns = response.dropdowns || {};
+          renderFormInputs(headersList, dropdowns);
           renderTable(headersList, response.data);
         } else {
           alert("خطأ في جلب البيانات: " + response.message);
@@ -233,12 +225,23 @@
       });
   }
 
-  // بناء حقول الإدخال بناءً على أسماء الأعمدة وقواعد التثبت (Dropdowns)
-  function renderFormInputs(headers, validations) {
+  // إنشاء حقول النموذج وتطبيق شرط الإخفاء
+  function renderFormInputs(headers, fetchedDropdowns) {
     const container = document.getElementById("dynamic-inputs");
     container.innerHTML = "";
 
     headers.forEach((header, index) => {
+      const hName = header ? header.toString().trim() : "";
+
+      // 🛑 إخفاء التراكمي، التسلسل، والوقت تماماً من مربع الإدخال
+      if (hName === "م" || hName.includes("تسلسل") || hName.includes("رصيد") || hName.includes("تراكمي") || hName.includes("وقت") || hName.includes("Time")) {
+        const hiddenInput = document.createElement("input");
+        hiddenInput.type = "hidden";
+        hiddenInput.id = `col-${index}`;
+        container.appendChild(hiddenInput);
+        return; 
+      }
+
       const group = document.createElement("div");
       group.className = "input-group";
 
@@ -246,51 +249,54 @@
       label.innerText = header;
 
       let input;
-      const hName = header ? header.toString().trim() : "";
-      const dropdownOptions = validations[index];
 
-      // 1. إذا كان للعمود قائمة منسدلة معرفة في الشيت
-      if (dropdownOptions && Array.isArray(dropdownOptions) && dropdownOptions.length > 0) {
+      // 1. القوائم المنسدلة الجاهزة أو المعرفة في الشيت
+      if (fetchedDropdowns[hName] && fetchedDropdowns[hName].length > 0) {
         input = document.createElement("select");
         
         const defaultOption = document.createElement("option");
         defaultOption.value = "";
-        defaultOption.innerText = "-- اختر --";
+        defaultOption.innerText = `-- اختر ${hName} --`;
         input.appendChild(defaultOption);
 
-        dropdownOptions.forEach(opt => {
+        fetchedDropdowns[hName].forEach(opt => {
           const option = document.createElement("option");
           option.value = opt;
           option.innerText = opt;
           input.appendChild(option);
         });
 
-      // 2. إذا كان العمود محدد كـ "م" أو "تسلسل" أو "رصيد" أو "تراكمي"
-      } else if (hName === "م" || hName.includes("تسلسل") || hName.includes("رصيد") || hName.includes("تراكمي")) {
-        input = document.createElement("input");
-        input.type = "text";
-        input.readOnly = true;
-        input.className = "readonly-input";
-        input.placeholder = "يحسب آلياً";
+      // 2. قائمة منسدلة خاصة بأعمدة معينة كدعم إضافي
+      } else if (hName.includes("قائمة") || hName.includes("اسم")) {
+        input = document.createElement("select");
+        const optionsList = ["ادهم", "صالح", "محمد", "ثابت"];
+        
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.innerText = `-- اختر ${hName} --`;
+        input.appendChild(defaultOption);
 
-      // 3. التمييز التلقائي لنوع البيانات (تاريخ)
+        optionsList.forEach(opt => {
+          const option = document.createElement("option");
+          option.value = opt;
+          option.innerText = opt;
+          input.appendChild(option);
+        });
+
+      // 3. التاريخ بدون وقت
       } else if (hName.includes("تاريخ") || hName.toLowerCase().includes("date")) {
         input = document.createElement("input");
         input.type = "date";
+        input.value = new Date().toISOString().split('T')[0];
 
-      // 4. التمييز التلقائي لنوع البيانات (أرقام / مبالغ)
-      } else if (hName.includes("مبلغ") || hName.includes("وارد") || hName.includes("منصرف") || hName.includes("سعر") || hName.includes("كمية")) {
+      // 4. مبالغ أو وارد أو منصرف
+      } else if (hName.includes("مبلغ") || hName.includes("وارد") || hName.includes("منصرف") || hName.includes("سعر")) {
         input = document.createElement("input");
         input.type = "number";
         input.step = "any";
         input.value = "0";
 
-      // 5. التمييز التلقائي لنوع البيانات (جوال / هاتف)
-      } else if (hName.includes("جوال") || hName.includes("هاتف")) {
-        input = document.createElement("input");
-        input.type = "tel";
-
-      // 6. نص عادي
+      // 5. نص عام
       } else {
         input = document.createElement("input");
         input.type = "text";
@@ -304,7 +310,7 @@
     });
   }
 
-  // عرض صفوف البيانات في الجدول
+  // عرض الجدول بأسفل الصفحة شاملاً كافة الحقول (التسلسل، الوقت، الرصيد، التاريخ)
   function renderTable(headers, rows) {
     const headerRow = document.getElementById("table-headers");
     const tbody = document.getElementById("table-body");
@@ -345,7 +351,6 @@
     document.getElementById("data-table").style.display = "table";
   }
 
-  // تحميل بيانات الصف إلى النموذج لغرض التعديل
   function loadRowToForm(row) {
     document.getElementById("form-title").innerText = "تعديل السجل الحالي";
     document.getElementById("row-index-input").value = row.rowIndex;
@@ -353,14 +358,9 @@
     row.values.forEach((val, index) => {
       const input = document.getElementById(`col-${index}`);
       if (input) {
-        // التعامل مع صيغ التواريخ في مدخلات date
         if (input.type === "date" && val) {
-          const dateVal = new Date(val);
-          if (!isNaN(dateVal.getTime())) {
-            input.value = dateVal.toISOString().split('T')[0];
-          } else {
-            input.value = val;
-          }
+          const d = new Date(val);
+          input.value = !isNaN(d.getTime()) ? d.toISOString().split('T')[0] : val;
         } else {
           input.value = val !== undefined ? val : "";
         }
@@ -370,14 +370,12 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  // إعادة تهيئة النموذج للإضافة الجديدة
   function resetForm() {
     document.getElementById("form-title").innerText = "إضافة سجل جديد";
     document.getElementById("row-index-input").value = "";
     document.getElementById("data-form").reset();
   }
 
-  // معالجة إرسال النموذج (إضافة / تعديل)
   function handleSubmit(e) {
     e.preventDefault();
 
@@ -385,7 +383,8 @@
     const isUpdate = rowIndex !== "";
 
     const rowData = headersList.map((_, index) => {
-      return document.getElementById(`col-${index}`).value;
+      const el = document.getElementById(`col-${index}`);
+      return el ? el.value : "";
     });
 
     const payload = {
@@ -408,7 +407,7 @@
       fetchData();
     })
     .catch(err => {
-      alert("حدث خطأ أثناء الاتصال بالسيرفر");
+      alert("حدث خطأ أثناء الحفظ");
       console.error(err);
     })
     .finally(() => {
