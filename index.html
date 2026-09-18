@@ -163,10 +163,10 @@
 
 <div class="container">
   <header>
-    <h1>نظام إدخال وتعديل البيانات (Dat4)</h1>
+    <h1 id="main-header-title">نظام إدارة البيانات (Dat4)</h1>
   </header>
 
-  <!-- نموذج إدخال وتعديل البيانات -->
+  <!-- نموذج الإدخال والتعديل -->
   <div class="card">
     <h3 id="form-title" style="margin-top: 0; color: var(--primary-color);">إضافة سجل جديد</h3>
     <form id="data-form">
@@ -179,7 +179,7 @@
     </form>
   </div>
 
-  <!-- جدول عرض البيانات الحالية -->
+  <!-- جدول البيانات الحالية -->
   <div class="card table-container">
     <h3 style="margin-top: 0; color: var(--primary-color);">البيانات الحالية</h3>
     <div id="loading" class="loading">جاري تحميل البيانات...</div>
@@ -196,6 +196,7 @@
   const API_URL = "https://script.google.com/macros/s/AKfycbw2FA_As7StLELc0xApapxVDYNa1dcYJT8dxQe06JBMp_fd8OsyLOq57KAECkG3MuxaGA/exec";
 
   let headersList = [];
+  let keysList = [];
 
   document.addEventListener("DOMContentLoaded", () => {
     fetchData();
@@ -211,9 +212,12 @@
       .then(response => {
         document.getElementById("loading").style.display = "none";
         if (response.status === "success") {
+          if (response.mainTitle) {
+            document.getElementById("main-header-title").innerText = response.mainTitle;
+          }
           headersList = response.headers;
-          const dropdowns = response.dropdowns || {};
-          renderFormInputs(headersList, dropdowns);
+          keysList = response.keys;
+          renderFormInputs(headersList, keysList, response.dropdowns || {});
           renderTable(headersList, response.data);
         } else {
           alert("خطأ في جلب البيانات: " + response.message);
@@ -225,16 +229,16 @@
       });
   }
 
-  // إنشاء حقول النموذج واستثناء أعمدة G3 وأعمدة الحساب التلقائي
-  function renderFormInputs(headers, fetchedDropdowns) {
+  // إنشاء حقول النموذج بناءً على الصف الثاني والرموز الثابتة C1-C11 بالصف الثالث
+  function renderFormInputs(headers, keys, fetchedDropdowns) {
     const container = document.getElementById("dynamic-inputs");
     container.innerHTML = "";
 
     headers.forEach((header, index) => {
-      const hName = header ? header.toString().trim() : "";
+      const key = keys[index] ? keys[index].toString().trim() : "";
 
-      // 🛑 إخفاء أعمدة G3، التراكمي، التسلسل، والوقت من مربع الإدخال
-      if (hName.startsWith("G3") || hName === "م" || hName.includes("تسلسل") || hName.includes("رصيد") || hName.includes("تراكمي") || hName.includes("وقت") || hName.includes("Time")) {
+      // 🛑 حجب وإخفاء حقول (C1, C5, C10, C11, G3) من نموذج الإدخال
+      if (key === "C1" || key === "C5" || key === "C10" || key === "C11" || key.startsWith("G3")) {
         const hiddenInput = document.createElement("input");
         hiddenInput.type = "hidden";
         hiddenInput.id = `col-${index}`;
@@ -246,57 +250,52 @@
       group.className = "input-group";
 
       const label = document.createElement("label");
-      label.innerText = header;
+      label.innerText = header || `عمود ${index + 1}`;
 
       let input;
 
-      // 1. القوائم المنسدلة المعرفة في الشيت
-      if (fetchedDropdowns[hName] && fetchedDropdowns[hName].length > 0) {
+      // C8: قائمة منسدلة
+      if (key === "C8" || (fetchedDropdowns[index] && fetchedDropdowns[index].length > 0)) {
         input = document.createElement("select");
-        
         const defaultOption = document.createElement("option");
         defaultOption.value = "";
-        defaultOption.innerText = `-- اختر ${hName} --`;
+        defaultOption.innerText = `-- اختر --`;
         input.appendChild(defaultOption);
 
-        fetchedDropdowns[hName].forEach(opt => {
+        const list = fetchedDropdowns[index] || ["ادهم", "صالح", "محمد", "ثابت"];
+        list.forEach(opt => {
           const option = document.createElement("option");
           option.value = opt;
           option.innerText = opt;
           input.appendChild(option);
         });
 
-      // 2. قائمة منسدلة افتراضية
-      } else if (hName.includes("قائمة") || hName.includes("اسم")) {
-        input = document.createElement("select");
-        const optionsList = ["ادهم", "صالح", "محمد", "ثابت"];
-        
-        const defaultOption = document.createElement("option");
-        defaultOption.value = "";
-        defaultOption.innerText = `-- اختر ${hName} --`;
-        input.appendChild(defaultOption);
-
-        optionsList.forEach(opt => {
-          const option = document.createElement("option");
-          option.value = opt;
-          option.innerText = opt;
-          input.appendChild(option);
-        });
-
-      // 3. التاريخ
-      } else if (hName.includes("تاريخ") || hName.toLowerCase().includes("date")) {
+      // C2: تاريخ يدوي
+      } else if (key === "C2") {
         input = document.createElement("input");
         input.type = "date";
-        input.value = new Date().toISOString().split('T')[0];
 
-      // 4. مبالغ أو وارد أو منصرف
-      } else if (hName.includes("مبلغ") || hName.includes("وارد") || hName.includes("منصرف") || hName.includes("سعر")) {
+      // C3, C4, C7: مبالغ وأرقام فقط (أرقام صحيحة)
+      } else if (key === "C3" || key === "C4" || key === "C7") {
         input = document.createElement("input");
         input.type = "number";
-        input.step = "any";
-        input.value = "0";
+        input.step = "1";
+        input.oninput = function() { this.value = this.value.replace(/[^0-9]/g, ''); };
 
-      // 5. نص عام
+      // C6: رقم الجوال (10 أرقام ويبدأ بـ 05)
+      } else if (key === "C6") {
+        input = document.createElement("input");
+        input.type = "tel";
+        input.placeholder = "05xxxxxxxx";
+        input.maxLength = 10;
+        input.oninput = function() { this.value = this.value.replace(/[^0-9]/g, ''); };
+
+      // C9: وقت النظام
+      } else if (key === "C9") {
+        input = document.createElement("input");
+        input.type = "time";
+
+      // نص افتراضي عادي
       } else {
         input = document.createElement("input");
         input.type = "text";
@@ -310,7 +309,7 @@
     });
   }
 
-  // عرض كافة الأعمدة بالجدول بما فيها أعمدة G3 والتسلسل والرصيد والوقت
+  // عرض صفوف البيانات في جدول البيانات الحالية بأسفل الصفحة
   function renderTable(headers, rows) {
     const headerRow = document.getElementById("table-headers");
     const tbody = document.getElementById("table-body");
@@ -333,7 +332,7 @@
 
       row.values.forEach(val => {
         const td = document.createElement("td");
-        td.innerText = val !== undefined ? val : "";
+        td.innerText = (val !== undefined && val !== null) ? val.toString().replace(/^'/, '') : "";
         tr.appendChild(td);
       });
 
@@ -362,7 +361,7 @@
           const d = new Date(val);
           input.value = !isNaN(d.getTime()) ? d.toISOString().split('T')[0] : val;
         } else {
-          input.value = val !== undefined ? val : "";
+          input.value = val !== undefined ? val.toString().replace(/^'/, '') : "";
         }
       }
     });
@@ -376,8 +375,21 @@
     document.getElementById("data-form").reset();
   }
 
+  // التحقق من الشروط وإرسال النموذج
   function handleSubmit(e) {
     e.preventDefault();
+
+    // التحقق من شرط C6 رقم الجوال
+    const c6Index = keysList.indexOf("C6");
+    if (c6Index !== -1) {
+      const phoneVal = document.getElementById(`col-${c6Index}`).value.trim();
+      if (phoneVal !== "") {
+        if (!/^05\d{8}$/.test(phoneVal)) {
+          alert("خطأ: يجب أن يتكون رقم الجوال من 10 أرقام ويبدأ بـ 05");
+          return;
+        }
+      }
+    }
 
     const rowIndex = document.getElementById("row-index-input").value;
     const isUpdate = rowIndex !== "";
@@ -407,7 +419,7 @@
       fetchData();
     })
     .catch(err => {
-      alert("حدث خطأ أثناء الحفظ");
+      alert("حدث خطأ أثناء الاتصال بالسيرفر");
       console.error(err);
     })
     .finally(() => {
