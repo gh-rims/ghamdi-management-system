@@ -225,7 +225,7 @@
       });
   }
 
-  // إنشاء حقول النموذج وتطبيق شرط الإخفاء
+  // إنشاء حقول النموذج واستثناء أعمدة G3 وأعمدة الحساب التلقائي
   function renderFormInputs(headers, fetchedDropdowns) {
     const container = document.getElementById("dynamic-inputs");
     container.innerHTML = "";
@@ -233,8 +233,8 @@
     headers.forEach((header, index) => {
       const hName = header ? header.toString().trim() : "";
 
-      // 🛑 إخفاء التراكمي، التسلسل، والوقت تماماً من مربع الإدخال
-      if (hName === "م" || hName.includes("تسلسل") || hName.includes("رصيد") || hName.includes("تراكمي") || hName.includes("وقت") || hName.includes("Time")) {
+      // 🛑 إخفاء أعمدة G3، التراكمي، التسلسل، والوقت من مربع الإدخال
+      if (hName.startsWith("G3") || hName === "م" || hName.includes("تسلسل") || hName.includes("رصيد") || hName.includes("تراكمي") || hName.includes("وقت") || hName.includes("Time")) {
         const hiddenInput = document.createElement("input");
         hiddenInput.type = "hidden";
         hiddenInput.id = `col-${index}`;
@@ -250,7 +250,7 @@
 
       let input;
 
-      // 1. القوائم المنسدلة الجاهزة أو المعرفة في الشيت
+      // 1. القوائم المنسدلة المعرفة في الشيت
       if (fetchedDropdowns[hName] && fetchedDropdowns[hName].length > 0) {
         input = document.createElement("select");
         
@@ -266,7 +266,7 @@
           input.appendChild(option);
         });
 
-      // 2. قائمة منسدلة خاصة بأعمدة معينة كدعم إضافي
+      // 2. قائمة منسدلة افتراضية
       } else if (hName.includes("قائمة") || hName.includes("اسم")) {
         input = document.createElement("select");
         const optionsList = ["ادهم", "صالح", "محمد", "ثابت"];
@@ -283,7 +283,7 @@
           input.appendChild(option);
         });
 
-      // 3. التاريخ بدون وقت
+      // 3. التاريخ
       } else if (hName.includes("تاريخ") || hName.toLowerCase().includes("date")) {
         input = document.createElement("input");
         input.type = "date";
@@ -310,7 +310,7 @@
     });
   }
 
-  // عرض الجدول بأسفل الصفحة شاملاً كافة الحقول (التسلسل، الوقت، الرصيد، التاريخ)
+  // عرض كافة الأعمدة بالجدول بما فيها أعمدة G3 والتسلسل والرصيد والوقت
   function renderTable(headers, rows) {
     const headerRow = document.getElementById("table-headers");
     const tbody = document.getElementById("table-body");
