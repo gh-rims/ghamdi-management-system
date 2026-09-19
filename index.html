@@ -236,6 +236,7 @@
 
   let headersList = [];
   let keysList = [];
+  let globalRowsData = [];
 
   document.addEventListener("DOMContentLoaded", () => {
     fetchData();
@@ -256,8 +257,9 @@
           }
           headersList = response.headers;
           keysList = response.keys;
+          globalRowsData = response.data || [];
           renderFormInputs(headersList, keysList, response.dropdowns || {});
-          renderTable(headersList, response.data);
+          renderTable(headersList, globalRowsData);
         } else {
           alert("تنبيه: تعذر جلب البيانات من السيرفر - " + response.message);
         }
@@ -275,8 +277,8 @@
     headers.forEach((header, index) => {
       const key = keys[index] ? keys[index].toString().trim() : "";
 
-      // 🛑 إخفاء C1, C5, C10, C11, C12, G3 من نموذج الإدخال
-      if (key === "C1" || key === "C5" || key === "C10" || key === "C11" || key === "C12" || key.startsWith("G3")) {
+      // 🛑 إخفاء C1, C5, C10, C11, C12, C14, G3 من نموذج الإدخال
+      if (key === "C1" || key === "C5" || key === "C10" || key === "C11" || key === "C12" || key.startsWith("C14/") || key.startsWith("G3")) {
         const hiddenInput = document.createElement("input");
         hiddenInput.type = "hidden";
         hiddenInput.id = `col-${index}`;
@@ -350,6 +352,53 @@
       group.appendChild(label);
       group.appendChild(input);
       container.appendChild(group);
+    });
+
+    // إعداد البحث التلقائي اللحظي (Zero-Delay Instant Lookup) لـ C15/
+    setupC15InstantLookup();
+  }
+
+  // ربط حقول البحث C15/ بالحقل المرجع تلقائياً
+  function setupC15InstantLookup() {
+    keysList.forEach((key, c15Index) => {
+      if (key.startsWith("C15/")) {
+        const targetRefKey = key.split("/")[1].trim(); // مثل C7
+        const targetRefIndex = keysList.indexOf(targetRefKey);
+
+        if (targetRefIndex !== -1) {
+          const sourceInput = document.getElementById(`col-${targetRefIndex}`);
+          const c15Input = document.getElementById(`col-${c15Index}`);
+
+          if (sourceInput && c15Input) {
+            const handleInstantSearch = () => {
+              const query = sourceInput.value.trim().toLowerCase();
+              if (query === "") {
+                c15Input.value = "";
+                return;
+              }
+
+              // البحث التنازلي لاختيار آخر نتيجة تم حفظها بناءً على آخر صف زمنياً
+              let foundVal = null;
+              for (let i = globalRowsData.length - 1; i >= 0; i--) {
+                const rowValues = globalRowsData[i].values;
+                const sourceVal = rowValues[targetRefIndex] ? rowValues[targetRefIndex].toString().trim().toLowerCase() : "";
+                
+                if (sourceVal === query) {
+                  foundVal = rowValues[c15Index];
+                  break;
+                }
+              }
+
+              if (foundVal !== null && foundVal !== undefined) {
+                c15Input.value = foundVal.toString().replace(/^'/, '');
+              }
+            };
+
+            sourceInput.addEventListener("input", handleInstantSearch);
+            sourceInput.addEventListener("change", handleInstantSearch);
+          }
+        }
+      }
     });
   }
 
@@ -457,7 +506,6 @@
     document.getElementById("btn-save").innerText = "جاري التأكيد مع السيرفر...";
     document.getElementById("btn-save").disabled = true;
 
-    // إرسال وتأكيد أمان حفظ البيانات
     fetch(API_URL, {
       method: "POST",
       body: JSON.stringify(payload)
