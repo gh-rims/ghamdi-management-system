@@ -49,6 +49,18 @@
       margin-bottom: 20px;
     }
 
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .section-header h3 {
+      margin: 0;
+      color: var(--primary-color);
+    }
+
     form {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -74,6 +86,19 @@
       font-size: 14px;
       outline: none;
       background-color: white;
+    }
+
+    .input-group-checkbox {
+      flex-direction: row;
+      align-items: center;
+      gap: 10px;
+      padding-top: 10px;
+    }
+
+    .input-group-checkbox input {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
     }
 
     .input-group input:focus, .input-group select:focus {
@@ -109,6 +134,17 @@
     .btn-cancel {
       background-color: #6c757d;
       color: white;
+    }
+
+    .btn-refresh {
+      background-color: var(--primary-color);
+      color: white;
+      padding: 8px 16px;
+      font-size: 14px;
+    }
+
+    .btn-refresh:hover {
+      background-color: #144163;
     }
 
     .table-container {
@@ -179,9 +215,12 @@
     </form>
   </div>
 
-  <!-- جدول البيانات الحالية -->
+  <!-- جدول البيانات الحالية مع زر التحديث المباشر -->
   <div class="card table-container">
-    <h3 style="margin-top: 0; color: var(--primary-color);">البيانات الحالية</h3>
+    <div class="section-header">
+      <h3>البيانات الحالية</h3>
+      <button type="button" class="btn-refresh" onclick="fetchData()">🔄 تحديث البيانات</button>
+    </div>
     <div id="loading" class="loading">جاري تحميل البيانات...</div>
     <table id="data-table" style="display: none;">
       <thead>
@@ -220,16 +259,15 @@
           renderFormInputs(headersList, keysList, response.dropdowns || {});
           renderTable(headersList, response.data);
         } else {
-          alert("خطأ في جلب البيانات: " + response.message);
+          alert("تنبيه: تعذر جلب البيانات من السيرفر - " + response.message);
         }
       })
       .catch(err => {
-        document.getElementById("loading").innerText = "تعذر الاتصال بالمؤشر البرمجي";
+        document.getElementById("loading").innerText = "خطأ: تعذر الاتصال بجدول بيانات جوجل";
         console.error(err);
       });
   }
 
-  // إنشاء حقول النموذج بناءً على الصف الثاني والرموز الثابتة C1-C11 بالصف الثالث
   function renderFormInputs(headers, keys, fetchedDropdowns) {
     const container = document.getElementById("dynamic-inputs");
     container.innerHTML = "";
@@ -237,8 +275,8 @@
     headers.forEach((header, index) => {
       const key = keys[index] ? keys[index].toString().trim() : "";
 
-      // 🛑 حجب وإخفاء حقول (C1, C5, C10, C11, G3) من نموذج الإدخال
-      if (key === "C1" || key === "C5" || key === "C10" || key === "C11" || key.startsWith("G3")) {
+      // 🛑 إخفاء C1, C5, C10, C11, C12, G3 من نموذج الإدخال
+      if (key === "C1" || key === "C5" || key === "C10" || key === "C11" || key === "C12" || key.startsWith("G3")) {
         const hiddenInput = document.createElement("input");
         hiddenInput.type = "hidden";
         hiddenInput.id = `col-${index}`;
@@ -254,8 +292,14 @@
 
       let input;
 
+      // C13: مربع اختيار صح أو خطا (Checkbox)
+      if (key === "C13") {
+        group.classList.add("input-group-checkbox");
+        input = document.createElement("input");
+        input.type = "checkbox";
+
       // C8: قائمة منسدلة
-      if (key === "C8" || (fetchedDropdowns[index] && fetchedDropdowns[index].length > 0)) {
+      } else if (key === "C8" || (fetchedDropdowns[index] && fetchedDropdowns[index].length > 0)) {
         input = document.createElement("select");
         const defaultOption = document.createElement("option");
         defaultOption.value = "";
@@ -275,14 +319,14 @@
         input = document.createElement("input");
         input.type = "date";
 
-      // C3, C4, C7: مبالغ وأرقام فقط (أرقام صحيحة)
+      // C3, C4, C7: مبالغ وأرقام
       } else if (key === "C3" || key === "C4" || key === "C7") {
         input = document.createElement("input");
         input.type = "number";
         input.step = "1";
         input.oninput = function() { this.value = this.value.replace(/[^0-9]/g, ''); };
 
-      // C6: رقم الجوال (10 أرقام ويبدأ بـ 05)
+      // C6: رقم الجوال
       } else if (key === "C6") {
         input = document.createElement("input");
         input.type = "tel";
@@ -290,12 +334,12 @@
         input.maxLength = 10;
         input.oninput = function() { this.value = this.value.replace(/[^0-9]/g, ''); };
 
-      // C9: وقت النظام
+      // C9: وقت النظام اليدوي
       } else if (key === "C9") {
         input = document.createElement("input");
         input.type = "time";
 
-      // نص افتراضي عادي
+      // نص عادي
       } else {
         input = document.createElement("input");
         input.type = "text";
@@ -309,7 +353,6 @@
     });
   }
 
-  // عرض صفوف البيانات في جدول البيانات الحالية بأسفل الصفحة
   function renderTable(headers, rows) {
     const headerRow = document.getElementById("table-headers");
     const tbody = document.getElementById("table-body");
@@ -330,9 +373,16 @@
     rows.forEach(row => {
       const tr = document.createElement("tr");
 
-      row.values.forEach(val => {
+      row.values.forEach((val, colIdx) => {
         const td = document.createElement("td");
-        td.innerText = (val !== undefined && val !== null) ? val.toString().replace(/^'/, '') : "";
+        const key = keysList[colIdx];
+
+        if (key === "C13") {
+          td.innerText = (val === true || val === "true" || val === "TRUE") ? "✔️ صح" : "❌ خطأ";
+        } else {
+          td.innerText = (val !== undefined && val !== null) ? val.toString().replace(/^'/, '') : "";
+        }
+
         tr.appendChild(td);
       });
 
@@ -357,7 +407,9 @@
     row.values.forEach((val, index) => {
       const input = document.getElementById(`col-${index}`);
       if (input) {
-        if (input.type === "date" && val) {
+        if (input.type === "checkbox") {
+          input.checked = (val === true || val === "true" || val === "TRUE");
+        } else if (input.type === "date" && val) {
           const d = new Date(val);
           input.value = !isNaN(d.getTime()) ? d.toISOString().split('T')[0] : val;
         } else {
@@ -375,19 +427,15 @@
     document.getElementById("data-form").reset();
   }
 
-  // التحقق من الشروط وإرسال النموذج
   function handleSubmit(e) {
     e.preventDefault();
 
-    // التحقق من شرط C6 رقم الجوال
     const c6Index = keysList.indexOf("C6");
     if (c6Index !== -1) {
       const phoneVal = document.getElementById(`col-${c6Index}`).value.trim();
-      if (phoneVal !== "") {
-        if (!/^05\d{8}$/.test(phoneVal)) {
-          alert("خطأ: يجب أن يتكون رقم الجوال من 10 أرقام ويبدأ بـ 05");
-          return;
-        }
+      if (phoneVal !== "" && !/^05\d{8}$/.test(phoneVal)) {
+        alert("⚠️ خطأ: يجب أن يتكون رقم الجوال من 10 أرقام ويبدأ بـ 05");
+        return;
       }
     }
 
@@ -396,7 +444,8 @@
 
     const rowData = headersList.map((_, index) => {
       const el = document.getElementById(`col-${index}`);
-      return el ? el.value : "";
+      if (!el) return "";
+      return el.type === "checkbox" ? el.checked : el.value;
     });
 
     const payload = {
@@ -405,21 +454,26 @@
       data: rowData
     };
 
-    document.getElementById("btn-save").innerText = "جاري الحفظ...";
+    document.getElementById("btn-save").innerText = "جاري التأكيد مع السيرفر...";
     document.getElementById("btn-save").disabled = true;
 
+    // إرسال وتأكيد أمان حفظ البيانات
     fetch(API_URL, {
       method: "POST",
       body: JSON.stringify(payload)
     })
     .then(res => res.json())
     .then(res => {
-      alert(res.message);
-      resetForm();
-      fetchData();
+      if (res.status === "success") {
+        alert("✅ " + res.message);
+        resetForm();
+        fetchData();
+      } else {
+        alert("⚠️ تنبيه: لم يتم حفظ البيانات في جدول البيانات! التفاصيل: " + res.message);
+      }
     })
     .catch(err => {
-      alert("حدث خطأ أثناء الاتصال بالسيرفر");
+      alert("❌ تحذير أمان: فشلت عملية الحفظ! لم يتم تسجيل البيانات بجدول جوجل شيت لعدم استجابة السيرفر.");
       console.error(err);
     })
     .finally(() => {
