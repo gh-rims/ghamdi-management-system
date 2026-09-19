@@ -88,6 +88,11 @@
       background-color: white;
     }
 
+    .input-group input:disabled {
+      background-color: #e9ecef;
+      cursor: not-allowed;
+    }
+
     .input-group-checkbox {
       flex-direction: row;
       align-items: center;
@@ -189,7 +194,7 @@
       font-weight: bold;
     }
 
-    /* Modal PDF Styles المنظمة والهيدر الثابت */
+    /* Modal PDF Styles */
     .modal {
       display: none; 
       position: fixed; 
@@ -229,15 +234,6 @@
       flex-grow: 1;
     }
 
-    .close-modal {
-      font-size: 26px;
-      cursor: pointer;
-      font-weight: bold;
-      color: #777;
-    }
-
-    .close-modal:hover { color: #000; }
-
     @media print {
       body * { visibility: hidden; }
       #printable-area, #printable-area * { visibility: visible; }
@@ -253,7 +249,6 @@
     <h1 id="main-header-title">نظام إدارة البيانات (Dat4)</h1>
   </header>
 
-  <!-- كرت الإدخال مع قرار وضع زر تنزيل PDF باليمين بوضوح -->
   <div class="card">
     <div class="section-header">
       <h3 id="form-title">إضافة سجل جديد</h3>
@@ -269,7 +264,6 @@
     </form>
   </div>
 
-  <!-- كرت البيانات الحالية -->
   <div class="card table-container">
     <div class="section-header">
       <h3>البيانات الحالية</h3>
@@ -285,7 +279,6 @@
   </div>
 </div>
 
-<!-- النافذة المنبثقة للـ PDF مع هيدر ثوابت سهل الوصول -->
 <div id="pdf-modal" class="modal">
   <div class="modal-content">
     <div class="modal-header">
@@ -347,16 +340,17 @@
       });
   }
 
+  // إنشاء عناصر النموذج بالاعتماد الحصري على الرمز # للإخفاء
   function renderFormInputs(headers, keys, fetchedDropdowns) {
     const container = document.getElementById("dynamic-inputs");
     container.innerHTML = "";
 
     headers.forEach((header, index) => {
       const rawKey = keys[index] ? keys[index].toString().trim() : "";
-      const isReadOnlyOnly = rawKey.startsWith("#"); 
+      const isReadOnlyOnly = rawKey.startsWith("#"); // الإخفاء حصرياً عند وجود #
       const cleanKey = rawKey.replace(/^[#\*]/, '');
 
-      if (isReadOnlyOnly || cleanKey === "C1" || cleanKey === "C5" || cleanKey === "C10" || cleanKey === "C11" || cleanKey === "C12" || cleanKey.startsWith("C14/") || cleanKey.startsWith("G3")) {
+      if (isReadOnlyOnly) {
         const hiddenInput = document.createElement("input");
         hiddenInput.type = "hidden";
         hiddenInput.id = `col-${index}`;
@@ -372,7 +366,14 @@
 
       let input;
 
-      if (cleanKey === "C13") {
+      // C10: مربع نص غير قابل للتعديل لعرض نتائج الشفرة
+      if (cleanKey === "C10") {
+        input = document.createElement("input");
+        input.type = "text";
+        input.disabled = true; // غير قابل للتعديل
+        input.placeholder = "شفرة آلياً";
+
+      } else if (cleanKey === "C13") {
         group.classList.add("input-group-checkbox");
         input = document.createElement("input");
         input.type = "checkbox";
@@ -475,6 +476,7 @@
     });
   }
 
+  // عرض الجدول بأسفل الصفحة والاستثناء حصري بوجود الرمز *
   function renderTable(headers, rows) {
     const headerRow = document.getElementById("table-headers");
     const tbody = document.getElementById("table-body");
@@ -486,7 +488,7 @@
 
     headers.forEach((header, idx) => {
       const key = keysList[idx] || "";
-      if (!key.startsWith("*")) { 
+      if (!key.startsWith("*")) { // الإخفاء من العرض فقط بوجود *
         visibleColIndices.push(idx);
         const th = document.createElement("th");
         th.innerText = header;
@@ -529,7 +531,6 @@
     document.getElementById("data-table").style.display = "table";
   }
 
-  // فتح وتعبئة جدول PDF بدون تكرار
   function openPdfModal() {
     const headerRow = document.getElementById("pdf-table-headers");
     const tbody = document.getElementById("pdf-table-body");
