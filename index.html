@@ -30,7 +30,9 @@
       background-color: var(--primary-color);
       color: white;
       padding: 20px;
-      text-align: center;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       border-radius: 8px;
       margin-bottom: 20px;
       box-shadow: 0 4px 6px rgba(0,0,0,0.1);
@@ -38,7 +40,7 @@
 
     header h1 {
       margin: 0;
-      font-size: 24px;
+      font-size: 22px;
     }
 
     .card {
@@ -101,10 +103,6 @@
       cursor: pointer;
     }
 
-    .input-group input:focus, .input-group select:focus {
-      border-color: var(--secondary-color);
-    }
-
     .form-actions {
       grid-column: 1 / -1;
       display: flex;
@@ -143,8 +141,15 @@
       font-size: 14px;
     }
 
-    .btn-refresh:hover {
-      background-color: #144163;
+    .btn-pdf {
+      background-color: #28a745;
+      color: white;
+      padding: 8px 16px;
+      font-size: 14px;
+    }
+
+    .btn-pdf:hover {
+      background-color: #218838;
     }
 
     .table-container {
@@ -182,10 +187,6 @@
       border-radius: 4px;
     }
 
-    .btn-edit:hover {
-      background-color: #144163;
-    }
-
     .loading {
       text-align: center;
       padding: 30px;
@@ -193,12 +194,62 @@
       color: var(--primary-color);
       font-weight: bold;
     }
+
+    /* Modal PDF Styles */
+    .modal {
+      display: none; 
+      position: fixed; 
+      z-index: 1000; 
+      left: 0;
+      top: 0;
+      width: 100%; 
+      height: 100%; 
+      background-color: rgba(0,0,0,0.5); 
+    }
+
+    .modal-content {
+      background-color: #fff;
+      margin: 30px auto;
+      padding: 20px;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 900px;
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid var(--primary-color);
+      padding-bottom: 10px;
+      margin-bottom: 15px;
+    }
+
+    .close-modal {
+      font-size: 24px;
+      cursor: pointer;
+      font-weight: bold;
+      color: #aaa;
+    }
+
+    .close-modal:hover { color: #000; }
+
+    @media print {
+      body * { visibility: hidden; }
+      #printable-area, #printable-area * { visibility: visible; }
+      #printable-area { position: absolute; left: 0; top: 0; width: 100%; }
+      .no-print { display: none !important; }
+    }
   </style>
 </head>
 <body>
 
 <div class="container">
   <header>
+    <!-- زر التنزيل في أعلى يسار الصفحة -->
+    <button type="button" class="btn-pdf" onclick="openPdfModal()">📥 تنزيل PDF</button>
     <h1 id="main-header-title">نظام إدارة البيانات (Dat4)</h1>
   </header>
 
@@ -215,7 +266,7 @@
     </form>
   </div>
 
-  <!-- جدول البيانات الحالية مع زر التحديث المباشر -->
+  <!-- جدول البيانات الحالية -->
   <div class="card table-container">
     <div class="section-header">
       <h3>البيانات الحالية</h3>
@@ -228,6 +279,29 @@
       </thead>
       <tbody id="table-body"></tbody>
     </table>
+  </div>
+</div>
+
+<!-- النافذة المنبثقة لمعاينة وتنزيل الـ PDF -->
+<div id="pdf-modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 style="margin: 0; color: var(--primary-color);">معاينة الكشف وقابليته للطباعة / PDF</h3>
+      <span class="close-modal" onclick="closePdfModal()">&times;</span>
+    </div>
+    <div id="printable-area">
+      <h2 id="pdf-title" style="text-align: center; color: var(--primary-color);">كشف البيانات</h2>
+      <table id="pdf-table" style="width: 100%; border-collapse: collapse;">
+        <thead>
+          <tr id="pdf-table-headers"></tr>
+        </thead>
+        <tbody id="pdf-table-body"></tbody>
+      </table>
+    </div>
+    <div style="margin-top: 20px; text-align: left;" class="no-print">
+      <button type="button" class="btn-submit" onclick="window.print()">🖨️ حفظ / طباعة PDF</button>
+      <button type="button" class="btn-cancel" onclick="closePdfModal()">إغلاق</button>
+    </div>
   </div>
 </div>
 
@@ -254,6 +328,7 @@
         if (response.status === "success") {
           if (response.mainTitle) {
             document.getElementById("main-header-title").innerText = response.mainTitle;
+            document.getElementById("pdf-title").innerText = response.mainTitle;
           }
           headersList = response.headers;
           keysList = response.keys;
@@ -261,24 +336,27 @@
           renderFormInputs(headersList, keysList, response.dropdowns || {});
           renderTable(headersList, globalRowsData);
         } else {
-          alert("تنبيه: تعذر جلب البيانات من السيرفر - " + response.message);
+          alert("تنبيه: " + response.message);
         }
       })
       .catch(err => {
-        document.getElementById("loading").innerText = "خطأ: تعذر الاتصال بجدول بيانات جوجل";
+        document.getElementById("loading").innerText = "خطأ: تعذر الاتصال بجدول البيانات";
         console.error(err);
       });
   }
 
+  // إنشاء النموذج مع معالجة # و *
   function renderFormInputs(headers, keys, fetchedDropdowns) {
     const container = document.getElementById("dynamic-inputs");
     container.innerHTML = "";
 
     headers.forEach((header, index) => {
-      const key = keys[index] ? keys[index].toString().trim() : "";
+      const rawKey = keys[index] ? keys[index].toString().trim() : "";
+      const isReadOnlyOnly = rawKey.startsWith("#"); // # عرض فقط (مخفي من الإدخال)
+      const cleanKey = rawKey.replace(/^[#\*]/, '');
 
-      // 🛑 إخفاء C1, C5, C10, C11, C12, C14, G3 من نموذج الإدخال
-      if (key === "C1" || key === "C5" || key === "C10" || key === "C11" || key === "C12" || key.startsWith("C14/") || key.startsWith("G3")) {
+      // إخفاء العقول المخصصة للعرض فقط أو الحقول الآلية
+      if (isReadOnlyOnly || cleanKey === "C1" || cleanKey === "C5" || cleanKey === "C10" || cleanKey === "C11" || cleanKey === "C12" || cleanKey.startsWith("C14/") || cleanKey.startsWith("G3")) {
         const hiddenInput = document.createElement("input");
         hiddenInput.type = "hidden";
         hiddenInput.id = `col-${index}`;
@@ -294,21 +372,19 @@
 
       let input;
 
-      // C13: مربع اختيار صح أو خطا (Checkbox)
-      if (key === "C13") {
+      if (cleanKey === "C13") {
         group.classList.add("input-group-checkbox");
         input = document.createElement("input");
         input.type = "checkbox";
 
-      // C8: قائمة منسدلة
-      } else if (key === "C8" || (fetchedDropdowns[index] && fetchedDropdowns[index].length > 0)) {
+      } else if (cleanKey === "C8" || (fetchedDropdowns[index] && fetchedDropdowns[index].length > 0)) {
         input = document.createElement("select");
         const defaultOption = document.createElement("option");
         defaultOption.value = "";
         defaultOption.innerText = `-- اختر --`;
         input.appendChild(defaultOption);
 
-        const list = fetchedDropdowns[index] || ["ادهم", "صالح", "محمد", "ثابت"];
+        const list = fetchedDropdowns[index] || [];
         list.forEach(opt => {
           const option = document.createElement("option");
           option.value = opt;
@@ -316,32 +392,27 @@
           input.appendChild(option);
         });
 
-      // C2: تاريخ يدوي
-      } else if (key === "C2") {
+      } else if (cleanKey === "C2") {
         input = document.createElement("input");
         input.type = "date";
 
-      // C3, C4, C7: مبالغ وأرقام
-      } else if (key === "C3" || key === "C4" || key === "C7") {
+      } else if (cleanKey === "C3" || cleanKey === "C4" || cleanKey === "C7") {
         input = document.createElement("input");
         input.type = "number";
         input.step = "1";
         input.oninput = function() { this.value = this.value.replace(/[^0-9]/g, ''); };
 
-      // C6: رقم الجوال
-      } else if (key === "C6") {
+      } else if (cleanKey === "C6") {
         input = document.createElement("input");
         input.type = "tel";
         input.placeholder = "05xxxxxxxx";
         input.maxLength = 10;
         input.oninput = function() { this.value = this.value.replace(/[^0-9]/g, ''); };
 
-      // C9: وقت النظام اليدوي
-      } else if (key === "C9") {
+      } else if (cleanKey === "C9") {
         input = document.createElement("input");
         input.type = "time";
 
-      // نص عادي
       } else {
         input = document.createElement("input");
         input.type = "text";
@@ -354,16 +425,20 @@
       container.appendChild(group);
     });
 
-    // إعداد البحث التلقائي اللحظي (Zero-Delay Instant Lookup) لـ C15/
     setupC15InstantLookup();
   }
 
-  // ربط حقول البحث C15/ بالحقل المرجع تلقائياً
+  // البحث الفوري لـ C15
   function setupC15InstantLookup() {
     keysList.forEach((key, c15Index) => {
-      if (key.startsWith("C15/")) {
-        const targetRefKey = key.split("/")[1].trim(); // مثل C7
-        const targetRefIndex = keysList.indexOf(targetRefKey);
+      const cleanKey = key.replace(/^[#\*]/, '');
+      if (cleanKey.startsWith("C15/")) {
+        const targetRefKey = cleanKey.split("/")[1].trim(); 
+        
+        let targetRefIndex = -1;
+        keysList.forEach((k, idx) => {
+          if (k.replace(/^[#\*]/, '') === targetRefKey) targetRefIndex = idx;
+        });
 
         if (targetRefIndex !== -1) {
           const sourceInput = document.getElementById(`col-${targetRefIndex}`);
@@ -377,7 +452,6 @@
                 return;
               }
 
-              // البحث التنازلي لاختيار آخر نتيجة تم حفظها بناءً على آخر صف زمنياً
               let foundVal = null;
               for (let i = globalRowsData.length - 1; i >= 0; i--) {
                 const rowValues = globalRowsData[i].values;
@@ -402,6 +476,7 @@
     });
   }
 
+  // عرض الجدول بأسفل الصفحة واستثناء * (إدخال فقط)
   function renderTable(headers, rows) {
     const headerRow = document.getElementById("table-headers");
     const tbody = document.getElementById("table-body");
@@ -409,10 +484,16 @@
     headerRow.innerHTML = "";
     tbody.innerHTML = "";
 
-    headers.forEach(header => {
-      const th = document.createElement("th");
-      th.innerText = header;
-      headerRow.appendChild(th);
+    const visibleColIndices = [];
+
+    headers.forEach((header, idx) => {
+      const key = keysList[idx] || "";
+      if (!key.startsWith("*")) { // استثناء * (إدخال فقط)
+        visibleColIndices.push(idx);
+        const th = document.createElement("th");
+        th.innerText = header;
+        headerRow.appendChild(th);
+      }
     });
     
     const actionTh = document.createElement("th");
@@ -422,11 +503,12 @@
     rows.forEach(row => {
       const tr = document.createElement("tr");
 
-      row.values.forEach((val, colIdx) => {
+      visibleColIndices.forEach(colIdx => {
         const td = document.createElement("td");
-        const key = keysList[colIdx];
+        const cleanKey = keysList[colIdx].replace(/^[#\*]/, '');
+        const val = row.values[colIdx];
 
-        if (key === "C13") {
+        if (cleanKey === "C13") {
           td.innerText = (val === true || val === "true" || val === "TRUE") ? "✔️ صح" : "❌ خطأ";
         } else {
           td.innerText = (val !== undefined && val !== null) ? val.toString().replace(/^'/, '') : "";
@@ -447,6 +529,59 @@
     });
 
     document.getElementById("data-table").style.display = "table";
+  }
+
+  // فتح ومعاينة الكشف المنبثق للـ PDF
+  function openPdfModal() {
+    const headerRow = document.getElementById("pdf-table-headers");
+    const tbody = document.getElementById("pdf-table-body");
+
+    headerRow.innerHTML = "";
+    tbody.innerHTML = "";
+
+    const visibleColIndices = [];
+
+    headersList.forEach((header, idx) => {
+      const key = keysList[idx] || "";
+      if (!key.startsWith("*")) { // استثناء * من الكشف
+        visibleColIndices.push(idx);
+        const th = document.createElement("th");
+        th.innerText = header;
+        th.style.border = "1px solid #333";
+        th.style.padding = "8px";
+        th.style.backgroundColor = "#f0f0f0";
+        headerRow.appendChild(th);
+      }
+    });
+
+    globalRowsData.forEach(row => {
+      const tr = document.createElement("tr");
+
+      visibleColIndices.forEach(colIdx => {
+        const td = document.createElement("td");
+        td.style.border = "1px solid #333";
+        td.style.padding = "8px";
+
+        const cleanKey = keysList[colIdx].replace(/^[#\*]/, '');
+        const val = row.values[colIdx];
+
+        if (cleanKey === "C13") {
+          td.innerText = (val === true || val === "true" || val === "TRUE") ? "✔️" : "❌";
+        } else {
+          td.innerText = (val !== undefined && val !== null) ? val.toString().replace(/^'/, '') : "";
+        }
+
+        tr.appendChild(td);
+      });
+
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById("pdf-modal").style.display = "block";
+  }
+
+  function closePdfModal() {
+    document.getElementById("pdf-modal").style.display = "none";
   }
 
   function loadRowToForm(row) {
@@ -479,7 +614,11 @@
   function handleSubmit(e) {
     e.preventDefault();
 
-    const c6Index = keysList.indexOf("C6");
+    let c6Index = -1;
+    keysList.forEach((k, idx) => {
+      if (k.replace(/^[#\*]/, '') === "C6") c6Index = idx;
+    });
+
     if (c6Index !== -1) {
       const phoneVal = document.getElementById(`col-${c6Index}`).value.trim();
       if (phoneVal !== "" && !/^05\d{8}$/.test(phoneVal)) {
@@ -517,11 +656,11 @@
         resetForm();
         fetchData();
       } else {
-        alert("⚠️ تنبيه: لم يتم حفظ البيانات في جدول البيانات! التفاصيل: " + res.message);
+        alert("⚠️ تنبيه: لم يتم حفظ البيانات! التفاصيل: " + res.message);
       }
     })
     .catch(err => {
-      alert("❌ تحذير أمان: فشلت عملية الحفظ! لم يتم تسجيل البيانات بجدول جوجل شيت لعدم استجابة السيرفر.");
+      alert("❌ خطأ أمان: لم يتم تسجيل البيانات لعدم استجابة السيرفر.");
       console.error(err);
     })
     .finally(() => {
