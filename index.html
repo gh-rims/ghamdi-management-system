@@ -79,6 +79,11 @@
       font-size: 14px;
     }
 
+    .input-group label .required-star {
+      color: red;
+      margin-right: 4px;
+    }
+
     .input-group input, .input-group select {
       padding: 10px;
       border: 1px solid #ccc;
@@ -194,7 +199,7 @@
       font-weight: bold;
     }
 
-    /* Modal PDF Styles */
+    /* Modal Styles */
     .modal {
       display: none; 
       position: fixed; 
@@ -204,34 +209,46 @@
       width: 100%; 
       height: 100%; 
       background-color: rgba(0,0,0,0.6); 
+      justify-content: center;
+      align-items: center;
     }
 
     .modal-content {
       background-color: #fff;
-      margin: 20px auto;
       border-radius: 8px;
-      width: 95%;
+      width: 90%;
+      max-width: 450px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+
+    .modal-pdf-content {
       max-width: 900px;
-      max-height: 90vh;
+      height: 90vh;
       display: flex;
       flex-direction: column;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
     }
 
     .modal-header {
+      padding: 15px 20px;
+      background-color: var(--primary-color);
+      color: white;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 15px 20px;
-      background-color: #f8f9fa;
-      border-bottom: 2px solid var(--primary-color);
-      border-radius: 8px 8px 0 0;
     }
+
+    .modal-header h3 { margin: 0; font-size: 18px; }
 
     .modal-body {
       padding: 20px;
-      overflow-y: auto;
-      flex-grow: 1;
+    }
+
+    .modal-footer {
+      padding: 15px;
+      text-align: center;
+      background-color: #f8f9fa;
+      border-top: 1px solid #eee;
     }
 
     @media print {
@@ -252,7 +269,7 @@
   <div class="card">
     <div class="section-header">
       <h3 id="form-title">إضافة سجل جديد</h3>
-      <button type="button" class="btn-pdf" onclick="openPdfModal()">📥 تنزيل PDF</button>
+      <button type="button" class="btn-pdf" onclick="openDateRangeModal()">📥 كشف PDF</button>
     </div>
     <form id="data-form">
       <input type="hidden" id="row-index-input">
@@ -279,17 +296,42 @@
   </div>
 </div>
 
-<div id="pdf-modal" class="modal">
+<!-- 1. نافذة اختيار فترة الكشف -->
+<div id="date-modal" class="modal">
   <div class="modal-content">
     <div class="modal-header">
-      <h3 style="margin: 0; color: var(--primary-color);">معاينة وتنزيل التقرير PDF</h3>
+      <h3>فترة الكشف</h3>
+      <span style="cursor:pointer; font-size: 20px;" onclick="closeDateModal()">&times;</span>
+    </div>
+    <div class="modal-body">
+      <div class="input-group" style="margin-bottom: 15px;">
+        <label>من تاريخ:</label>
+        <input type="date" id="start-date-input">
+      </div>
+      <div class="input-group">
+        <label>إلى تاريخ:</label>
+        <input type="date" id="end-date-input">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn-submit" onclick="generatePdfReport()">موافق</button>
+    </div>
+  </div>
+</div>
+
+<!-- 2. نافذة عرض التقرير PDF -->
+<div id="pdf-modal" class="modal">
+  <div class="modal-content modal-pdf-content">
+    <div class="modal-header">
+      <h3 id="pdf-modal-title">كشف الحساب</h3>
       <div>
-        <button type="button" class="btn-submit" onclick="window.print()">🖨️ حفظ / طباعة</button>
+        <button type="button" class="btn-submit" onclick="window.print()">🖨️ طباعة / حفظ PDF</button>
         <button type="button" class="btn-cancel" onclick="closePdfModal()">إغلاق</button>
       </div>
     </div>
-    <div class="modal-body" id="printable-area">
+    <div class="modal-body" id="printable-area" style="overflow-y: auto;">
       <h2 id="pdf-title" style="text-align: center; color: var(--primary-color); margin-top: 0;">كشف البيانات</h2>
+      <p id="pdf-period-text" style="text-align: center; font-weight: bold; color: #555;"></p>
       <table id="pdf-table" style="width: 100%; border-collapse: collapse;">
         <thead>
           <tr id="pdf-table-headers"></tr>
@@ -305,12 +347,53 @@
 
   let headersList = [];
   let keysList = [];
+  let parsedKeysList = [];
   let globalRowsData = [];
 
   document.addEventListener("DOMContentLoaded", () => {
     fetchData();
     document.getElementById("data-form").addEventListener("submit", handleSubmit);
   });
+
+  // تحليل تفاصيل المراجع في الكلاينت
+  function parseClientKey(rawKey) {
+    let key = rawKey ? rawKey.toString().trim() : "";
+    let isHideInput = false;
+    let isHideView = false;
+
+    let tempKey = key.replace(/[%@]/g, '');
+
+    if (tempKey.startsWith("#*") || tempKey.startsWith("*#")) {
+      isHideInput = true;
+      isHideView = true;
+      tempKey = tempKey.substring(2);
+    } else if (tempKey.startsWith("#")) {
+      isHideInput = true;
+      tempKey = tempKey.substring(1);
+    } else if (tempKey.startsWith("*")) {
+      isHideView = true;
+      tempKey = tempKey.substring(1);
+    }
+
+    let isRequired = false;
+    if (tempKey.endsWith("#")) {
+      isRequired = true;
+      tempKey = tempKey.slice(0, -1);
+    }
+
+    let baseKey = tempKey;
+    if (tempKey.startsWith("C1(")) {
+      baseKey = "C1";
+    }
+
+    return {
+      raw: key,
+      baseKey: baseKey,
+      isHideInput: isHideInput,
+      isHideView: isHideView,
+      isRequired: isRequired
+    };
+  }
 
   function fetchData() {
     document.getElementById("loading").style.display = "block";
@@ -327,9 +410,10 @@
           }
           headersList = response.headers;
           keysList = response.keys;
+          parsedKeysList = keysList.map(k => parseClientKey(k));
           globalRowsData = response.data || [];
-          renderFormInputs(headersList, keysList, response.dropdowns || {});
-          renderTable(headersList, globalRowsData);
+          renderFormInputs(headersList, parsedKeysList, response.dropdowns || {});
+          renderTable(headersList, parsedKeysList, globalRowsData);
         } else {
           alert("تنبيه: " + response.message);
         }
@@ -340,17 +424,15 @@
       });
   }
 
-  // إنشاء عناصر النموذج بالاعتماد الحصري على الرمز # للإخفاء
-  function renderFormInputs(headers, keys, fetchedDropdowns) {
+  function renderFormInputs(headers, parsedKeys, fetchedDropdowns) {
     const container = document.getElementById("dynamic-inputs");
     container.innerHTML = "";
 
     headers.forEach((header, index) => {
-      const rawKey = keys[index] ? keys[index].toString().trim() : "";
-      const isReadOnlyOnly = rawKey.startsWith("#"); // الإخفاء حصرياً عند وجود #
-      const cleanKey = rawKey.replace(/^[#\*]/, '');
+      const pKey = parsedKeys[index];
+      const cleanKey = pKey.baseKey;
 
-      if (isReadOnlyOnly) {
+      if (pKey.isHideInput || cleanKey === "C1" || cleanKey === "C5" || cleanKey === "C10" || cleanKey === "C11" || cleanKey === "C12" || cleanKey.startsWith("C14/") || cleanKey.startsWith("G3")) {
         const hiddenInput = document.createElement("input");
         hiddenInput.type = "hidden";
         hiddenInput.id = `col-${index}`;
@@ -364,16 +446,16 @@
       const label = document.createElement("label");
       label.innerText = header || `عمود ${index + 1}`;
 
+      if (pKey.isRequired) {
+        const star = document.createElement("span");
+        star.className = "required-star";
+        star.innerText = " *";
+        label.appendChild(star);
+      }
+
       let input;
 
-      // C10: مربع نص غير قابل للتعديل لعرض نتائج الشفرة
-      if (cleanKey === "C10") {
-        input = document.createElement("input");
-        input.type = "text";
-        input.disabled = true; // غير قابل للتعديل
-        input.placeholder = "شفرة آلياً";
-
-      } else if (cleanKey === "C13") {
+      if (cleanKey === "C13") {
         group.classList.add("input-group-checkbox");
         input = document.createElement("input");
         input.type = "checkbox";
@@ -430,14 +512,14 @@
   }
 
   function setupC15InstantLookup() {
-    keysList.forEach((key, c15Index) => {
-      const cleanKey = key.replace(/^[#\*]/, '');
+    parsedKeysList.forEach((pKey, c15Index) => {
+      const cleanKey = pKey.baseKey;
       if (cleanKey.startsWith("C15/")) {
         const targetRefKey = cleanKey.split("/")[1].trim(); 
         
         let targetRefIndex = -1;
-        keysList.forEach((k, idx) => {
-          if (k.replace(/^[#\*]/, '') === targetRefKey) targetRefIndex = idx;
+        parsedKeysList.forEach((pk, idx) => {
+          if (pk.baseKey === targetRefKey) targetRefIndex = idx;
         });
 
         if (targetRefIndex !== -1) {
@@ -476,8 +558,7 @@
     });
   }
 
-  // عرض الجدول بأسفل الصفحة والاستثناء حصري بوجود الرمز *
-  function renderTable(headers, rows) {
+  function renderTable(headers, parsedKeys, rows) {
     const headerRow = document.getElementById("table-headers");
     const tbody = document.getElementById("table-body");
 
@@ -487,8 +568,8 @@
     const visibleColIndices = [];
 
     headers.forEach((header, idx) => {
-      const key = keysList[idx] || "";
-      if (!key.startsWith("*")) { // الإخفاء من العرض فقط بوجود *
+      const pKey = parsedKeys[idx];
+      if (!pKey.isHideView) { 
         visibleColIndices.push(idx);
         const th = document.createElement("th");
         th.innerText = header;
@@ -505,7 +586,7 @@
 
       visibleColIndices.forEach(colIdx => {
         const td = document.createElement("td");
-        const cleanKey = keysList[colIdx].replace(/^[#\*]/, '');
+        const cleanKey = parsedKeys[colIdx].baseKey;
         const val = row.values[colIdx];
 
         if (cleanKey === "C13") {
@@ -531,7 +612,45 @@
     document.getElementById("data-table").style.display = "table";
   }
 
-  function openPdfModal() {
+  function openDateRangeModal() {
+    document.getElementById("date-modal").style.display = "flex";
+  }
+
+  function closeDateModal() {
+    document.getElementById("date-modal").style.display = "none";
+  }
+
+  function generatePdfReport() {
+    const startDateVal = document.getElementById("start-date-input").value;
+    const endDateVal = document.getElementById("end-date-input").value;
+
+    closeDateModal();
+
+    let dateColIdx = -1;
+    parsedKeysList.forEach((pk, idx) => {
+      if (pk.baseKey === "C2" || pk.baseKey === "C11") {
+        dateColIdx = idx;
+      }
+    });
+
+    let filteredRows = globalRowsData;
+
+    if (startDateVal || endDateVal) {
+      filteredRows = globalRowsData.filter(row => {
+        if (dateColIdx === -1) return true;
+        const rowDateStr = row.values[dateColIdx];
+        if (!rowDateStr) return true;
+
+        const rowDate = new Date(rowDateStr);
+        if (isNaN(rowDate.getTime())) return true;
+
+        if (startDateVal && new Date(startDateVal) > rowDate) return false;
+        if (endDateVal && new Date(endDateVal) < rowDate) return false;
+
+        return true;
+      });
+    }
+
     const headerRow = document.getElementById("pdf-table-headers");
     const tbody = document.getElementById("pdf-table-body");
 
@@ -541,8 +660,8 @@
     const visibleColIndices = [];
 
     headersList.forEach((header, idx) => {
-      const key = keysList[idx] || "";
-      if (!key.startsWith("*")) { 
+      const pKey = parsedKeysList[idx];
+      if (!pKey.isHideView) { 
         visibleColIndices.push(idx);
         const th = document.createElement("th");
         th.innerText = header;
@@ -553,7 +672,7 @@
       }
     });
 
-    globalRowsData.forEach(row => {
+    filteredRows.forEach(row => {
       const tr = document.createElement("tr");
 
       visibleColIndices.forEach(colIdx => {
@@ -561,7 +680,7 @@
         td.style.border = "1px solid #333";
         td.style.padding = "8px";
 
-        const cleanKey = keysList[colIdx].replace(/^[#\*]/, '');
+        const cleanKey = parsedKeysList[colIdx].baseKey;
         const val = row.values[colIdx];
 
         if (cleanKey === "C13") {
@@ -576,6 +695,13 @@
       tbody.appendChild(tr);
     });
 
+    let periodTxt = "";
+    if (startDateVal && endDateVal) periodTxt = `من تاريخ ${startDateVal} إلى تاريخ ${endDateVal}`;
+    else if (startDateVal) periodTxt = `من تاريخ ${startDateVal}`;
+    else if (endDateVal) periodTxt = `إلى تاريخ ${endDateVal}`;
+    else periodTxt = "الكشف الشامل للبيانات";
+
+    document.getElementById("pdf-period-text").innerText = periodTxt;
     document.getElementById("pdf-modal").style.display = "flex";
   }
 
@@ -613,16 +739,36 @@
   function handleSubmit(e) {
     e.preventDefault();
 
+    // 1. التحقق الإجباري المباشر بناءً على تنتهي بـ #
+    for (let index = 0; index < headersList.length; index++) {
+      const pKey = parsedKeysList[index];
+      if (pKey.isRequired && !pKey.isHideInput) {
+        const el = document.getElementById(`col-${index}`);
+        if (el) {
+          const val = el.type === "checkbox" ? el.checked : el.value.trim();
+          if (!val && val !== false) {
+            alert(`⚠️ تنبيه إجباري: يجب تعبئة حقل (${headersList[index]}) قبل الحفظ!`);
+            el.focus();
+            return;
+          }
+        }
+      }
+    }
+
+    // 2. التحقق من صحة الجوال
     let c6Index = -1;
-    keysList.forEach((k, idx) => {
-      if (k.replace(/^[#\*]/, '') === "C6") c6Index = idx;
+    parsedKeysList.forEach((pk, idx) => {
+      if (pk.baseKey === "C6") c6Index = idx;
     });
 
     if (c6Index !== -1) {
-      const phoneVal = document.getElementById(`col-${c6Index}`).value.trim();
-      if (phoneVal !== "" && !/^05\d{8}$/.test(phoneVal)) {
-        alert("⚠️ خطأ: يجب أن يتكون رقم الجوال من 10 أرقام ويبدأ بـ 05");
-        return;
+      const phoneEl = document.getElementById(`col-${c6Index}`);
+      if (phoneEl) {
+        const phoneVal = phoneEl.value.trim();
+        if (phoneVal !== "" && !/^05\d{8}$/.test(phoneVal)) {
+          alert("⚠️ خطأ: يجب أن يتكون رقم الجوال من 10 أرقام ويبدأ بـ 05");
+          return;
+        }
       }
     }
 
