@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>نظام إدارة الجداول والحسابات</title>
+  <style>
+    :root {
+      --primary: #1B557F;
+      --secondary: #F47B00;
+      --bg: #F4F7F9;
+      --card: #FFFFFF;
+      --text: #333333;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 750px;
+      margin: 0 auto;
+      background: var(--card);
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      padding: 25px;
+    }
+    h2 {
+      color: var(--primary);
+      text-align: center;
+      margin-top: 0;
+      border-bottom: 2px solid var(--secondary);
+      padding-bottom: 10px;
+    }
+    .section-block {
+      background: #FAFAFA;
+      border: 1px solid #E2E8F0;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+    .section-title {
+      font-weight: bold;
+      color: var(--primary);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .form-group {
+      margin-bottom: 12px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 600;
+      font-size: 0.9em;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #CCC;
+      border-radius: 6px;
+      box-sizing: border-box;
+      font-size: 0.95em;
+    }
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    button {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    button:hover { opacity: 0.9; }
+    .btn-primary { background-color: var(--primary); color: white; }
+    .btn-secondary { background-color: var(--secondary); color: white; }
+    .btn-danger { background-color: #E53E3E; color: white; }
+    .divider {
+      border: 0;
+      height: 1px;
+      background: #E2E8F0;
+      margin: 25px 0;
+    }
+    /* Modal Styles */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 500px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>لوحة التحكم بإدراج وتعديل الجداول</h2>
+
+  <!-- 1. الحسابات -->
+  <div class="section-block">
+    <div class="section-title">🏢 الحسابات</div>
+    <div class="form-group">
+      <label>اختر الحساب:</label>
+      <select id="accountSelect" onchange="onAccountChange()">
+        <option value="">-- اختر الحساب --</option>
+      </select>
+    </div>
+    
+    <div style="margin-top:15px; border-top:1px dashed #DDD; padding-top:10px;">
+      <label>إدراج حساب جديد:</label>
+      <div class="form-group">
+        <input type="text" id="accName" placeholder="اسم الحساب">
+      </div>
+      <div class="form-group">
+        <input type="text" id="accLoc" placeholder="موقع الحساب">
+      </div>
+      <button class="btn-secondary" onclick="addAccount()">إدراج حساب جديد</button>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- 2. الفروع -->
+  <div class="section-block">
+    <div class="section-title">📂 الفروع (الجداول)</div>
+    <div class="form-group">
+      <label>اختر الفرع/الجدول:</label>
+      <select id="branchSelect" onchange="onBranchChange()">
+        <option value="">-- اختر الفرع --</option>
+      </select>
+    </div>
+
+    <div style="margin-top:15px; border-top:1px dashed #DDD; padding-top:10px;">
+      <label>إدراج فرع جديد للحساب المحدد:</label>
+      <div class="form-group">
+        <input type="text" id="branchSecName" placeholder="اسم القسم">
+      </div>
+      <div class="form-group">
+        <input type="text" id="branchSecTitle" placeholder="عنوان القسم الظاهر">
+      </div>
+      <button class="btn-secondary" onclick="addBranch()">إدراج فرع جديد</button>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- 3. الأقسام -->
+  <div class="section-block">
+    <div class="section-title">📄 الأقسام (الأوراق)</div>
+    <div class="form-group">
+      <label>قائمة الأقسام السابقة:</label>
+      <select id="sectionSelect">
+        <option value="">-- اختر القسم --</option>
+      </select>
+    </div>
+
+    <div class="btn-group">
+      <button class="btn-primary" onclick="openEditModal()">تعديل القسم المحدد</button>
+      <button class="btn-danger" onclick="deleteSection()">حذف القسم المحدد</button>
+    </div>
+
+    <div style="margin-top:15px; border-top:1px dashed #DDD; padding-top:10px;">
+      <label>إدراج قسم جديد للفرع المحدد:</label>
+      <div class="form-group">
+        <input type="text" id="secName" placeholder="اسم الصفحة (C11)">
+      </div>
+      <div class="form-group">
+        <input type="text" id="secTitle" placeholder="عنوان الصفحة الظاهر (C12)">
+      </div>
+      <div class="form-group">
+        <input type="text" id="secKeys" placeholder="مفاتيح البحث (C17)">
+      </div>
+      <button class="btn-secondary" onclick="addSection()">إدراج قسم جديد</button>
+    </div>
+  </div>
+</div>
+
+<!-- نافذة Modal للتعديل -->
+<div class="modal" id="editModal">
+  <div class="modal-content">
+    <h3 style="color:var(--primary); margin-top:0;">تعديل بيانات القسم</h3>
+    <div class="form-group">
+      <label>اسم الصفحة (C11):</label>
+      <input type="text" id="editSecName">
+    </div>
+    <div class="form-group">
+      <label>عنوان الصفحة الظاهر (C12):</label>
+      <input type="text" id="editSecTitle">
+    </div>
+    <div class="form-group">
+      <label>مفاتيح البحث (C17):</label>
+      <input type="text" id="editSecKeys">
+    </div>
+    <div class="btn-group">
+      <button class="btn-primary" onclick="saveSectionUpdate()">حفظ التعديلات</button>
+      <button class="btn-danger" onclick="closeEditModal()">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // رابط التطبيق الخاص بك
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwI2wtEM6krl1X7ug4KBBf-8iz4fbW4eAcWUCNY652i4SwZSNC4bY34AvAyJEzHQTr_Ww/exec";
+
+  let allData = [];
+
+  window.onload = function() {
+    loadData();
+  };
+
+  function loadData() {
+    fetch(WEB_APP_URL, {
+      method: "POST",
+      body: JSON.stringify({ action: "GET_INITIAL_DATA", payload: {} })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if(data.success) {
+        allData = data.rows;
+        populateAccounts();
+      }
+    });
+  }
+
+  function populateAccounts() {
+    const select = document.getElementById("accountSelect");
+    select.innerHTML = '<option value="">-- اختر الحساب --</option>';
+    
+    const uniqueAccounts = [...new Set(allData.map(item => item.accountCode))];
+    uniqueAccounts.forEach(code => {
+      const item = allData.find(i => i.accountCode === code);
+      if(item) {
+        select.innerHTML += `<option value="${item.accountCode}">${item.accountName} (${item.accountLocation})</option>`;
+      }
+    });
+    onAccountChange();
+  }
+
+  function onAccountChange() {
+    const accCode = document.getElementById("accountSelect").value;
+    const branchSelect = document.getElementById("branchSelect");
+    branchSelect.innerHTML = '<option value="">-- اختر الفرع --</option>';
+
+    if(accCode) {
+      const filtered = allData.filter(item => item.accountCode === accCode && item.tableCode);
+      const uniqueTables = [...new Set(filtered.map(item => item.tableCode))];
+      
+      uniqueTables.forEach(tCode => {
+        const item = filtered.find(i => i.tableCode === tCode);
+        if(item) {
+          branchSelect.innerHTML += `<option value="${item.tableCode}">${item.sectionName} - ${item.sectionTitle}</option>`;
+        }
+      });
+    }
+    onBranchChange();
+  }
+
+  function onBranchChange() {
+    const tableCode = document.getElementById("branchSelect").value;
+    const sectionSelect = document.getElementById("sectionSelect");
+    sectionSelect.innerHTML = '<option value="">-- اختر القسم --</option>';
+
+    if(tableCode) {
+      const filtered = allData.filter(item => item.tableCode === tableCode && item.sheetName);
+      filtered.forEach(item => {
+        sectionSelect.innerHTML += `<option value="${item.rowIndex}">${item.sheetName} (${item.sheetTitle})</option>`;
+      });
+    }
+  }
+
+  function addAccount() {
+    const name = document.getElementById("accName").value;
+    const loc = document.getElementById("accLoc").value;
+    if(!name || !loc) return alert("يرجى ملء الحقول");
+
+    sendRequest("ADD_ACCOUNT", { accountName: name, accountLocation: loc });
+  }
+
+  function addBranch() {
+    const accCode = document.getElementById("accountSelect").value;
+    const sName = document.getElementById("branchSecName").value;
+    const sTitle = document.getElementById("branchSecTitle").value;
+    if(!accCode || !sName || !sTitle) return alert("يرجى اختيار الحساب وتعبئة بيانات الفرع");
+
+    sendRequest("ADD_BRANCH", { accountCode: accCode, sectionName: sName, sectionTitle: sTitle });
+  }
+
+  function addSection() {
+    const tableCode = document.getElementById("branchSelect").value;
+    const name = document.getElementById("secName").value;
+    const title = document.getElementById("secTitle").value;
+    const keys = document.getElementById("secKeys").value;
+    if(!tableCode || !name) return alert("يرجى اختيار الفرع وتحديد اسم الصفحة");
+
+    sendRequest("ADD_SECTION", { tableCode: tableCode, sheetName: name, sheetTitle: title, searchKeysInput: keys });
+  }
+
+  function openEditModal() {
+    const rowIndex = document.getElementById("sectionSelect").value;
+    if(!rowIndex) return alert("يرجى اختيار القسم المراد تعديله");
+
+    const item = allData.find(i => i.rowIndex == rowIndex);
+    if(item) {
+      document.getElementById("editSecName").value = item.sheetName;
+      document.getElementById("editSecTitle").value = item.sheetTitle;
+      document.getElementById("editSecKeys").value = item.searchKeysInput;
+      document.getElementById("editModal").style.display = "flex";
+    }
+  }
+
+  function closeEditModal() {
+    document.getElementById("editModal").style.display = "none";
+  }
+
+  function saveSectionUpdate() {
+    const rowIndex = document.getElementById("sectionSelect").value;
+    const name = document.getElementById("editSecName").value;
+    const title = document.getElementById("editSecTitle").value;
+    const keys = document.getElementById("editSecKeys").value;
+
+    sendRequest("UPDATE_SECTION", {
+      rowIndex: parseInt(rowIndex),
+      sheetName: name,
+      sheetTitle: title,
+      searchKeysInput: keys
+    });
+    closeEditModal();
+  }
+
+  function deleteSection() {
+    const rowIndex = document.getElementById("sectionSelect").value;
+    if(!rowIndex) return alert("يرجى اختيار القسم المراد حذفه");
+
+    if(confirm("هل أنت تأكد من حذف هذا القسم من الجدول ومن الفهرس؟")) {
+      sendRequest("DELETE_SECTION", { rowIndex: parseInt(rowIndex) });
+    }
+  }
+
+  function sendRequest(action, payload) {
+    fetch(WEB_APP_URL, {
+      method: "POST",
+      body: JSON.stringify({ action: action, payload: payload })
+    })
+    .then(res => res.json())
+    .then(data => {
+      alert(data.message || data.error);
+      if(data.success) loadData();
+    });
+  }
+</script>
+</body>
+</html>
