@@ -47,7 +47,7 @@
       margin-bottom: 12px;
       display: flex;
       align-items: center;
-      gap: 8px;
+      font-size: 1.1em;
     }
     .form-group {
       margin-bottom: 12px;
@@ -65,6 +65,37 @@
       border-radius: 6px;
       box-sizing: border-box;
       font-size: 0.95em;
+    }
+    .accordion-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #EDF2F7;
+      padding: 10px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      color: var(--primary);
+      margin-top: 15px;
+      user-select: none;
+    }
+    .accordion-header:hover {
+      background: #E2E8F0;
+    }
+    .accordion-icon {
+      transition: transform 0.3s ease;
+      font-size: 0.9em;
+    }
+    .accordion-icon.open {
+      transform: rotate(180deg);
+    }
+    .accordion-content {
+      display: none;
+      padding: 15px 10px 5px 10px;
+      border: 1px solid #EDF2F7;
+      border-top: none;
+      border-radius: 0 0 6px 6px;
+      background: #FFF;
     }
     .btn-group {
       display: flex;
@@ -90,7 +121,6 @@
       background: #E2E8F0;
       margin: 25px 0;
     }
-    /* Modal Styles */
     .modal {
       display: none;
       position: fixed;
@@ -122,13 +152,19 @@
         <option value="">-- اختر الحساب --</option>
       </select>
     </div>
-    
-    <div style="margin-top:15px; border-top:1px dashed #DDD; padding-top:10px;">
-      <label>إدراج حساب جديد:</label>
+
+    <!-- شريط منسدل لإدراج حساب -->
+    <div class="accordion-header" onclick="toggleAccordion('accAccordion', 'accIcon')">
+      <span>إدراج حساب جديد</span>
+      <span class="accordion-icon" id="accIcon">▼</span>
+    </div>
+    <div class="accordion-content" id="accAccordion">
       <div class="form-group">
+        <label>اسم الحساب:</label>
         <input type="text" id="accName" placeholder="اسم الحساب">
       </div>
       <div class="form-group">
+        <label>موقع الحساب:</label>
         <input type="text" id="accLoc" placeholder="موقع الحساب">
       </div>
       <button class="btn-secondary" onclick="addAccount()">إدراج حساب جديد</button>
@@ -147,12 +183,18 @@
       </select>
     </div>
 
-    <div style="margin-top:15px; border-top:1px dashed #DDD; padding-top:10px;">
-      <label>إدراج فرع جديد للحساب المحدد:</label>
+    <!-- شريط منسدل لإدراج فرع -->
+    <div class="accordion-header" onclick="toggleAccordion('branchAccordion', 'branchIcon')">
+      <span>إدراج فرع جديد</span>
+      <span class="accordion-icon" id="branchIcon">▼</span>
+    </div>
+    <div class="accordion-content" id="branchAccordion">
       <div class="form-group">
+        <label>اسم القسم:</label>
         <input type="text" id="branchSecName" placeholder="اسم القسم">
       </div>
       <div class="form-group">
+        <label>عنوان القسم الظاهر:</label>
         <input type="text" id="branchSecTitle" placeholder="عنوان القسم الظاهر">
       </div>
       <button class="btn-secondary" onclick="addBranch()">إدراج فرع جديد</button>
@@ -176,16 +218,27 @@
       <button class="btn-danger" onclick="deleteSection()">حذف القسم المحدد</button>
     </div>
 
-    <div style="margin-top:15px; border-top:1px dashed #DDD; padding-top:10px;">
-      <label>إدراج قسم جديد للفرع المحدد:</label>
+    <!-- شريط منسدل لإدراج قسم -->
+    <div class="accordion-header" onclick="toggleAccordion('secAccordion', 'secIcon')">
+      <span>إدراج قسم جديد</span>
+      <span class="accordion-icon" id="secIcon">▼</span>
+    </div>
+    <div class="accordion-content" id="secAccordion">
       <div class="form-group">
-        <input type="text" id="secName" placeholder="اسم الصفحة (C11)">
+        <label>اسم الصفحة (C11):</label>
+        <input type="text" id="secName" placeholder="اسم الصفحة">
       </div>
       <div class="form-group">
-        <input type="text" id="secTitle" placeholder="عنوان الصفحة الظاهر (C12)">
+        <label>عنوان الصفحة الظاهر (C12):</label>
+        <input type="text" id="secTitle" placeholder="عنوان الصفحة الظاهر">
       </div>
       <div class="form-group">
-        <input type="text" id="secKeys" placeholder="مفاتيح البحث (C17)">
+        <label>عنوان الصفحة الرئيسي (تنسيق A1:C1):</label>
+        <input type="text" id="secMainTitle" placeholder="عنوان الصفحة الرئيسي">
+      </div>
+      <div class="form-group">
+        <label>مفاتيح البحث (C17):</label>
+        <input type="text" id="secKeys" placeholder="مفاتيح البحث">
       </div>
       <button class="btn-secondary" onclick="addSection()">إدراج قسم جديد</button>
     </div>
@@ -205,6 +258,10 @@
       <input type="text" id="editSecTitle">
     </div>
     <div class="form-group">
+      <label>عنوان الصفحة الرئيسي (تنسيق A1:C1):</label>
+      <input type="text" id="editSecMainTitle" placeholder="تحديد/تعديل عنوان A1:C1">
+    </div>
+    <div class="form-group">
       <label>مفاتيح البحث (C17):</label>
       <input type="text" id="editSecKeys">
     </div>
@@ -216,7 +273,6 @@
 </div>
 
 <script>
-  // رابط التطبيق الخاص بك
   const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwI2wtEM6krl1X7ug4KBBf-8iz4fbW4eAcWUCNY652i4SwZSNC4bY34AvAyJEzHQTr_Ww/exec";
 
   let allData = [];
@@ -224,6 +280,18 @@
   window.onload = function() {
     loadData();
   };
+
+  function toggleAccordion(contentId, iconId) {
+    const content = document.getElementById(contentId);
+    const icon = document.getElementById(iconId);
+    if (content.style.display === "block") {
+      content.style.display = "none";
+      icon.classList.remove("open");
+    } else {
+      content.style.display = "block";
+      icon.classList.add("open");
+    }
+  }
 
   function loadData() {
     fetch(WEB_APP_URL, {
@@ -306,10 +374,17 @@
     const tableCode = document.getElementById("branchSelect").value;
     const name = document.getElementById("secName").value;
     const title = document.getElementById("secTitle").value;
+    const mainTitle = document.getElementById("secMainTitle").value;
     const keys = document.getElementById("secKeys").value;
     if(!tableCode || !name) return alert("يرجى اختيار الفرع وتحديد اسم الصفحة");
 
-    sendRequest("ADD_SECTION", { tableCode: tableCode, sheetName: name, sheetTitle: title, searchKeysInput: keys });
+    sendRequest("ADD_SECTION", {
+      tableCode: tableCode,
+      sheetName: name,
+      sheetTitle: title,
+      mainTitle: mainTitle,
+      searchKeysInput: keys
+    });
   }
 
   function openEditModal() {
@@ -320,6 +395,7 @@
     if(item) {
       document.getElementById("editSecName").value = item.sheetName;
       document.getElementById("editSecTitle").value = item.sheetTitle;
+      document.getElementById("editSecMainTitle").value = "";
       document.getElementById("editSecKeys").value = item.searchKeysInput;
       document.getElementById("editModal").style.display = "flex";
     }
@@ -333,12 +409,14 @@
     const rowIndex = document.getElementById("sectionSelect").value;
     const name = document.getElementById("editSecName").value;
     const title = document.getElementById("editSecTitle").value;
+    const mainTitle = document.getElementById("editSecMainTitle").value;
     const keys = document.getElementById("editSecKeys").value;
 
     sendRequest("UPDATE_SECTION", {
       rowIndex: parseInt(rowIndex),
       sheetName: name,
       sheetTitle: title,
+      mainTitle: mainTitle,
       searchKeysInput: keys
     });
     closeEditModal();
