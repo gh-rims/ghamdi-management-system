@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>نظام إدارة الجداول والحسابات</title>
+  <title>نظام إدارة الجداول والأعمدة</title>
   <style>
     :root {
       --primary: #1B557F;
@@ -20,7 +20,7 @@
       padding: 20px;
     }
     .container {
-      max-width: 750px;
+      max-width: 780px;
       margin: 0 auto;
       background: var(--card);
       border-radius: 12px;
@@ -79,16 +79,9 @@
       margin-top: 15px;
       user-select: none;
     }
-    .accordion-header:hover {
-      background: #E2E8F0;
-    }
-    .accordion-icon {
-      transition: transform 0.3s ease;
-      font-size: 0.9em;
-    }
-    .accordion-icon.open {
-      transform: rotate(180deg);
-    }
+    .accordion-header:hover { background: #E2E8F0; }
+    .accordion-icon { transition: transform 0.3s ease; font-size: 0.9em; }
+    .accordion-icon.open { transform: rotate(180deg); }
     .accordion-content {
       display: none;
       padding: 15px 10px 5px 10px;
@@ -97,11 +90,7 @@
       border-radius: 0 0 6px 6px;
       background: #FFF;
     }
-    .btn-group {
-      display: flex;
-      gap: 10px;
-      margin-top: 10px;
-    }
+    .btn-group { display: flex; gap: 10px; margin-top: 10px; }
     button {
       flex: 1;
       padding: 10px;
@@ -115,12 +104,7 @@
     .btn-primary { background-color: var(--primary); color: white; }
     .btn-secondary { background-color: var(--secondary); color: white; }
     .btn-danger { background-color: #E53E3E; color: white; }
-    .divider {
-      border: 0;
-      height: 1px;
-      background: #E2E8F0;
-      margin: 25px 0;
-    }
+    .divider { border: 0; height: 1px; background: #E2E8F0; margin: 25px 0; }
     .modal {
       display: none;
       position: fixed;
@@ -128,20 +112,35 @@
       background: rgba(0,0,0,0.5);
       justify-content: center;
       align-items: center;
+      z-index: 1000;
+      overflow-y: auto;
     }
     .modal-content {
       background: white;
       padding: 20px;
       border-radius: 8px;
       width: 90%;
-      max-width: 500px;
+      max-width: 550px;
+      max-height: 85vh;
+      overflow-y: auto;
     }
+    .column-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #FFF;
+      border: 1px solid #E2E8F0;
+      padding: 10px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+    }
+    .col-btn-sm { padding: 5px 10px; font-size: 0.85em; }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <h2>لوحة التحكم بإدراج وتعديل الجداول</h2>
+  <h2>لوحة التحكم بإدراج وتعديل الجداول والأعمدة</h2>
 
   <!-- 1. الحسابات -->
   <div class="section-block">
@@ -153,7 +152,6 @@
       </select>
     </div>
 
-    <!-- شريط منسدل لإدراج حساب -->
     <div class="accordion-header" onclick="toggleAccordion('accAccordion', 'accIcon')">
       <span>إدراج حساب جديد</span>
       <span class="accordion-icon" id="accIcon">▼</span>
@@ -183,7 +181,6 @@
       </select>
     </div>
 
-    <!-- شريط منسدل لإدراج فرع -->
     <div class="accordion-header" onclick="toggleAccordion('branchAccordion', 'branchIcon')">
       <span>إدراج فرع جديد</span>
       <span class="accordion-icon" id="branchIcon">▼</span>
@@ -208,7 +205,7 @@
     <div class="section-title">📄 الأقسام (الأوراق)</div>
     <div class="form-group">
       <label>قائمة الأقسام السابقة:</label>
-      <select id="sectionSelect">
+      <select id="sectionSelect" onchange="renderColumnsList()">
         <option value="">-- اختر القسم --</option>
       </select>
     </div>
@@ -218,7 +215,6 @@
       <button class="btn-danger" onclick="deleteSection()">حذف القسم المحدد</button>
     </div>
 
-    <!-- شريط منسدل لإدراج قسم -->
     <div class="accordion-header" onclick="toggleAccordion('secAccordion', 'secIcon')">
       <span>إدراج قسم جديد</span>
       <span class="accordion-icon" id="secIcon">▼</span>
@@ -243,9 +239,23 @@
       <button class="btn-secondary" onclick="addSection()">إدراج قسم جديد</button>
     </div>
   </div>
+
+  <hr class="divider">
+
+  <!-- 4. إضافة وتنسيق الأعمدة (تابعة للاقسام بارزة) -->
+  <div class="section-block">
+    <div class="section-title">📊 إضافة وتنسيق الأعمدة</div>
+    <p style="font-size:0.85em; color:#666;">الأعمدة التابعة للقسم المحدد أعلاه:</p>
+    
+    <div id="columnsContainer">
+      <!-- يتم عرض قائمة الأعمدة تلقائياً هنا -->
+    </div>
+
+    <button class="btn-secondary" style="margin-top:10px;" onclick="openAddColModal()">+ إضافة عمود جديد</button>
+  </div>
 </div>
 
-<!-- نافذة Modal للتعديل -->
+<!-- Modal تعديل قسم -->
 <div class="modal" id="editModal">
   <div class="modal-content">
     <h3 style="color:var(--primary); margin-top:0;">تعديل بيانات القسم</h3>
@@ -259,7 +269,7 @@
     </div>
     <div class="form-group">
       <label>عنوان الصفحة الرئيسي (تنسيق A1:C1):</label>
-      <input type="text" id="editSecMainTitle" placeholder="تحديد/تعديل عنوان A1:C1">
+      <input type="text" id="editSecMainTitle">
     </div>
     <div class="form-group">
       <label>مفاتيح البحث (C17):</label>
@@ -272,14 +282,114 @@
   </div>
 </div>
 
+<!-- Modal إضافة / تعديل عمود -->
+<div class="modal" id="colModal">
+  <div class="modal-content">
+    <h3 style="color:var(--primary); margin-top:0;" id="colModalTitle">إضافة عمود جديد</h3>
+
+    <input type="hidden" id="colEditRowIndex">
+
+    <!-- 19. رقم ترتيب العمود -->
+    <div class="form-group">
+      <label>رقم ترتيب العمود (C19):</label>
+      <input type="number" id="colOrderInput" min="1" value="1">
+    </div>
+
+    <!-- 21. اسم العمود C21 -->
+    <div class="form-group">
+      <label>اسم العمود (C21):</label>
+      <input type="text" id="colNameInput" placeholder="اسم العمود">
+    </div>
+
+    <!-- 22 & 23. نوع البيانات C22/C23 -->
+    <div class="form-group">
+      <label>نوع البيانات (C22/C23):</label>
+      <select id="colDataTypeSelect" onchange="onDataTypeChange()">
+        <option value="نص / H0" data-sym="H0">نص عادي - H0</option>
+        <option value="1- رقم تسلسلي / H1" data-sym="H1">1- رقم تسلسلي - H1</option>
+        <option value="14- طلب من عمود اخر / H14" data-sym="H14">14- طلب من عمود اخر - H14</option>
+        <option value="15- مصدر بحث / H15" data-sym="H15">15- مصدر بحث - H15</option>
+        <option value="17- تسجيل شفرة / H17" data-sym="H17">17- تسجيل شفرة - H17</option>
+      </select>
+    </div>
+
+    <!-- 24. طريقة العرض C24 -->
+    <div class="form-group">
+      <label>طريقة العرض والإخفاء (C24):</label>
+      <select id="colVisibilitySelect">
+        <option value="">إظهار كامل (افتراضي)</option>
+        <option value="*#">إخفاء كامل (*#)</option>
+        <option value="#">إخفاء من الاضافة (#)</option>
+        <option value="*">إخفاء من العرض (*)</option>
+      </select>
+    </div>
+
+    <!-- 25. الالتزام بالمدخلات C25 -->
+    <div class="form-group">
+      <label>الالتزام بالمدخلات (C25):</label>
+      <select id="colRequiredSelect">
+        <option value="">اختياري (افتراضي)</option>
+        <option value="#">إلزامي (#)</option>
+      </select>
+    </div>
+
+    <!-- 26. للقراءة فقط C26 -->
+    <div class="form-group">
+      <label>للقراءة فقط (C26):</label>
+      <select id="colReadOnlySelect">
+        <option value="">تحرير (افتراضي)</option>
+        <option value="%">للعرض (%)</option>
+      </select>
+    </div>
+
+    <!-- 27 الشرطي: بداية التسلسل (عند اختيار H1) -->
+    <div class="form-group" id="groupC27Serial" style="display:none;">
+      <label>بداية التسلسل (C27):</label>
+      <input type="number" id="colSerialInput" value="1">
+    </div>
+
+    <!-- 27 الشرطي: مفتاح البحث (عند اختيار H15) -->
+    <div class="form-group" id="groupC27Search" style="display:none;">
+      <label>مفتاح البحث - عنوان العمود (C27):</label>
+      <select id="colSearchKeySelect">
+        <!-- خيارات العناوين -->
+      </select>
+    </div>
+
+    <!-- 28 الشرطي: العمود المجلوب منه البيانات (عند اختيار H14) -->
+    <div class="form-group" id="groupC28Source" style="display:none;">
+      <label>العمود الذي تجلب منه البيانات (C28):</label>
+      <input type="text" id="colSourceInput" placeholder="مثال: G">
+    </div>
+
+    <!-- 29. تعطيل العمود C29 (يظهر عند التعديل فقط) -->
+    <div class="form-group" id="groupC29Status" style="display:none;">
+      <label>حالة العمود (C29):</label>
+      <select id="colStatusSelect">
+        <option value="مفعل">إلغاء التعطيل (مفعل)</option>
+        <option value="معطل">تعطيل (معطل)</option>
+      </select>
+    </div>
+
+    <!-- 30 الشرطي: تسجيل شفرة (عند اختيار H17) -->
+    <div class="form-group" id="groupC30Code" style="display:none;">
+      <label>تسجيل شفرة (C30):</label>
+      <input type="text" id="colCodeInput" placeholder="أدخل الشفرة المطلوب تسجيلها">
+    </div>
+
+    <div class="btn-group">
+      <button class="btn-secondary" id="btnSaveColumn" onclick="saveColumnData()">حفظ العمود</button>
+      <button class="btn-danger" onclick="closeColModal()">إلغاء</button>
+    </div>
+  </div>
+</div>
+
 <script>
   const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwI2wtEM6krl1X7ug4KBBf-8iz4fbW4eAcWUCNY652i4SwZSNC4bY34AvAyJEzHQTr_Ww/exec";
 
   let allData = [];
 
-  window.onload = function() {
-    loadData();
-  };
+  window.onload = function() { loadData(); };
 
   function toggleAccordion(contentId, iconId) {
     const content = document.getElementById(contentId);
@@ -347,9 +457,208 @@
 
     if(tableCode) {
       const filtered = allData.filter(item => item.tableCode === tableCode && item.sheetName);
+      const uniqueSheets = [];
       filtered.forEach(item => {
+        if(!uniqueSheets.some(s => s.sheetName === item.sheetName)) {
+          uniqueSheets.push(item);
+        }
+      });
+
+      uniqueSheets.forEach(item => {
         sectionSelect.innerHTML += `<option value="${item.rowIndex}">${item.sheetName} (${item.sheetTitle})</option>`;
       });
+    }
+    renderColumnsList();
+  }
+
+  function renderColumnsList() {
+    const container = document.getElementById("columnsContainer");
+    container.innerHTML = "";
+
+    const rowIndex = document.getElementById("sectionSelect").value;
+    if(!rowIndex) {
+      container.innerHTML = '<p style="color:#999; text-align:center;">اختر قسماً أولاً لعرض وتعديل أعمدته.</p>';
+      return;
+    }
+
+    const currentSection = allData.find(i => i.rowIndex == rowIndex);
+    if(!currentSection) return;
+
+    // جلب جميع الصفوف المعرفة كأعمدة لنفس الفرع والورقة
+    const cols = allData.filter(i => i.tableCode === currentSection.tableCode && i.sheetName === currentSection.sheetName && i.colOrder !== "" && i.colOrder !== undefined);
+    cols.sort((a,b) => parseInt(a.colOrder) - parseInt(b.colOrder));
+
+    if(cols.length === 0) {
+      container.innerHTML = '<p style="color:#999; text-align:center;">لا توجد أعمدة مضافة لهذا القسم حتى الآن.</p>';
+      return;
+    }
+
+    cols.forEach(col => {
+      container.innerHTML += `
+        <div class="column-item">
+          <div>
+            <strong>[${col.colSymbol || col.colOrder}]</strong> ${col.colName || 'بدون عنوان'} 
+            <span style="font-size:0.8em; color:#666;">(${col.colDataType})</span>
+          </div>
+          <div>
+            <button class="btn-primary col-btn-sm" onclick="openEditColModal(${col.rowIndex})">تعديل</button>
+            <button class="btn-danger col-btn-sm" onclick="deleteColumn(${col.rowIndex})">حذف</button>
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  function onDataTypeChange() {
+    const sel = document.getElementById("colDataTypeSelect");
+    const val = sel.value;
+
+    document.getElementById("groupC27Serial").style.display = val.includes("H1") && !val.includes("H14") && !val.includes("H15") ? "block" : "none";
+    document.getElementById("groupC27Search").style.display = val.includes("H15") ? "block" : "none";
+    document.getElementById("groupC28Source").style.display = val.includes("H14") ? "block" : "none";
+    document.getElementById("groupC30Code").style.display = val.includes("H17") ? "block" : "none";
+  }
+
+  function openAddColModal() {
+    const rowIndex = document.getElementById("sectionSelect").value;
+    if(!rowIndex) return alert("يرجى اختيار القسم المتربط بالأعمدة أولاً");
+
+    const currentSection = allData.find(i => i.rowIndex == rowIndex);
+    const existingCols = allData.filter(i => i.tableCode === currentSection.tableCode && i.sheetName === currentSection.sheetName && i.colOrder !== "");
+    
+    const nextOrder = existingCols.length + 1;
+
+    document.getElementById("colModalTitle").innerText = "إضافة عمود جديد";
+    document.getElementById("colEditRowIndex").value = "";
+    document.getElementById("colOrderInput").value = nextOrder;
+    document.getElementById("colNameInput").value = "";
+    document.getElementById("groupC29Status").style.display = "none";
+
+    populateSearchKeyDropdown(existingCols);
+    onDataTypeChange();
+
+    document.getElementById("colModal").style.display = "flex";
+  }
+
+  function openEditColModal(colRowIndex) {
+    const col = allData.find(i => i.rowIndex == colRowIndex);
+    if(!col) return;
+
+    document.getElementById("colModalTitle").innerText = "تعديل بيانات العمود والتبديل";
+    document.getElementById("colEditRowIndex").value = colRowIndex;
+    document.getElementById("colOrderInput").value = col.colOrder;
+    document.getElementById("colNameInput").value = col.colName;
+    document.getElementById("colDataTypeSelect").value = col.colDataType;
+    document.getElementById("colVisibilitySelect").value = col.colVisibility;
+    document.getElementById("colRequiredSelect").value = col.colRequired;
+    document.getElementById("colReadOnlySelect").value = col.colReadOnly;
+    document.getElementById("colStatusSelect").value = col.colStatus || "مفعل";
+    document.getElementById("groupC29Status").style.display = "block";
+
+    const existingCols = allData.filter(i => i.tableCode === col.tableCode && i.sheetName === col.sheetName && i.colOrder !== "");
+    populateSearchKeyDropdown(existingCols);
+
+    if(col.colExtraC27 && col.colExtraC27.startsWith("(")) {
+      document.getElementById("colSerialInput").value = col.colExtraC27.replace(/[\(\)]/g, '');
+    }
+    if(col.colExtraC28) {
+      document.getElementById("colSourceInput").value = col.colExtraC28.replace('/', '');
+    }
+    if(col.colCodeScript) {
+      document.getElementById("colCodeInput").value = col.colCodeScript;
+    }
+
+    onDataTypeChange();
+    document.getElementById("colModal").style.display = "flex";
+  }
+
+  function populateSearchKeyDropdown(cols) {
+    const sel = document.getElementById("colSearchKeySelect");
+    sel.innerHTML = "";
+    cols.forEach(c => {
+      sel.innerHTML += `<option value="/${c.colSymbol}">[${c.colSymbol}] ${c.colName}</option>`;
+    });
+  }
+
+  function closeColModal() {
+    document.getElementById("colModal").style.display = "none";
+  }
+
+  function saveColumnData() {
+    const parentRowIndex = document.getElementById("sectionSelect").value;
+    const editRowIndex = document.getElementById("colEditRowIndex").value;
+    const colOrder = document.getElementById("colOrderInput").value;
+    const colName = document.getElementById("colNameInput").value;
+    
+    const dataTypeSel = document.getElementById("colDataTypeSelect");
+    const colDataType = dataTypeSel.value;
+    const colDataSymbol = dataTypeSel.options[dataTypeSel.selectedIndex].getAttribute("data-sym");
+
+    const colVisibility = document.getElementById("colVisibilitySelect").value;
+    const colRequired = document.getElementById("colRequiredSelect").value;
+    const colReadOnly = document.getElementById("colReadOnlySelect").value;
+
+    let colExtraC27 = "";
+    if(colDataType.includes("H1") && !colDataType.includes("H14") && !colDataType.includes("H15")) {
+      const serialVal = document.getElementById("colSerialInput").value || "1";
+      colExtraC27 = `(${serialVal})`;
+    } else if(colDataType.includes("H15")) {
+      colExtraC27 = document.getElementById("colSearchKeySelect").value;
+    }
+
+    let colExtraC28 = "";
+    if(colDataType.includes("H14")) {
+      const srcVal = document.getElementById("colSourceInput").value;
+      colExtraC28 = srcVal.startsWith("/") ? srcVal : `/${srcVal}`;
+    }
+
+    let colCodeScript = "";
+    if(colDataType.includes("H17")) {
+      colCodeScript = document.getElementById("colCodeInput").value;
+    }
+
+    if(!colName || !colOrder) return alert("يرجى إدخال اسم العمود ورقم ترتيبه");
+
+    if(!editRowIndex) {
+      // إضافة عمود جديد
+      sendRequest("ADD_COLUMN", {
+        parentRowIndex: parseInt(parentRowIndex),
+        colOrder: parseInt(colOrder),
+        colName: colName,
+        colDataType: colDataType,
+        colDataSymbol: colDataSymbol,
+        colVisibility: colVisibility,
+        colRequired: colRequired,
+        colReadOnly: colReadOnly,
+        colExtraC27: colExtraC27,
+        colExtraC28: colExtraC28,
+        colCodeScript: colCodeScript
+      });
+    } else {
+      // تعديل عمود وتغيير تبادلي
+      const colStatus = document.getElementById("colStatusSelect").value;
+      sendRequest("UPDATE_COLUMN", {
+        rowIndex: parseInt(editRowIndex),
+        colOrder: parseInt(colOrder),
+        colName: colName,
+        colDataType: colDataType,
+        colDataSymbol: colDataSymbol,
+        colVisibility: colVisibility,
+        colRequired: colRequired,
+        colReadOnly: colReadOnly,
+        colExtraC27: colExtraC27,
+        colExtraC28: colExtraC28,
+        colStatus: colStatus,
+        colCodeScript: colCodeScript
+      });
+    }
+
+    closeColModal();
+  }
+
+  function deleteColumn(colRowIndex) {
+    if(confirm("هل أنت تأكد من حذف هذا العمود نهائياً من الورقة والفهرس؟")) {
+      sendRequest("DELETE_COLUMN", { rowIndex: parseInt(colRowIndex) });
     }
   }
 
@@ -357,7 +666,6 @@
     const name = document.getElementById("accName").value;
     const loc = document.getElementById("accLoc").value;
     if(!name || !loc) return alert("يرجى ملء الحقول");
-
     sendRequest("ADD_ACCOUNT", { accountName: name, accountLocation: loc });
   }
 
@@ -366,7 +674,6 @@
     const sName = document.getElementById("branchSecName").value;
     const sTitle = document.getElementById("branchSecTitle").value;
     if(!accCode || !sName || !sTitle) return alert("يرجى اختيار الحساب وتعبئة بيانات الفرع");
-
     sendRequest("ADD_BRANCH", { accountCode: accCode, sectionName: sName, sectionTitle: sTitle });
   }
 
