@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>نظام إدارة الجداول والأعمدة والصفحات</title>
+  <title>نظام إدارة الحسابات والأقسام والصفحات والأعمدة</title>
   <style>
     :root {
       --primary: #1B557F;
@@ -34,22 +34,16 @@
       border-bottom: 2px solid var(--secondary);
       padding-bottom: 10px;
     }
-    /* تأثيرات الضغط على الأزرار */
     button {
       position: relative;
-      overflow: hidden;
       padding: 10px 15px;
       border: none;
       border-radius: 6px;
       font-weight: bold;
       cursor: pointer;
-      transition: transform 0.1s ease, box-shadow 0.1s ease, opacity 0.2s;
-      user-select: none;
+      transition: transform 0.1s ease;
     }
-    button:active {
-      transform: scale(0.96);
-      box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
-    }
+    button:active { transform: scale(0.96); }
     .btn-primary { background-color: var(--primary); color: white; }
     .btn-secondary { background-color: var(--secondary); color: white; }
     .btn-danger { background-color: #E53E3E; color: white; }
@@ -66,9 +60,7 @@
     }
     .search-results {
       position: absolute;
-      top: 100%;
-      right: 15px;
-      left: 15px;
+      top: 100%; right: 15px; left: 15px;
       background: white;
       border: 1px solid #CBD5E0;
       border-radius: 0 0 8px 8px;
@@ -78,11 +70,7 @@
       z-index: 100;
       display: none;
     }
-    .search-item {
-      padding: 10px 15px;
-      cursor: pointer;
-      border-bottom: 1px solid #EDF2F7;
-    }
+    .search-item { padding: 10px 15px; cursor: pointer; border-bottom: 1px solid #EDF2F7; }
     .search-item:hover { background: #F7FAFC; color: var(--secondary); }
 
     .section-block {
@@ -92,69 +80,24 @@
       padding: 15px;
       margin-bottom: 20px;
     }
-    .section-title {
-      font-weight: bold;
-      color: var(--primary);
-      margin-bottom: 12px;
-      font-size: 1.1em;
-    }
+    .section-title { font-weight: bold; color: var(--primary); margin-bottom: 12px; font-size: 1.1em; }
     .form-group { margin-bottom: 12px; }
     label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.9em; }
     input, select {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #CCC;
-      border-radius: 6px;
-      box-sizing: border-box;
-      font-size: 0.95em;
+      width: 100%; padding: 10px; border: 1px solid #CCC; border-radius: 6px; box-sizing: border-box;
     }
     .accordion-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #EDF2F7;
-      padding: 10px 14px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-      color: var(--primary);
-      margin-top: 10px;
+      display: flex; justify-content: space-between; align-items: center;
+      background: #EDF2F7; padding: 10px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; color: var(--primary); margin-top: 10px;
     }
-    .accordion-content {
-      display: none;
-      padding: 15px 10px 5px 10px;
-      background: #FFF;
-      border: 1px solid #EDF2F7;
-    }
+    .accordion-content { display: none; padding: 15px 10px 5px 10px; background: #FFF; border: 1px solid #EDF2F7; }
     .btn-group { display: flex; gap: 10px; margin-top: 10px; }
     .modal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5);
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000;
     }
-    .modal-content {
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      width: 90%;
-      max-width: 550px;
-      max-height: 85vh;
-      overflow-y: auto;
-    }
-    .column-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #FFF;
-      border: 1px solid #E2E8F0;
-      padding: 8px 12px;
-      border-radius: 6px;
-      margin-bottom: 6px;
-    }
+    .modal-content { background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 550px; max-height: 85vh; overflow-y: auto; }
+    .column-row { display: flex; justify-content: space-between; align-items: center; background: #FFF; border: 1px solid #E2E8F0; padding: 8px 12px; border-radius: 6px; margin-bottom: 6px; }
   </style>
 </head>
 <body>
@@ -162,10 +105,10 @@
 <div class="container">
   <h2>لوحة التحكم الهيكلية والتحكم بالأعمدة</h2>
 
-  <!-- 🔍 مربع البحث الذكي أعلى الصفحة -->
+  <!-- 🔍 مربع البحث الذكي أعلى الصفحة فوق الحسابات -->
   <div class="search-box-container">
     <label style="color:var(--primary); font-size:1em;">🔍 البحث السريع عن صفحة:</label>
-    <input type="text" id="globalSearchInput" placeholder="سجل اسم أو جزء من اسم الصفحة للوصول المباشر..." oninput="onGlobalSearch()">
+    <input type="text" id="globalSearchInput" placeholder="سجل اسم أو جزء من اسم الصفحة..." oninput="onGlobalSearch()">
     <div class="search-results" id="searchResults"></div>
   </div>
 
@@ -182,33 +125,15 @@
       <span>+ إضافة مجلد حساب جديد</span><span>▼</span>
     </div>
     <div class="accordion-content" id="accAcc">
-      <div class="form-group"><label>اسم الحساب:</label><input type="text" id="accName"></div>
-      <div class="form-group"><label>موقع الحساب:</label><input type="text" id="accLoc"></div>
+      <div class="form-group"><label>اسم الحساب (C1):</label><input type="text" id="accName"></div>
+      <div class="form-group"><label>موقع الحساب (C2):</label><input type="text" id="accLoc"></div>
       <button class="btn-secondary" onclick="addAccount()">إنشاء مجلد الحساب</button>
     </div>
   </div>
 
-  <!-- 2. الفروع -->
+  <!-- 2. الأقسام -->
   <div class="section-block">
-    <div class="section-title">📂 الفروع (إضافة مجلد داخل الحساب)</div>
-    <div class="form-group">
-      <label>اختر الفرع:</label>
-      <select id="branchSelect" onchange="onBranchChange()">
-        <option value="">-- اختر الفرع --</option>
-      </select>
-    </div>
-    <div class="accordion-header" onclick="toggleAccordion('branchAcc')">
-      <span>+ إضافة مجلد فرع جديد</span><span>▼</span>
-    </div>
-    <div class="accordion-content" id="branchAcc">
-      <div class="form-group"><label>اسم الفرع:</label><input type="text" id="branchName"></div>
-      <button class="btn-secondary" onclick="addBranchFolder()">إنشاء مجلد الفرع</button>
-    </div>
-  </div>
-
-  <!-- 3. الأقسام -->
-  <div class="section-block">
-    <div class="section-title">📊 الأقسام (إضافة جدول بيانات داخل الفرع)</div>
+    <div class="section-title">📊 الأقسام (إضافة جدول داخل مجلد الحساب)</div>
     <div class="form-group">
       <label>اختر القسم (الجدول):</label>
       <select id="sectionSelect" onchange="onSectionChange()">
@@ -219,13 +144,13 @@
       <span>+ إضافة جدول قسم جديد</span><span>▼</span>
     </div>
     <div class="accordion-content" id="secAcc">
-      <div class="form-group"><label>اسم القسم:</label><input type="text" id="secName"></div>
-      <div class="form-group"><label>عنوان القسم الظاهر:</label><input type="text" id="secTitle"></div>
+      <div class="form-group"><label>اسم القسم (C6):</label><input type="text" id="secName"></div>
+      <div class="form-group"><label>عنوان القسم الظاهر (C9):</label><input type="text" id="secTitle"></div>
       <button class="btn-secondary" onclick="addSectionTable()">إنشاء جدول القسم</button>
     </div>
   </div>
 
-  <!-- 4. الصفحات -->
+  <!-- 3. الصفحات -->
   <div class="section-block">
     <div class="section-title">📄 الصفحات (إضافة ورقة داخل القسم)</div>
     <div class="form-group">
@@ -246,10 +171,10 @@
     </div>
   </div>
 
-  <!-- 5. إضافة وتنسيق الأعمدة (تحت الصفحات ومستقلة خارج المنسدلة) -->
+  <!-- 4. إضافة وتنسيق الأعمدة (موقعه تحت الصفحة المنسدلة مباشرة) -->
   <div class="section-block">
     <div class="section-title">⚙️ إضافة وتنسيق الأعمدة</div>
-    <p style="font-size:0.85em; color:#666; margin-top:-5px;">الأعمدة الحالية المسجلة مؤقتاً للصفحة المختارة:</p>
+    <p style="font-size:0.85em; color:#666;">الأعمدة المسجلة للصفحة المختارة:</p>
     
     <div id="columnsListContainer"></div>
 
@@ -260,19 +185,14 @@
   </div>
 </div>
 
-<!-- Modal نافذة إضافة / تعديل عمود -->
+<!-- Modal نافذة إضافة/تعديل عمود -->
 <div class="modal" id="colModal">
   <div class="modal-content">
     <h3 style="color:var(--primary); margin-top:0;" id="colModalTitle">إضافة عمود جديد</h3>
-
     <input type="hidden" id="colEditIndex">
 
     <div class="form-group"><label>اسم العمود (C21):</label><input type="text" id="colNameInput"></div>
-    
-    <div class="form-group">
-      <label>نوع البيانات (C22/C23):</label>
-      <select id="colDataTypeSelect" onchange="onDataTypeChange()"></select>
-    </div>
+    <div class="form-group"><label>نوع البيانات (C22/C23):</label><select id="colDataTypeSelect" onchange="onDataTypeChange()"></select></div>
 
     <div class="form-group">
       <label>طريقة العرض والإخفاء (C24):</label>
@@ -301,33 +221,11 @@
     </div>
 
     <!-- الحقول الشرطية -->
-    <div class="form-group" id="groupSerial" style="display:none;">
-      <label>بداية التسلسل (C27):</label>
-      <input type="number" id="colSerialInput" value="1">
-    </div>
-
-    <div class="form-group" id="groupSearchKey" style="display:none;">
-      <label>مفتاح البحث - اختر العمود (C28):</label>
-      <select id="colSearchKeySelect"></select>
-    </div>
-
-    <div class="form-group" id="groupSourceCol" style="display:none;">
-      <label>العمود الذي تجلب منه البيانات (C29):</label>
-      <input type="text" id="colSourceColInput" placeholder="G">
-    </div>
-
-    <div class="form-group" id="groupStatus" style="display:none;">
-      <label>تعطيل العمود (C30):</label>
-      <select id="colStatusSelect">
-        <option value="مفعل">إلغاء التعطيل</option>
-        <option value="معطل">تعطيل</option>
-      </select>
-    </div>
-
-    <div class="form-group" id="groupCodeScript" style="display:none;">
-      <label>تسجيل شفرة (C31):</label>
-      <input type="text" id="colCodeScriptInput">
-    </div>
+    <div class="form-group" id="groupSerial" style="display:none;"><label>بداية التسلسل (C27):</label><input type="number" id="colSerialInput" value="1"></div>
+    <div class="form-group" id="groupSearchKey" style="display:none;"><label>مفتاح البحث (C28):</label><select id="colSearchKeySelect"></select></div>
+    <div class="form-group" id="groupSourceCol" style="display:none;"><label>العمود المجلوب منه البيانات (C29):</label><input type="text" id="colSourceColInput" placeholder="G"></div>
+    <div class="form-group" id="groupStatus" style="display:none;"><label>تعطيل العمود (C30):</label><select id="colStatusSelect"><option value="مفعل">إلغاء التعطيل</option><option value="معطل">تعطيل</option></select></div>
+    <div class="form-group" id="groupCodeScript" style="display:none;"><label>تسجيل شفرة (C31):</label><input type="text" id="colCodeScriptInput"></div>
 
     <div class="btn-group">
       <button class="btn-primary" onclick="confirmColumnTemp()">موافق</button>
@@ -341,7 +239,7 @@
 
   let allData = [];
   let dataTypesList = [];
-  let currentTempColumns = []; // تخزين الأعمدة مؤقتاً
+  let currentTempColumns = [];
 
   window.onload = function() { loadData(); };
 
@@ -387,24 +285,10 @@
 
   function onAccountChange() {
     const accCode = document.getElementById("accountSelect").value;
-    const sel = document.getElementById("branchSelect");
-    sel.innerHTML = '<option value="">-- اختر الفرع --</option>';
-    if(accCode) {
-      const branches = [...new Set(allData.filter(i => i.accountCode === accCode && i.branchFolderUrl).map(i => i.branchFolderUrl))];
-      branches.forEach(bUrl => {
-        const item = allData.find(i => i.branchFolderUrl === bUrl);
-        if(item) sel.innerHTML += `<option value="${item.branchFolderUrl}">${item.branchName}</option>`;
-      });
-    }
-    onBranchChange();
-  }
-
-  function onBranchChange() {
-    const bUrl = document.getElementById("branchSelect").value;
     const sel = document.getElementById("sectionSelect");
     sel.innerHTML = '<option value="">-- اختر القسم --</option>';
-    if(bUrl) {
-      const sections = [...new Set(allData.filter(i => i.branchFolderUrl === bUrl && i.sectionTableUrl).map(i => i.sectionTableUrl))];
+    if(accCode) {
+      const sections = [...new Set(allData.filter(i => i.accountCode === accCode && i.sectionTableUrl).map(i => i.sectionTableUrl))];
       sections.forEach(sUrl => {
         const item = allData.find(i => i.sectionTableUrl === sUrl);
         if(item) sel.innerHTML += `<option value="${item.sectionTableUrl}">${item.sectionName} - ${item.sectionTitle}</option>`;
@@ -467,7 +351,7 @@
     currentTempColumns.forEach((col, idx) => {
       container.innerHTML += `
         <div class="column-row">
-          <div><strong>${idx + 1}. ${col.colName}</strong> <span style="font-size:0.8em; color:#666;">(${col.colDataType})</span></div>
+          <div><strong>${idx + 1}. ${col.colName}</strong> <small>(${col.colDataType})</small></div>
           <div>
             <button class="btn-primary btn-sm" onclick="openEditColModal(${idx})">تعديل</button>
             <button class="btn-danger btn-sm" onclick="deleteTempColumn(${idx})">حذف</button>
@@ -477,7 +361,6 @@
     });
   }
 
-  // 🔍 البحث العلوي الذكي
   function onGlobalSearch() {
     const query = document.getElementById("globalSearchInput").value.trim().toLowerCase();
     const resDiv = document.getElementById("searchResults");
@@ -496,8 +379,8 @@
 
       unique.forEach(m => {
         resDiv.innerHTML += `
-          <div class="search-item" onclick="selectSearchResult('${m.accountCode}', '${m.branchFolderUrl}', '${m.sectionTableUrl}', '${m.pageName}')">
-            📍 <strong>${m.pageName}</strong> <small>(${m.accountName} / ${m.branchName} / ${m.sectionName})</small>
+          <div class="search-item" onclick="selectSearchResult('${m.accountCode}', '${m.sectionTableUrl}', '${m.pageName}')">
+            📍 <strong>${m.pageName}</strong> <small>(${m.accountName} / ${m.sectionName})</small>
           </div>
         `;
       });
@@ -505,19 +388,16 @@
     resDiv.style.display = "block";
   }
 
-  function selectSearchResult(accCode, bUrl, sUrl, pName) {
+  function selectSearchResult(accCode, sUrl, pName) {
     document.getElementById("searchResults").style.display = "none";
     document.getElementById("accountSelect").value = accCode;
     onAccountChange();
-    document.getElementById("branchSelect").value = bUrl;
-    onBranchChange();
     document.getElementById("sectionSelect").value = sUrl;
     onSectionChange();
     document.getElementById("pageSelect").value = pName;
     onPageChange();
   }
 
-  // معالجة النافذة المنبثقة للأعمدة
   function onDataTypeChange() {
     const sel = document.getElementById("colDataTypeSelect");
     const val = sel.value;
@@ -530,12 +410,10 @@
 
   function openAddColModal() {
     if(!document.getElementById("pageSelect").value) return alert("يرجى اختيار الصفحة أولاً");
-    
     document.getElementById("colModalTitle").innerText = "إضافة عمود جديد";
     document.getElementById("colEditIndex").value = "";
     document.getElementById("colNameInput").value = "";
     document.getElementById("groupStatus").style.display = "none";
-
     populateSearchKeysDropdown();
     onDataTypeChange();
     document.getElementById("colModal").style.display = "flex";
@@ -574,7 +452,6 @@
 
   function closeColModal() { document.getElementById("colModal").style.display = "none"; }
 
-  // حفظ مؤقت بالأعمدة دون إفراغ القوائم الرئيسية
   function confirmColumnTemp() {
     const colName = document.getElementById("colNameInput").value.trim();
     if(!colName) return alert("يرجى كتابة اسم العمود");
@@ -635,7 +512,6 @@
     renderTempColumns();
   }
 
-  // حفظ التغييرات الحقيقي للجدول والفهرس
   function saveAllColumnChanges() {
     const sUrl = document.getElementById("sectionSelect").value;
     const pName = document.getElementById("pageSelect").value;
@@ -649,7 +525,6 @@
     });
   }
 
-  // الدوال الإجرائية العادية
   function addAccount() {
     sendRequest("ADD_ACCOUNT", {
       accountName: document.getElementById("accName").value,
@@ -657,16 +532,9 @@
     });
   }
 
-  function addBranchFolder() {
-    sendRequest("ADD_BRANCH_FOLDER", {
-      accountCode: document.getElementById("accountSelect").value,
-      branchName: document.getElementById("branchName").value
-    });
-  }
-
   function addSectionTable() {
     sendRequest("ADD_SECTION_TABLE", {
-      branchFolderUrl: document.getElementById("branchSelect").value,
+      accountCode: document.getElementById("accountSelect").value,
       sectionName: document.getElementById("secName").value,
       sectionTitle: document.getElementById("secTitle").value
     });
