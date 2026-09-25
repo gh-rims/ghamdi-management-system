@@ -34,7 +34,6 @@
       border-bottom: 2px solid var(--secondary);
       padding-bottom: 10px;
     }
-    /* تأثير الضغط على الأزرار */
     button {
       transition: transform 0.1s ease, opacity 0.2s ease;
       cursor: pointer;
@@ -111,7 +110,6 @@
     .btn-danger { background-color: #E53E3E; color: white; }
     .divider { border: 0; height: 1px; background: #E2E8F0; margin: 25px 0; }
     
-    /* نتائج البحث السريع */
     .search-results {
       max-height: 150px;
       overflow-y: auto;
@@ -165,7 +163,7 @@
 <div class="container">
   <h2>لوحة التحكم بإدراج وتعديل الجداول والأعمدة</h2>
 
-  <!-- 0. مربع البحث الشامل فوق الحسابات -->
+  <!-- 0. مربع البحث السريع -->
   <div class="section-block" style="border-color: var(--secondary);">
     <div class="section-title">🔍 البحث السريع عن الأقسام والصفحات</div>
     <input type="text" id="globalSearchInput" oninput="onGlobalSearch()" placeholder="اكتب اسم أو جزء من اسم الصفحة...">
@@ -288,10 +286,6 @@
         <input type="text" id="pageTitleInput" placeholder="عنوان الصفحة الظاهر">
       </div>
       <div class="form-group">
-        <label>عنوان الصفحة الرئيسي (A1:C1):</label>
-        <input type="text" id="pageMainTitleInput" placeholder="عنوان الصفحة الرئيسي">
-      </div>
-      <div class="form-group">
         <label>مفاتيح البحث:</label>
         <input type="text" id="pageKeysInput" placeholder="مفاتيح البحث">
       </div>
@@ -301,14 +295,12 @@
 
   <hr class="divider">
 
-  <!-- 5. قسم إضافة وتنسيق الأعمدة (تحت الصفحة المنسدلة) -->
+  <!-- 5. قسم الأعمدة -->
   <div class="section-block">
     <div class="section-title">⚙️ إضافة وتنسيق الأعمدة</div>
     <p style="font-size:0.85em; color:#666;">الأعمدة التابعة للصفحة المحددة أعلاه:</p>
 
-    <div id="columnsContainer">
-      <!-- يتم عرض قائمة الأعمدة تلقائياً هنا -->
-    </div>
+    <div id="columnsContainer"></div>
 
     <div class="btn-group" style="margin-top:15px;">
       <button class="btn-secondary" onclick="openAddColModal()">+ إضافة عمود جديد</button>
@@ -330,10 +322,6 @@
       <input type="text" id="editPageTitle">
     </div>
     <div class="form-group">
-      <label>عنوان الصفحة الرئيسي (A1:C1):</label>
-      <input type="text" id="editPageMainTitle">
-    </div>
-    <div class="form-group">
       <label>مفاتيح البحث:</label>
       <input type="text" id="editPageKeys">
     </div>
@@ -348,24 +336,18 @@
 <div class="modal" id="colModal">
   <div class="modal-content">
     <h3 style="color:var(--primary); margin-top:0;" id="colModalTitle">إضافة عمود جديد</h3>
-
     <input type="hidden" id="colEditIndex">
 
-    <!-- 21. اسم العمود C21 -->
     <div class="form-group">
       <label>اسم العمود:</label>
       <input type="text" id="colNameInput" placeholder="أدخل اسم العمود">
     </div>
 
-    <!-- 22 & 23. نوع البيانات C22/C23 -->
     <div class="form-group">
       <label>نوع البيانات:</label>
-      <select id="colDataTypeSelect" onchange="onDataTypeChange()">
-        <!-- يتم ملء الأنواع آلياً من جدول الفهرس الورقة E -->
-      </select>
+      <select id="colDataTypeSelect" onchange="onDataTypeChange()"></select>
     </div>
 
-    <!-- 24. طريقة العرض C24 -->
     <div class="form-group">
       <label>طريقة العرض والإخفاء:</label>
       <select id="colVisibilitySelect">
@@ -376,7 +358,6 @@
       </select>
     </div>
 
-    <!-- 25. الالتزام بالمدخلات C25 -->
     <div class="form-group">
       <label>الالتزام بالمدخلات:</label>
       <select id="colRequiredSelect">
@@ -385,7 +366,6 @@
       </select>
     </div>
 
-    <!-- 26. للقراءة فقط C26 -->
     <div class="form-group">
       <label>للقراءة فقط:</label>
       <select id="colReadOnlySelect">
@@ -394,27 +374,21 @@
       </select>
     </div>
 
-    <!-- 27 الشرطي: بداية التسلسل رقمي -->
     <div class="form-group" id="groupC27Serial" style="display:none;">
       <label>بداية التسلسل:</label>
       <input type="number" id="colSerialInput" value="1">
     </div>
 
-    <!-- 27 الشرطي: مفتاح البحث H15 -->
     <div class="form-group" id="groupC27Search" style="display:none;">
       <label>مفتاح البحث - عنوان العمود:</label>
-      <select id="colSearchKeySelect">
-        <!-- يتم تحميل أسماء الأعمدة المتوفرة -->
-      </select>
+      <select id="colSearchKeySelect"></select>
     </div>
 
-    <!-- 28 الشرطي: العمود المجلوب منه H14 -->
     <div class="form-group" id="groupC28Source" style="display:none;">
       <label>العمود الذي تجلب منه البيانات:</label>
       <input type="text" id="colSourceInput" placeholder="مثال: G">
     </div>
 
-    <!-- 29. تعطيل العمود C29 (يظهر فقط عند الضغط على تعديل العمود) -->
     <div class="form-group" id="groupC29Status" style="display:none;">
       <label>تعطيل العمود:</label>
       <select id="colStatusSelect">
@@ -423,7 +397,6 @@
       </select>
     </div>
 
-    <!-- 31 الشرطي: تسجيل شفرة H17 -->
     <div class="form-group" id="groupC31Code" style="display:none;">
       <label>تسجيل شفرة:</label>
       <input type="text" id="colCodeInput" placeholder="أدخل الشفرة المطلوب تسجيلها">
@@ -437,7 +410,7 @@
 </div>
 
 <script>
-  // استبدل هذا الرابط برابط Web App الخاص بك بعد النشر
+  // رابط التطبيق المباشر المحدث والمفعل
   const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwI2wtEM6krl1X7ug4KBBf-8iz4fbW4eAcWUCNY652i4SwZSNC4bY34AvAyJEzHQTr_Ww/exec";
 
   let allData = [];
@@ -458,20 +431,40 @@
     }
   }
 
+  function sendRequest(action, payload) {
+    fetch(WEB_APP_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ action: action, payload: payload })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.message) alert(data.message);
+      if (data.error) alert(data.error);
+      if (data.success) loadData();
+    })
+    .catch(err => {
+      console.error("Fetch error:", err);
+      alert("حدث خطأ أثناء الاتصال بالخادم. تأكد من إعدادات النشر.");
+    });
+  }
+
   function loadData() {
     fetch(WEB_APP_URL, {
       method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify({ action: "GET_INITIAL_DATA", payload: {} })
     })
     .then(res => res.json())
     .then(data => {
       if(data.success) {
-        allData = data.rows;
+        allData = data.rows || [];
         dataTypesList = data.dataTypes || [];
         populateDataTypesSelect();
         populateAccounts();
       }
-    });
+    })
+    .catch(err => console.error("Load Data Error:", err));
   }
 
   function populateDataTypesSelect() {
@@ -831,7 +824,6 @@
     const tableCode = document.getElementById("sectionSelect").value;
     const name = document.getElementById("pageNameInput").value;
     const title = document.getElementById("pageTitleInput").value;
-    const mainTitle = document.getElementById("pageMainTitleInput").value;
     const keys = document.getElementById("pageKeysInput").value;
     if(!tableCode || !name) return alert("يرجى اختيار القسم المخصص وتحديد اسم الصفحة");
 
@@ -839,7 +831,6 @@
       tableCode: tableCode,
       sheetName: name,
       sheetTitle: title,
-      mainTitle: mainTitle,
       searchKeysInput: keys
     });
   }
@@ -852,7 +843,6 @@
     if(item) {
       document.getElementById("editPageName").value = item.sheetName;
       document.getElementById("editPageTitle").value = item.sheetTitle;
-      document.getElementById("editPageMainTitle").value = "";
       document.getElementById("editPageKeys").value = item.searchKeysInput;
       document.getElementById("editPageModal").style.display = "flex";
     }
@@ -868,7 +858,6 @@
       rowIndex: parseInt(rowIndex),
       sheetName: document.getElementById("editPageName").value,
       sheetTitle: document.getElementById("editPageTitle").value,
-      mainTitle: document.getElementById("editPageMainTitle").value,
       searchKeysInput: document.getElementById("editPageKeys").value
     });
     closeEditPageModal();
@@ -881,18 +870,6 @@
     if(confirm("هل أنت تأكد من حذف هذه الصفحة نهائياً؟")) {
       sendRequest("DELETE_PAGE", { rowIndex: parseInt(rowIndex) });
     }
-  }
-
-  function sendRequest(action, payload) {
-    fetch(WEB_APP_URL, {
-      method: "POST",
-      body: JSON.stringify({ action: action, payload: payload })
-    })
-    .then(res => res.json())
-    .then(data => {
-      alert(data.message || data.error);
-      if(data.success) loadData();
-    });
   }
 </script>
 </body>
