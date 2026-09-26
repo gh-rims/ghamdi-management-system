@@ -36,18 +36,21 @@
     }
     button {
       position: relative;
-      padding: 10px 15px;
+      padding: 8px 12px;
       border: none;
       border-radius: 6px;
       font-weight: bold;
       cursor: pointer;
       transition: transform 0.1s ease;
+      white-space: nowrap; /* إيقاف التفاف النص للأزرار */
     }
     button:active { transform: scale(0.96); }
     .btn-primary { background-color: var(--primary); color: white; }
     .btn-secondary { background-color: var(--secondary); color: white; }
     .btn-danger { background-color: #E53E3E; color: white; }
-    .btn-sm { padding: 5px 10px; font-size: 0.85em; }
+    .btn-warning { background-color: #D69E2E; color: white; }
+    .btn-success { background-color: #38A169; color: white; }
+    .btn-sm { padding: 5px 8px; font-size: 0.8em; }
 
     /* البحث العلوي */
     .search-box-container {
@@ -91,13 +94,36 @@
       background: #EDF2F7; padding: 10px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; color: var(--primary); margin-top: 10px;
     }
     .accordion-content { display: none; padding: 15px 10px 5px 10px; background: #FFF; border: 1px solid #EDF2F7; }
-    .btn-group { display: flex; gap: 10px; margin-top: 10px; }
+    .btn-group { display: flex; gap: 8px; margin-top: 10px; }
     .modal {
       display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000;
     }
     .modal-content { background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 550px; max-height: 85vh; overflow-y: auto; }
-    .column-row { display: flex; justify-content: space-between; align-items: center; background: #FFF; border: 1px solid #E2E8F0; padding: 8px 12px; border-radius: 6px; margin-bottom: 6px; }
+    
+    /* أسطر الأعمدة والأزرار المدمجة */
+    .column-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #FFF;
+      border: 1px solid #E2E8F0;
+      padding: 8px 12px;
+      border-radius: 6px;
+      margin-bottom: 6px;
+      gap: 10px;
+    }
+    .column-title {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .column-actions {
+      display: flex;
+      gap: 5px;
+      flex-shrink: 0;
+    }
   </style>
 </head>
 <body>
@@ -105,7 +131,7 @@
 <div class="container">
   <h2>لوحة التحكم الهيكلية والتحكم بالأعمدة</h2>
 
-  <!-- 🔍 مربع البحث الذكي أعلى الصفحة فوق الحسابات -->
+  <!-- 🔍 مربع البحث الذكي أعلى الصفحة -->
   <div class="search-box-container">
     <label style="color:var(--primary); font-size:1em;">🔍 البحث السريع عن صفحة:</label>
     <input type="text" id="globalSearchInput" placeholder="سجل اسم أو جزء من اسم الصفحة..." oninput="onGlobalSearch()">
@@ -171,7 +197,7 @@
     </div>
   </div>
 
-  <!-- 4. إضافة وتنسيق الأعمدة (موقعه تحت الصفحة المنسدلة مباشرة) -->
+  <!-- 4. إضافة وتنسيق الأعمدة (تظهر مباشرة تحت القائمة المنسدلة للصفحات) -->
   <div class="section-block">
     <div class="section-title">⚙️ إضافة وتنسيق الأعمدة</div>
     <p style="font-size:0.85em; color:#666;">الأعمدة المسجلة للصفحة المختارة:</p>
@@ -185,18 +211,28 @@
   </div>
 </div>
 
-<!-- Modal نافذة إضافة/تعديل عمود -->
+<!-- Modal نافذة إضافة/تعديل عمود الديناميكية -->
 <div class="modal" id="colModal">
   <div class="modal-content">
     <h3 style="color:var(--primary); margin-top:0;" id="colModalTitle">إضافة عمود جديد</h3>
     <input type="hidden" id="colEditIndex">
 
-    <div class="form-group"><label>اسم العمود (C21):</label><input type="text" id="colNameInput"></div>
-    <div class="form-group"><label>نوع البيانات (C22/C23):</label><select id="colDataTypeSelect" onchange="onDataTypeChange()"></select></div>
+    <!-- C21: اسم العمود -->
+    <div class="form-group" id="field_C21">
+      <label id="label_C21">اسم العمود:</label>
+      <input type="text" id="input_C21">
+    </div>
 
-    <div class="form-group">
-      <label>طريقة العرض والإخفاء (C24):</label>
-      <select id="colVisibilitySelect">
+    <!-- C22: نوع البيانات -->
+    <div class="form-group" id="field_C22">
+      <label id="label_C22">نوع البيانات:</label>
+      <select id="input_C22" onchange="onDataTypeChange()"></select>
+    </div>
+
+    <!-- C24: طريقة العرض والإخفاء -->
+    <div class="form-group" id="field_C24">
+      <label id="label_C24">طريقة العرض والإخفاء:</label>
+      <select id="input_C24">
         <option value="">إظهار كامل</option>
         <option value="*#">إخفاء كامل</option>
         <option value="#">إخفاء من الإضافة</option>
@@ -204,28 +240,56 @@
       </select>
     </div>
 
-    <div class="form-group">
-      <label>الالتزام بالمدخلات (C25):</label>
-      <select id="colRequiredSelect">
+    <!-- C25: الالتزام بالمدخلات -->
+    <div class="form-group" id="field_C25" style="display:none;">
+      <label id="label_C25">الالتزام بالمدخلات:</label>
+      <select id="input_C25">
         <option value="">اختياري</option>
         <option value="#">إلزامى</option>
       </select>
     </div>
 
-    <div class="form-group">
-      <label>للقراءة فقط (C26):</label>
-      <select id="colReadOnlySelect">
+    <!-- C26: للقراءة فقط -->
+    <div class="form-group" id="field_C26" style="display:none;">
+      <label id="label_C26">للقراءة فقط:</label>
+      <select id="input_C26">
         <option value="">تحرير</option>
         <option value="%">للعرض</option>
       </select>
     </div>
 
-    <!-- الحقول الشرطية -->
-    <div class="form-group" id="groupSerial" style="display:none;"><label>بداية التسلسل (C27):</label><input type="number" id="colSerialInput" value="1"></div>
-    <div class="form-group" id="groupSearchKey" style="display:none;"><label>مفتاح البحث (C28):</label><select id="colSearchKeySelect"></select></div>
-    <div class="form-group" id="groupSourceCol" style="display:none;"><label>العمود المجلوب منه البيانات (C29):</label><input type="text" id="colSourceColInput" placeholder="G"></div>
-    <div class="form-group" id="groupStatus" style="display:none;"><label>تعطيل العمود (C30):</label><select id="colStatusSelect"><option value="مفعل">إلغاء التعطيل</option><option value="معطل">تعطيل</option></select></div>
-    <div class="form-group" id="groupCodeScript" style="display:none;"><label>تسجيل شفرة (C31):</label><input type="text" id="colCodeScriptInput"></div>
+    <!-- C27: بداية التسلسل -->
+    <div class="form-group" id="field_C27" style="display:none;">
+      <label id="label_C27">بداية التسلسل:</label>
+      <input type="number" id="input_C27" value="1">
+    </div>
+
+    <!-- C28: مفتاح البحث -->
+    <div class="form-group" id="field_C28" style="display:none;">
+      <label id="label_C28">مفتاح البحث:</label>
+      <select id="input_C28"></select>
+    </div>
+
+    <!-- C29: العمود المجلوب منه البيانات -->
+    <div class="form-group" id="field_C29" style="display:none;">
+      <label id="label_C29">العمود المجلوب منه البيانات:</label>
+      <input type="text" id="input_C29" placeholder="G">
+    </div>
+
+    <!-- C30: تعطيل العمود -->
+    <div class="form-group" id="field_C30" style="display:none;">
+      <label id="label_C30">تعطيل العمود:</label>
+      <select id="input_C30">
+        <option value="مفعل">إلغاء التعطيل</option>
+        <option value="معطل">تعطيل</option>
+      </select>
+    </div>
+
+    <!-- C31: تسجيل شفرة -->
+    <div class="form-group" id="field_C31" style="display:none;">
+      <label id="label_C31">تسجيل شفرة:</label>
+      <input type="text" id="input_C31">
+    </div>
 
     <div class="btn-group">
       <button class="btn-primary" onclick="confirmColumnTemp()">موافق</button>
@@ -239,6 +303,9 @@
 
   let allData = [];
   let dataTypesList = [];
+  let visibilityMatrix = {};
+  let fieldHeaders = {};
+  let validationRules = {};
   let currentTempColumns = [];
 
   window.onload = function() { loadData(); };
@@ -258,20 +325,36 @@
       if(data.success) {
         allData = data.rows;
         dataTypesList = data.dataTypes;
+        visibilityMatrix = data.visibilityMatrix;
+        fieldHeaders = data.fieldHeaders;
+        validationRules = data.validationRules;
+
+        applyHeadersUI();
         populateDataTypesSelect();
         populateAccounts();
       }
     });
   }
 
+  // تطبيق عناوين الحقول من الصف الأول بالجدول E1:R27
+  function applyHeadersUI() {
+    for (let key in fieldHeaders) {
+      const lbl = document.getElementById(`label_${key}`);
+      if (lbl && fieldHeaders[key]) {
+        lbl.innerText = `${fieldHeaders[key]}:`;
+      }
+    }
+  }
+
   function populateDataTypesSelect() {
-    const sel = document.getElementById("colDataTypeSelect");
+    const sel = document.getElementById("input_C22");
     sel.innerHTML = "";
     dataTypesList.forEach(t => {
       sel.innerHTML += `<option value="${t.typeName}" data-sym="${t.typeSymbol}">${t.typeName}</option>`;
     });
   }
 
+  // الفلترة الحية والمباشرة - قراءة الأسطر المتوفرة بالفهرس A فقط
   function populateAccounts() {
     const sel = document.getElementById("accountSelect");
     sel.innerHTML = '<option value="">-- اختر الحساب --</option>';
@@ -339,6 +422,7 @@
     renderTempColumns();
   }
 
+  // عرض الأعمدة مع زر التعديل وزر التفعيل/التعطيل الحركي وزر الحذف
   function renderTempColumns() {
     const container = document.getElementById("columnsListContainer");
     container.innerHTML = "";
@@ -349,15 +433,178 @@
     }
 
     currentTempColumns.forEach((col, idx) => {
+      const isDisabled = col.colStatus === "معطل";
+      const toggleBtnText = isDisabled ? "تفعيل" : "تعطيل";
+      const toggleBtnClass = isDisabled ? "btn-success" : "btn-warning";
+
       container.innerHTML += `
         <div class="column-row">
-          <div><strong>${idx + 1}. ${col.colName}</strong> <small>(${col.colDataType})</small></div>
-          <div>
+          <div class="column-title">
+            <strong>${idx + 1}. ${col.colName}</strong> 
+            <small style="color:${isDisabled ? '#E53E3E' : '#666'};">(${col.colDataType} ${isDisabled ? '- معطل' : ''})</small>
+          </div>
+          <div class="column-actions">
             <button class="btn-primary btn-sm" onclick="openEditColModal(${idx})">تعديل</button>
+            <button class="${toggleBtnClass} btn-sm" onclick="toggleColumnStatus(${idx})">${toggleBtnText}</button>
             <button class="btn-danger btn-sm" onclick="deleteTempColumn(${idx})">حذف</button>
           </div>
         </div>
       `;
+    });
+  }
+
+  // الضغط على زر "تعطيل/تفعيل" لتبديل الخلية C30 مباشرة
+  function toggleColumnStatus(idx) {
+    const currentStatus = currentTempColumns[idx].colStatus;
+    currentTempColumns[idx].colStatus = (currentStatus === "معطل") ? "مفعل" : "معطل";
+    renderTempColumns();
+  }
+
+  // تطبيق شروط الإظهار الإخفاء بناءً على الجدول E!E1:R27 و المرجع H1...
+  function onDataTypeChange() {
+    const dataTypeSel = document.getElementById("input_C22");
+    const selectedOption = dataTypeSel.options[dataTypeSel.selectedIndex];
+    const hRef = selectedOption ? selectedOption.getAttribute("data-sym") : "H0";
+
+    const rules = visibilityMatrix[hRef] || {};
+
+    const keys = ["C25", "C26", "C27", "C28", "C29", "C31"];
+    keys.forEach(key => {
+      const grp = document.getElementById(`field_${key}`);
+      if (grp) {
+        if (rules[key] === "Yes") {
+          grp.style.display = "block";
+        } else {
+          grp.style.display = "none";
+        }
+      }
+    });
+  }
+
+  function openAddColModal() {
+    if(!document.getElementById("pageSelect").value) return alert("يرجى اختيار الصفحة أولاً");
+    document.getElementById("colModalTitle").innerText = "إضافة عمود جديد";
+    document.getElementById("colEditIndex").value = "";
+    document.getElementById("input_C21").value = "";
+    document.getElementById("field_C30").style.display = "none";
+
+    populateSearchKeysDropdown();
+    onDataTypeChange();
+    document.getElementById("colModal").style.display = "flex";
+  }
+
+  function openEditColModal(idx) {
+    const col = currentTempColumns[idx];
+    document.getElementById("colModalTitle").innerText = "تعديل بيانات العمود";
+    document.getElementById("colEditIndex").value = idx;
+    document.getElementById("input_C21").value = col.colName;
+    document.getElementById("input_C22").value = col.colDataType;
+    document.getElementById("input_C24").value = col.colVisibility;
+    document.getElementById("input_C25").value = col.colRequired;
+    document.getElementById("input_C26").value = col.colReadOnly;
+    document.getElementById("input_C30").value = col.colStatus || "مفعل";
+    document.getElementById("field_C30").style.display = "block";
+
+    populateSearchKeysDropdown();
+
+    if(col.colSerial) document.getElementById("input_C27").value = col.colSerial.replace(/[\(\)]/g, '');
+    if(col.colSourceCol) document.getElementById("input_C29").value = col.colSourceCol.replace('/', '');
+    if(col.colCodeScript) document.getElementById("input_C31").value = col.colCodeScript;
+
+    onDataTypeChange();
+    document.getElementById("colModal").style.display = "flex";
+  }
+
+  function populateSearchKeysDropdown() {
+    const sel = document.getElementById("input_C28");
+    sel.innerHTML = "";
+    currentTempColumns.forEach((c, i) => {
+      const sym = String.fromCharCode(65 + i);
+      sel.innerHTML += `<option value="/${sym}">[${sym}] ${c.colName}</option>`;
+    });
+  }
+
+  function closeColModal() { document.getElementById("colModal").style.display = "none"; }
+
+  // التحقق الديناميكي من الحقول الإلزامية بناءً على الجدول E35:G45
+  function confirmColumnTemp() {
+    const editIdx = document.getElementById("colEditIndex").value;
+    const dataTypeSel = document.getElementById("input_C22");
+    const selectedOption = dataTypeSel.options[dataTypeSel.selectedIndex];
+    const hRef = selectedOption ? selectedOption.getAttribute("data-sym") : "H0";
+    const currentVisRules = visibilityMatrix[hRef] || {};
+
+    // خريطة الإدخالات
+    const fieldInputs = {
+      "C21": document.getElementById("input_C21").value.trim(),
+      "C22": document.getElementById("input_C22").value,
+      "C24": document.getElementById("input_C24").value,
+      "C25": document.getElementById("input_C25").value,
+      "C26": document.getElementById("input_C26").value,
+      "C27": document.getElementById("input_C27").value,
+      "C28": document.getElementById("input_C28").value,
+      "C29": document.getElementById("input_C29").value.trim(),
+      "C30": document.getElementById("input_C30").value,
+      "C31": document.getElementById("input_C31").value.trim()
+    };
+
+    // فحص الإلزام الحقول الظاهرة فقط
+    for (let key in fieldInputs) {
+      const isVisible = (key === "C21" || key === "C22" || key === "C24") || (currentVisRules[key] === "Yes") || (key === "C30" && editIdx !== "");
+      if (isVisible) {
+        const isRequired = validationRules[key] === "الزامي" || validationRules[key] === "إلزامى";
+        if (isRequired && !fieldInputs[key]) {
+          const titleName = fieldHeaders[key] || key;
+          return alert(`عفواً، حقل (${titleName}) إلزامي ولا يمكن حده فارغاً.`);
+        }
+      }
+    }
+
+    let colSerial = "";
+    if(fieldInputs["C27"]) colSerial = `(${fieldInputs["C27"]})`;
+
+    let colSourceCol = "";
+    if(fieldInputs["C29"]) colSourceCol = fieldInputs["C29"].startsWith("/") ? fieldInputs["C29"] : `/${fieldInputs["C29"]}`;
+
+    const colObj = {
+      colName: fieldInputs["C21"],
+      colDataType: fieldInputs["C22"],
+      colDataSymbol: hRef,
+      colVisibility: fieldInputs["C24"],
+      colRequired: fieldInputs["C25"],
+      colReadOnly: fieldInputs["C26"],
+      colSerial: colSerial,
+      colSearchKey: fieldInputs["C28"],
+      colSourceCol: colSourceCol,
+      colStatus: fieldInputs["C30"] || "مفعل",
+      colCodeScript: fieldInputs["C31"]
+    };
+
+    if(editIdx === "") {
+      currentTempColumns.push(colObj);
+    } else {
+      currentTempColumns[parseInt(editIdx)] = colObj;
+    }
+
+    renderTempColumns();
+    closeColModal();
+  }
+
+  function deleteTempColumn(idx) {
+    currentTempColumns.splice(idx, 1);
+    renderTempColumns();
+  }
+
+  function saveAllColumnChanges() {
+    const sUrl = document.getElementById("sectionSelect").value;
+    const pName = document.getElementById("pageSelect").value;
+
+    if(!sUrl || !pName) return alert("يرجى اختيار القسم والصفحة أولاً");
+
+    sendRequest("SAVE_ALL_COLUMN_CHANGES", {
+      tableUrl: sUrl,
+      pageName: pName,
+      columns: currentTempColumns
     });
   }
 
@@ -396,133 +643,6 @@
     onSectionChange();
     document.getElementById("pageSelect").value = pName;
     onPageChange();
-  }
-
-  function onDataTypeChange() {
-    const sel = document.getElementById("colDataTypeSelect");
-    const val = sel.value;
-
-    document.getElementById("groupSerial").style.display = val.includes("رقم") || val.includes("H1") ? "block" : "none";
-    document.getElementById("groupSearchKey").style.display = val.includes("15") || val.includes("H15") ? "block" : "none";
-    document.getElementById("groupSourceCol").style.display = val.includes("14") || val.includes("H14") ? "block" : "none";
-    document.getElementById("groupCodeScript").style.display = val.includes("17") || val.includes("H17") ? "block" : "none";
-  }
-
-  function openAddColModal() {
-    if(!document.getElementById("pageSelect").value) return alert("يرجى اختيار الصفحة أولاً");
-    document.getElementById("colModalTitle").innerText = "إضافة عمود جديد";
-    document.getElementById("colEditIndex").value = "";
-    document.getElementById("colNameInput").value = "";
-    document.getElementById("groupStatus").style.display = "none";
-    populateSearchKeysDropdown();
-    onDataTypeChange();
-    document.getElementById("colModal").style.display = "flex";
-  }
-
-  function openEditColModal(idx) {
-    const col = currentTempColumns[idx];
-    document.getElementById("colModalTitle").innerText = "تعديل بيانات العمود";
-    document.getElementById("colEditIndex").value = idx;
-    document.getElementById("colNameInput").value = col.colName;
-    document.getElementById("colDataTypeSelect").value = col.colDataType;
-    document.getElementById("colVisibilitySelect").value = col.colVisibility;
-    document.getElementById("colRequiredSelect").value = col.colRequired;
-    document.getElementById("colReadOnlySelect").value = col.colReadOnly;
-    document.getElementById("colStatusSelect").value = col.colStatus || "مفعل";
-    document.getElementById("groupStatus").style.display = "block";
-
-    populateSearchKeysDropdown();
-
-    if(col.colSerial) document.getElementById("colSerialInput").value = col.colSerial.replace(/[\(\)]/g, '');
-    if(col.colSourceCol) document.getElementById("colSourceColInput").value = col.colSourceCol.replace('/', '');
-    if(col.colCodeScript) document.getElementById("colCodeScriptInput").value = col.colCodeScript;
-
-    onDataTypeChange();
-    document.getElementById("colModal").style.display = "flex";
-  }
-
-  function populateSearchKeysDropdown() {
-    const sel = document.getElementById("colSearchKeySelect");
-    sel.innerHTML = "";
-    currentTempColumns.forEach((c, i) => {
-      const sym = String.fromCharCode(65 + i);
-      sel.innerHTML += `<option value="/${sym}">[${sym}] ${c.colName}</option>`;
-    });
-  }
-
-  function closeColModal() { document.getElementById("colModal").style.display = "none"; }
-
-  function confirmColumnTemp() {
-    const colName = document.getElementById("colNameInput").value.trim();
-    if(!colName) return alert("يرجى كتابة اسم العمود");
-
-    const dataTypeSel = document.getElementById("colDataTypeSelect");
-    const colDataType = dataTypeSel.value;
-    const colDataSymbol = dataTypeSel.options[dataTypeSel.selectedIndex].getAttribute("data-sym") || "";
-
-    let colSerial = "";
-    if(colDataType.includes("رقم") || colDataType.includes("H1")) {
-      const sVal = document.getElementById("colSerialInput").value || "1";
-      colSerial = `(${sVal})`;
-    }
-
-    let colSearchKey = "";
-    if(colDataType.includes("15") || colDataType.includes("H15")) {
-      colSearchKey = document.getElementById("colSearchKeySelect").value;
-    }
-
-    let colSourceCol = "";
-    if(colDataType.includes("14") || colDataType.includes("H14")) {
-      const src = document.getElementById("colSourceColInput").value.trim();
-      colSourceCol = src.startsWith("/") ? src : `/${src}`;
-    }
-
-    let colCodeScript = "";
-    if(colDataType.includes("17") || colDataType.includes("H17")) {
-      colCodeScript = document.getElementById("colCodeScriptInput").value.trim();
-    }
-
-    const editIdx = document.getElementById("colEditIndex").value;
-    const colObj = {
-      colName: colName,
-      colDataType: colDataType,
-      colDataSymbol: colDataSymbol,
-      colVisibility: document.getElementById("colVisibilitySelect").value,
-      colRequired: document.getElementById("colRequiredSelect").value,
-      colReadOnly: document.getElementById("colReadOnlySelect").value,
-      colSerial: colSerial,
-      colSearchKey: colSearchKey,
-      colSourceCol: colSourceCol,
-      colStatus: document.getElementById("colStatusSelect").value || "مفعل",
-      colCodeScript: colCodeScript
-    };
-
-    if(editIdx === "") {
-      currentTempColumns.push(colObj);
-    } else {
-      currentTempColumns[parseInt(editIdx)] = colObj;
-    }
-
-    renderTempColumns();
-    closeColModal();
-  }
-
-  function deleteTempColumn(idx) {
-    currentTempColumns.splice(idx, 1);
-    renderTempColumns();
-  }
-
-  function saveAllColumnChanges() {
-    const sUrl = document.getElementById("sectionSelect").value;
-    const pName = document.getElementById("pageSelect").value;
-
-    if(!sUrl || !pName) return alert("يرجى اختيار القسم والصفحة أولاً");
-
-    sendRequest("SAVE_ALL_COLUMN_CHANGES", {
-      tableUrl: sUrl,
-      pageName: pName,
-      columns: currentTempColumns
-    });
   }
 
   function addAccount() {
