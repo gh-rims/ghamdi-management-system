@@ -17,15 +17,18 @@
       background-color: var(--bg);
       color: var(--text);
       margin: 0;
-      padding: 20px;
+      padding: 15px;
     }
+    /* توسيع مقاس قسم الحاوية بالكامل ليتناسب مع العرض وإلغاء الهامش الأبيض */
     .container {
-      max-width: 780px;
+      width: 100%;
+      max-width: 1000px;
       margin: 0 auto;
       background: var(--card);
       border-radius: 12px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-      padding: 25px;
+      padding: 20px;
+      box-sizing: border-box;
     }
     h2 {
       color: var(--primary);
@@ -42,7 +45,7 @@
       font-weight: bold;
       cursor: pointer;
       transition: transform 0.1s ease;
-      white-space: nowrap; /* إيقاف التفاف النص للأزرار */
+      white-space: nowrap;
     }
     button:active { transform: scale(0.96); }
     .btn-primary { background-color: var(--primary); color: white; }
@@ -50,12 +53,12 @@
     .btn-danger { background-color: #E53E3E; color: white; }
     .btn-warning { background-color: #D69E2E; color: white; }
     .btn-success { background-color: #38A169; color: white; }
-    .btn-sm { padding: 5px 8px; font-size: 0.8em; }
+    .btn-info { background-color: #319795; color: white; }
 
     /* البحث العلوي */
     .search-box-container {
       position: relative;
-      margin-bottom: 25px;
+      margin-bottom: 20px;
       background: #EBF8FF;
       padding: 15px;
       border-radius: 8px;
@@ -76,12 +79,15 @@
     .search-item { padding: 10px 15px; cursor: pointer; border-bottom: 1px solid #EDF2F7; }
     .search-item:hover { background: #F7FAFC; color: var(--secondary); }
 
+    /* توسيع وعرض قسم إضافة الأعمدة ليستغل المساحة بالكامل */
     .section-block {
       background: #FAFAFA;
       border: 1px solid #E2E8F0;
       border-radius: 8px;
-      padding: 15px;
+      padding: 18px;
       margin-bottom: 20px;
+      width: 100%;
+      box-sizing: border-box;
     }
     .section-title { font-weight: bold; color: var(--primary); margin-bottom: 12px; font-size: 1.1em; }
     .form-group { margin-bottom: 12px; }
@@ -94,35 +100,48 @@
       background: #EDF2F7; padding: 10px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; color: var(--primary); margin-top: 10px;
     }
     .accordion-content { display: none; padding: 15px 10px 5px 10px; background: #FFF; border: 1px solid #EDF2F7; }
-    .btn-group { display: flex; gap: 8px; margin-top: 10px; }
+    .btn-group { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
     .modal {
       display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000;
     }
-    .modal-content { background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 550px; max-height: 85vh; overflow-y: auto; }
+    .modal-content { background: white; padding: 20px; border-radius: 8px; width: 95%; max-width: 600px; max-height: 85vh; overflow-y: auto; }
     
-    /* أسطر الأعمدة والأزرار المدمجة */
+    /* تنسيق أسطر الأعمدة: 65% للعنوان و 35% للأزرار */
     .column-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
       background: #FFF;
       border: 1px solid #E2E8F0;
-      padding: 8px 12px;
+      padding: 10px 12px;
       border-radius: 6px;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
       gap: 10px;
+      width: 100%;
+      box-sizing: border-box;
     }
     .column-title {
-      flex: 1;
+      width: 65%;
+      flex-basis: 65%;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      font-size: 0.95em;
     }
     .column-actions {
+      width: 35%;
+      flex-basis: 35%;
       display: flex;
-      gap: 5px;
-      flex-shrink: 0;
+      justify-content: flex-end;
+      gap: 4px;
+    }
+    /* أزرار الأعمدة المحفوظة بمقاس خط مناسب وحجم صغير مدمج */
+    .column-actions button {
+      padding: 4px 6px;
+      font-size: 0.78em;
+      flex: 1;
+      text-align: center;
     }
   </style>
 </head>
@@ -197,7 +216,7 @@
     </div>
   </div>
 
-  <!-- 4. إضافة وتنسيق الأعمدة (تظهر مباشرة تحت القائمة المنسدلة للصفحات) -->
+  <!-- 4. إضافة وتنسيق الأعمدة (عريض ومستغل للهامش) -->
   <div class="section-block">
     <div class="section-title">⚙️ إضافة وتنسيق الأعمدة</div>
     <p style="font-size:0.85em; color:#666;">الأعمدة المسجلة للصفحة المختارة:</p>
@@ -206,7 +225,9 @@
 
     <div class="btn-group" style="margin-top:15px;">
       <button class="btn-secondary" onclick="openAddColModal()">+ إضافة عمود</button>
-      <button class="btn-primary" onclick="saveAllColumnChanges()">💾 حفظ التغييرات</button>
+      <button class="btn-primary" onclick="saveAllColumnChanges()">💾 حفظ التغيرات</button>
+      <!-- زر تحديث جدول الفهرس والمزامنة المباشرة -->
+      <button class="btn-info" onclick="syncAllStructure()">🔄 تحديث</button>
     </div>
   </div>
 </div>
@@ -291,6 +312,12 @@
       <input type="text" id="input_C31">
     </div>
 
+    <!-- C32: عنوان الخلية (خاص برسالة / تنبيه H19) -->
+    <div class="form-group" id="field_C32" style="display:none;">
+      <label id="label_C32">عنوان الخلية:</label>
+      <input type="text" id="input_C32" placeholder="مثال: رسالة تنبيه">
+    </div>
+
     <div class="btn-group">
       <button class="btn-primary" onclick="confirmColumnTemp()">موافق</button>
       <button class="btn-danger" onclick="closeColModal()">إلغاء</button>
@@ -336,7 +363,6 @@
     });
   }
 
-  // تطبيق عناوين الحقول من الصف الأول بالجدول E1:R27
   function applyHeadersUI() {
     for (let key in fieldHeaders) {
       const lbl = document.getElementById(`label_${key}`);
@@ -348,13 +374,12 @@
 
   function populateDataTypesSelect() {
     const sel = document.getElementById("input_C22");
-    sel.innerHTML = "";
+    sel.innerHTML = '<option value="">-- اختر نوع البيانات --</option>';
     dataTypesList.forEach(t => {
       sel.innerHTML += `<option value="${t.typeName}" data-sym="${t.typeSymbol}">${t.typeName}</option>`;
     });
   }
 
-  // الفلترة الحية والمباشرة - قراءة الأسطر المتوفرة بالفهرس A فقط
   function populateAccounts() {
     const sel = document.getElementById("accountSelect");
     sel.innerHTML = '<option value="">-- اختر الحساب --</option>';
@@ -404,8 +429,10 @@
     currentTempColumns = [];
     if(sUrl && pName) {
       const cols = allData.filter(i => i.sectionTableUrl === sUrl && i.pageName === pName && i.colOrder !== "" && i.colOrder !== undefined);
-      cols.sort((a,b) => parseInt(a.colOrder) - parseInt(b.colOrder));
+      cols.sort((a,b) => parseInt(a.colOrder, 10) - parseInt(b.colOrder, 10));
       currentTempColumns = cols.map(c => ({
+        originalOrder: parseInt(c.colOrder, 10),
+        colOrder: parseInt(c.colOrder, 10),
         colName: c.colName,
         colDataType: c.colDataType,
         colDataSymbol: c.colDataSymbol,
@@ -416,13 +443,13 @@
         colSearchKey: c.colSearchKey,
         colSourceCol: c.colSourceCol,
         colStatus: c.colStatus || "مفعل",
-        colCodeScript: c.colCodeScript
+        colCodeScript: c.colCodeScript,
+        colCellTitle: c.colCellTitle
       }));
     }
     renderTempColumns();
   }
 
-  // عرض الأعمدة مع زر التعديل وزر التفعيل/التعطيل الحركي وزر الحذف
   function renderTempColumns() {
     const container = document.getElementById("columnsListContainer");
     container.innerHTML = "";
@@ -453,22 +480,20 @@
     });
   }
 
-  // الضغط على زر "تعطيل/تفعيل" لتبديل الخلية C30 مباشرة
   function toggleColumnStatus(idx) {
     const currentStatus = currentTempColumns[idx].colStatus;
     currentTempColumns[idx].colStatus = (currentStatus === "معطل") ? "مفعل" : "معطل";
     renderTempColumns();
   }
 
-  // تطبيق شروط الإظهار الإخفاء بناءً على الجدول E!E1:R27 و المرجع H1...
   function onDataTypeChange() {
     const dataTypeSel = document.getElementById("input_C22");
     const selectedOption = dataTypeSel.options[dataTypeSel.selectedIndex];
-    const hRef = selectedOption ? selectedOption.getAttribute("data-sym") : "H0";
+    const hRef = selectedOption ? selectedOption.getAttribute("data-sym") : "";
 
     const rules = visibilityMatrix[hRef] || {};
 
-    const keys = ["C25", "C26", "C27", "C28", "C29", "C31"];
+    const keys = ["C25", "C26", "C27", "C28", "C29", "C31", "C32"];
     keys.forEach(key => {
       const grp = document.getElementById(`field_${key}`);
       if (grp) {
@@ -481,11 +506,25 @@
     });
   }
 
+  // عند ضغط إضافة عمود: جعل الحقول فارغة وإلغاء اعتماد البيانات المتبقية
   function openAddColModal() {
     if(!document.getElementById("pageSelect").value) return alert("يرجى اختيار الصفحة أولاً");
+    
     document.getElementById("colModalTitle").innerText = "إضافة عمود جديد";
     document.getElementById("colEditIndex").value = "";
+    
+    // تفريغ كافة حقول النافذة بالكامل
     document.getElementById("input_C21").value = "";
+    document.getElementById("input_C22").value = "";
+    document.getElementById("input_C24").value = "";
+    document.getElementById("input_C25").value = "";
+    document.getElementById("input_C26").value = "";
+    document.getElementById("input_C27").value = "1";
+    document.getElementById("input_C29").value = "";
+    document.getElementById("input_C30").value = "مفعل";
+    document.getElementById("input_C31").value = "";
+    document.getElementById("input_C32").value = "";
+    
     document.getElementById("field_C30").style.display = "none";
 
     populateSearchKeysDropdown();
@@ -497,11 +536,12 @@
     const col = currentTempColumns[idx];
     document.getElementById("colModalTitle").innerText = "تعديل بيانات العمود";
     document.getElementById("colEditIndex").value = idx;
-    document.getElementById("input_C21").value = col.colName;
-    document.getElementById("input_C22").value = col.colDataType;
-    document.getElementById("input_C24").value = col.colVisibility;
-    document.getElementById("input_C25").value = col.colRequired;
-    document.getElementById("input_C26").value = col.colReadOnly;
+    
+    document.getElementById("input_C21").value = col.colName || "";
+    document.getElementById("input_C22").value = col.colDataType || "";
+    document.getElementById("input_C24").value = col.colVisibility || "";
+    document.getElementById("input_C25").value = col.colRequired || "";
+    document.getElementById("input_C26").value = col.colReadOnly || "";
     document.getElementById("input_C30").value = col.colStatus || "مفعل";
     document.getElementById("field_C30").style.display = "block";
 
@@ -509,7 +549,8 @@
 
     if(col.colSerial) document.getElementById("input_C27").value = col.colSerial.replace(/[\(\)]/g, '');
     if(col.colSourceCol) document.getElementById("input_C29").value = col.colSourceCol.replace('/', '');
-    if(col.colCodeScript) document.getElementById("input_C31").value = col.colCodeScript;
+    if(col.colCodeScript) document.getElementById("input_C31").value = col.colCodeScript || "";
+    if(col.colCellTitle) document.getElementById("input_C32").value = col.colCellTitle || "";
 
     onDataTypeChange();
     document.getElementById("colModal").style.display = "flex";
@@ -526,15 +567,13 @@
 
   function closeColModal() { document.getElementById("colModal").style.display = "none"; }
 
-  // التحقق الديناميكي من الحقول الإلزامية بناءً على الجدول E35:G45
   function confirmColumnTemp() {
     const editIdx = document.getElementById("colEditIndex").value;
     const dataTypeSel = document.getElementById("input_C22");
     const selectedOption = dataTypeSel.options[dataTypeSel.selectedIndex];
-    const hRef = selectedOption ? selectedOption.getAttribute("data-sym") : "H0";
+    const hRef = selectedOption ? selectedOption.getAttribute("data-sym") : "";
     const currentVisRules = visibilityMatrix[hRef] || {};
 
-    // خريطة الإدخالات
     const fieldInputs = {
       "C21": document.getElementById("input_C21").value.trim(),
       "C22": document.getElementById("input_C22").value,
@@ -545,17 +584,17 @@
       "C28": document.getElementById("input_C28").value,
       "C29": document.getElementById("input_C29").value.trim(),
       "C30": document.getElementById("input_C30").value,
-      "C31": document.getElementById("input_C31").value.trim()
+      "C31": document.getElementById("input_C31").value.trim(),
+      "C32": document.getElementById("input_C32").value.trim()
     };
 
-    // فحص الإلزام الحقول الظاهرة فقط
     for (let key in fieldInputs) {
       const isVisible = (key === "C21" || key === "C22" || key === "C24") || (currentVisRules[key] === "Yes") || (key === "C30" && editIdx !== "");
       if (isVisible) {
         const isRequired = validationRules[key] === "الزامي" || validationRules[key] === "إلزامى";
         if (isRequired && !fieldInputs[key]) {
           const titleName = fieldHeaders[key] || key;
-          return alert(`عفواً، حقل (${titleName}) إلزامي ولا يمكن حده فارغاً.`);
+          return alert(`عفواً، حقل (${titleName}) إلزامي ولا يمكن تركه فارغاً.`);
         }
       }
     }
@@ -566,7 +605,11 @@
     let colSourceCol = "";
     if(fieldInputs["C29"]) colSourceCol = fieldInputs["C29"].startsWith("/") ? fieldInputs["C29"] : `/${fieldInputs["C29"]}`;
 
+    const nextOrder = (editIdx === "") ? currentTempColumns.length + 1 : currentTempColumns[parseInt(editIdx)].colOrder;
+
     const colObj = {
+      originalOrder: (editIdx !== "") ? currentTempColumns[parseInt(editIdx)].originalOrder : null,
+      colOrder: nextOrder,
       colName: fieldInputs["C21"],
       colDataType: fieldInputs["C22"],
       colDataSymbol: hRef,
@@ -577,7 +620,8 @@
       colSearchKey: fieldInputs["C28"],
       colSourceCol: colSourceCol,
       colStatus: fieldInputs["C30"] || "مفعل",
-      colCodeScript: fieldInputs["C31"]
+      colCodeScript: fieldInputs["C31"],
+      colCellTitle: fieldInputs["C32"]
     };
 
     if(editIdx === "") {
@@ -606,6 +650,10 @@
       pageName: pName,
       columns: currentTempColumns
     });
+  }
+
+  function syncAllStructure() {
+    sendRequest("SYNC_ALL_STRUCTURE", {});
   }
 
   function onGlobalSearch() {
