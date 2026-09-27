@@ -19,7 +19,6 @@
       margin: 0;
       padding: 15px;
     }
-    /* توسيع مقاس قسم الحاوية بالكامل ليتناسب مع العرض وإلغاء الهامش الأبيض */
     .container {
       width: 100%;
       max-width: 1000px;
@@ -29,6 +28,7 @@
       box-shadow: 0 4px 15px rgba(0,0,0,0.1);
       padding: 20px;
       box-sizing: border-box;
+      position: relative;
     }
     h2 {
       color: var(--primary);
@@ -38,7 +38,6 @@
       padding-bottom: 10px;
     }
     button {
-      position: relative;
       padding: 8px 12px;
       border: none;
       border-radius: 6px;
@@ -55,7 +54,19 @@
     .btn-success { background-color: #38A169; color: white; }
     .btn-info { background-color: #319795; color: white; }
 
-    /* البحث العلوي */
+    /* شاشة تسجيل الدخول الحاكمة */
+    #loginOverlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(27, 85, 127, 0.95);
+      display: flex; justify-content: center; align-items: center;
+      z-index: 9999;
+    }
+    .login-box {
+      background: white; padding: 30px; border-radius: 12px;
+      width: 90%; max-width: 380px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      text-align: center;
+    }
+
     .search-box-container {
       position: relative;
       margin-bottom: 20px;
@@ -79,7 +90,6 @@
     .search-item { padding: 10px 15px; cursor: pointer; border-bottom: 1px solid #EDF2F7; }
     .search-item:hover { background: #F7FAFC; color: var(--secondary); }
 
-    /* توسيع وعرض قسم إضافة الأعمدة ليستغل المساحة بالكامل */
     .section-block {
       background: #FAFAFA;
       border: 1px solid #E2E8F0;
@@ -89,8 +99,25 @@
       width: 100%;
       box-sizing: border-box;
     }
+
+    /* توسيع القسم رقم 5 يميناً ويساراً وللأسفل */
+    .col-section-full {
+      background: #FAFAFA;
+      border-top: 1px solid #E2E8F0;
+      border-bottom: 1px solid #E2E8F0;
+      border-left: none;
+      border-right: none;
+      padding: 20px 25px;
+      margin-left: -20px;
+      margin-right: -20px;
+      margin-bottom: -20px;
+      border-radius: 0 0 12px 12px;
+      width: calc(100% + 40px);
+      box-sizing: border-box;
+    }
+
     .section-title { font-weight: bold; color: var(--primary); margin-bottom: 12px; font-size: 1.1em; }
-    .form-group { margin-bottom: 12px; }
+    .form-group { margin-bottom: 12px; text-align: right; }
     label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.9em; }
     input, select {
       width: 100%; padding: 10px; border: 1px solid #CCC; border-radius: 6px; box-sizing: border-box;
@@ -100,14 +127,29 @@
       background: #EDF2F7; padding: 10px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; color: var(--primary); margin-top: 10px;
     }
     .accordion-content { display: none; padding: 15px 10px 5px 10px; background: #FFF; border: 1px solid #EDF2F7; }
-    .btn-group { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+    
+    /* أزرار الصف الواحد الموحدة المنسقة للقسم رقم 5 */
+    .btn-row-single {
+      display: flex;
+      gap: 10px;
+      margin-top: 18px;
+      width: 100%;
+    }
+    .btn-row-single button {
+      flex: 1;
+      padding: 12px 5px;
+      font-size: 0.95em;
+      white-space: nowrap;
+      text-align: center;
+    }
+
     .modal {
       display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000;
     }
     .modal-content { background: white; padding: 20px; border-radius: 8px; width: 95%; max-width: 600px; max-height: 85vh; overflow-y: auto; }
     
-    /* تنسيق أسطر الأعمدة: 65% للعنوان و 35% للأزرار */
+    /* أسطر الأعمدة القابلة بالسحب مع المساحة الموسعة */
     .column-row {
       display: flex;
       justify-content: space-between;
@@ -120,37 +162,56 @@
       gap: 10px;
       width: 100%;
       box-sizing: border-box;
+      cursor: grab;
+      transition: background 0.2s;
     }
+    .column-row.dragging { opacity: 0.5; background: #E2E8F0; }
     .column-title {
-      width: 65%;
-      flex-basis: 65%;
+      flex-grow: 1;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      font-size: 0.95em;
+      font-size: 0.98em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
+    .drag-handle { cursor: grab; font-size: 1.2em; color: #A0AEC0; }
     .column-actions {
-      width: 35%;
-      flex-basis: 35%;
       display: flex;
       justify-content: flex-end;
       gap: 4px;
+      flex-shrink: 0;
     }
-    /* أزرار الأعمدة المحفوظة بمقاس خط مناسب وحجم صغير مدمج */
     .column-actions button {
-      padding: 4px 6px;
+      padding: 5px 8px;
       font-size: 0.78em;
-      flex: 1;
-      text-align: center;
+      white-space: nowrap;
     }
   </style>
 </head>
 <body>
 
-<div class="container">
+<!-- 🔒 شاشة تسجيل الدخول -->
+<div id="loginOverlay">
+  <div class="login-box">
+    <h3 style="color:var(--primary); margin-top:0;">تسجيل الدخول للنظام</h3>
+    <div class="form-group">
+      <label>اسم المستخدم:</label>
+      <input type="text" id="loginUser" placeholder="أدخل اسم المستخدم">
+    </div>
+    <div class="form-group">
+      <label>كلمة المرور:</label>
+      <input type="password" id="loginPass" placeholder="أدخل كلمة المرور">
+    </div>
+    <button class="btn-primary" style="width:100%; margin-top:10px; padding:10px;" onclick="performLogin()">دخول</button>
+  </div>
+</div>
+
+<div class="container" id="mainContainer" style="display:none;">
   <h2>لوحة التحكم الهيكلية والتحكم بالأعمدة</h2>
 
-  <!-- 🔍 مربع البحث الذكي أعلى الصفحة -->
+  <!-- 🔍 مربع البحث الذكي -->
   <div class="search-box-container">
     <label style="color:var(--primary); font-size:1em;">🔍 البحث السريع عن صفحة:</label>
     <input type="text" id="globalSearchInput" placeholder="سجل اسم أو جزء من اسم الصفحة..." oninput="onGlobalSearch()">
@@ -216,41 +277,38 @@
     </div>
   </div>
 
-  <!-- 4. إضافة وتنسيق الأعمدة (عريض ومستغل للهامش) -->
-  <div class="section-block">
+  <!-- 4. إضافة وتنسيق الأعمدة (عريض يغطي الهامش) -->
+  <div class="section-block col-section-full">
     <div class="section-title">⚙️ إضافة وتنسيق الأعمدة</div>
-    <p style="font-size:0.85em; color:#666;">الأعمدة المسجلة للصفحة المختارة:</p>
+    <p style="font-size:0.85em; color:#666;">الأعمدة المسجلة للصفحة المختارة (يمكنك السحب والإفلات لإعادة الترتيب):</p>
     
     <div id="columnsListContainer"></div>
 
-    <div class="btn-group" style="margin-top:15px;">
+    <!-- أزرار صف واحد موحدة المقاس -->
+    <div class="btn-row-single">
       <button class="btn-secondary" onclick="openAddColModal()">+ إضافة عمود</button>
       <button class="btn-primary" onclick="saveAllColumnChanges()">💾 حفظ التغيرات</button>
-      <!-- زر تحديث جدول الفهرس والمزامنة المباشرة -->
       <button class="btn-info" onclick="syncAllStructure()">🔄 تحديث</button>
     </div>
   </div>
 </div>
 
-<!-- Modal نافذة إضافة/تعديل عمود الديناميكية -->
+<!-- Modal نافذة إضافة/تعديل عمود -->
 <div class="modal" id="colModal">
   <div class="modal-content">
     <h3 style="color:var(--primary); margin-top:0;" id="colModalTitle">إضافة عمود جديد</h3>
     <input type="hidden" id="colEditIndex">
 
-    <!-- C21: اسم العمود -->
     <div class="form-group" id="field_C21">
       <label id="label_C21">اسم العمود:</label>
       <input type="text" id="input_C21">
     </div>
 
-    <!-- C22: نوع البيانات -->
     <div class="form-group" id="field_C22">
       <label id="label_C22">نوع البيانات:</label>
       <select id="input_C22" onchange="onDataTypeChange()"></select>
     </div>
 
-    <!-- C24: طريقة العرض والإخفاء -->
     <div class="form-group" id="field_C24">
       <label id="label_C24">طريقة العرض والإخفاء:</label>
       <select id="input_C24">
@@ -261,7 +319,6 @@
       </select>
     </div>
 
-    <!-- C25: الالتزام بالمدخلات -->
     <div class="form-group" id="field_C25" style="display:none;">
       <label id="label_C25">الالتزام بالمدخلات:</label>
       <select id="input_C25">
@@ -270,7 +327,6 @@
       </select>
     </div>
 
-    <!-- C26: للقراءة فقط -->
     <div class="form-group" id="field_C26" style="display:none;">
       <label id="label_C26">للقراءة فقط:</label>
       <select id="input_C26">
@@ -279,25 +335,21 @@
       </select>
     </div>
 
-    <!-- C27: بداية التسلسل -->
     <div class="form-group" id="field_C27" style="display:none;">
       <label id="label_C27">بداية التسلسل:</label>
       <input type="number" id="input_C27" value="1">
     </div>
 
-    <!-- C28: مفتاح البحث -->
     <div class="form-group" id="field_C28" style="display:none;">
       <label id="label_C28">مفتاح البحث:</label>
       <select id="input_C28"></select>
     </div>
 
-    <!-- C29: العمود المجلوب منه البيانات -->
     <div class="form-group" id="field_C29" style="display:none;">
       <label id="label_C29">العمود المجلوب منه البيانات:</label>
       <input type="text" id="input_C29" placeholder="G">
     </div>
 
-    <!-- C30: تعطيل العمود -->
     <div class="form-group" id="field_C30" style="display:none;">
       <label id="label_C30">تعطيل العمود:</label>
       <select id="input_C30">
@@ -306,21 +358,19 @@
       </select>
     </div>
 
-    <!-- C31: تسجيل شفرة -->
     <div class="form-group" id="field_C31" style="display:none;">
       <label id="label_C31">تسجيل شفرة:</label>
       <input type="text" id="input_C31">
     </div>
 
-    <!-- C32: عنوان الخلية (خاص برسالة / تنبيه H19) -->
     <div class="form-group" id="field_C32" style="display:none;">
       <label id="label_C32">عنوان الخلية:</label>
       <input type="text" id="input_C32" placeholder="مثال: رسالة تنبيه">
     </div>
 
-    <div class="btn-group">
-      <button class="btn-primary" onclick="confirmColumnTemp()">موافق</button>
-      <button class="btn-danger" onclick="closeColModal()">إلغاء</button>
+    <div style="display:flex; gap:10px; margin-top:15px;">
+      <button class="btn-primary" style="flex:1;" onclick="confirmColumnTemp()">موافق</button>
+      <button class="btn-danger" style="flex:1;" onclick="closeColModal()">إلغاء</button>
     </div>
   </div>
 </div>
@@ -335,7 +385,27 @@
   let validationRules = {};
   let currentTempColumns = [];
 
-  window.onload = function() { loadData(); };
+  function performLogin() {
+    const user = document.getElementById("loginUser").value.trim();
+    const pass = document.getElementById("loginPass").value.trim();
+
+    if(!user || !pass) return alert("يرجى إدخال اسم المستخدم وكلمة المرور");
+
+    fetch(WEB_APP_URL, {
+      method: "POST",
+      body: JSON.stringify({ action: "LOGIN_VERIFY", payload: { username: user, password: pass } })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if(data.success) {
+        document.getElementById("loginOverlay").style.display = "none";
+        document.getElementById("mainContainer").style.display = "block";
+        loadData();
+      } else {
+        alert(data.error);
+      }
+    });
+  }
 
   function toggleAccordion(id) {
     const el = document.getElementById(id);
@@ -433,6 +503,7 @@
       currentTempColumns = cols.map(c => ({
         originalOrder: parseInt(c.colOrder, 10),
         colOrder: parseInt(c.colOrder, 10),
+        colSymbol: c.colSymbol,
         colName: c.colName,
         colDataType: c.colDataType,
         colDataSymbol: c.colDataSymbol,
@@ -465,19 +536,55 @@
       const toggleBtnClass = isDisabled ? "btn-success" : "btn-warning";
 
       container.innerHTML += `
-        <div class="column-row">
+        <div class="column-row" draggable="true" data-index="${idx}" ondragstart="handleDragStart(event)" ondragover="handleDragOver(event)" ondrop="handleDrop(event)" ondragend="handleDragEnd(event)">
           <div class="column-title">
+            <span class="drag-handle">☰</span>
             <strong>${idx + 1}. ${col.colName}</strong> 
             <small style="color:${isDisabled ? '#E53E3E' : '#666'};">(${col.colDataType} ${isDisabled ? '- معطل' : ''})</small>
           </div>
           <div class="column-actions">
-            <button class="btn-primary btn-sm" onclick="openEditColModal(${idx})">تعديل</button>
-            <button class="${toggleBtnClass} btn-sm" onclick="toggleColumnStatus(${idx})">${toggleBtnText}</button>
-            <button class="btn-danger btn-sm" onclick="deleteTempColumn(${idx})">حذف</button>
+            <button class="btn-primary" onclick="openEditColModal(${idx})">تعديل</button>
+            <button class="${toggleBtnClass}" onclick="toggleColumnStatus(${idx})">${toggleBtnText}</button>
+            <button class="btn-danger" onclick="deleteTempColumn(${idx})">حذف</button>
           </div>
         </div>
       `;
     });
+  }
+
+  /* معالجة السحب والإفلات التفاعلي Drag and Drop */
+  let dragSrcIndex = null;
+
+  function handleDragStart(e) {
+    dragSrcIndex = e.currentTarget.getAttribute("data-index");
+    e.currentTarget.classList.add("dragging");
+    e.dataTransfer.effectAllowed = "move";
+  }
+
+  function handleDragOver(e) {
+    if (e.preventDefault) e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    return false;
+  }
+
+  function handleDrop(e) {
+    if (e.stopPropagation) e.stopPropagation();
+    const targetIndex = e.currentTarget.getAttribute("data-index");
+    if (dragSrcIndex !== null && dragSrcIndex !== targetIndex) {
+      const movedItem = currentTempColumns.splice(dragSrcIndex, 1)[0];
+      currentTempColumns.splice(targetIndex, 0, movedItem);
+      
+      // تحديث الترتيب الداخلي تلقائياً
+      currentTempColumns.forEach((item, index) => {
+        item.colOrder = index + 1;
+      });
+      renderTempColumns();
+    }
+    return false;
+  }
+
+  function handleDragEnd(e) {
+    e.currentTarget.classList.remove("dragging");
   }
 
   function toggleColumnStatus(idx) {
@@ -506,14 +613,12 @@
     });
   }
 
-  // عند ضغط إضافة عمود: جعل الحقول فارغة وإلغاء اعتماد البيانات المتبقية
   function openAddColModal() {
     if(!document.getElementById("pageSelect").value) return alert("يرجى اختيار الصفحة أولاً");
     
     document.getElementById("colModalTitle").innerText = "إضافة عمود جديد";
     document.getElementById("colEditIndex").value = "";
     
-    // تفريغ كافة حقول النافذة بالكامل
     document.getElementById("input_C21").value = "";
     document.getElementById("input_C22").value = "";
     document.getElementById("input_C24").value = "";
@@ -610,6 +715,7 @@
     const colObj = {
       originalOrder: (editIdx !== "") ? currentTempColumns[parseInt(editIdx)].originalOrder : null,
       colOrder: nextOrder,
+      colSymbol: (editIdx !== "") ? currentTempColumns[parseInt(editIdx)].colSymbol : "",
       colName: fieldInputs["C21"],
       colDataType: fieldInputs["C22"],
       colDataSymbol: hRef,
@@ -636,6 +742,9 @@
 
   function deleteTempColumn(idx) {
     currentTempColumns.splice(idx, 1);
+    currentTempColumns.forEach((item, index) => {
+      item.colOrder = index + 1;
+    });
     renderTempColumns();
   }
 
