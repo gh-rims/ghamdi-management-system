@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>نظام إدارة الحسابات والأقسام والصفحات والأعمدة</title>
+  <!-- مكتبة السحب والإفلات التفاعلية لتأمين الحركة على كافة الأجهزة -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
   <style>
     :root {
       --primary: #1B557F;
@@ -54,7 +56,6 @@
     .btn-success { background-color: #38A169; color: white; }
     .btn-info { background-color: #319795; color: white; }
 
-    /* شاشة تسجيل الدخول الحاكمة */
     #loginOverlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(27, 85, 127, 0.95);
@@ -100,7 +101,6 @@
       box-sizing: border-box;
     }
 
-    /* توسيع القسم رقم 5 يميناً ويساراً وللأسفل */
     .col-section-full {
       background: #FAFAFA;
       border-top: 1px solid #E2E8F0;
@@ -128,7 +128,6 @@
     }
     .accordion-content { display: none; padding: 15px 10px 5px 10px; background: #FFF; border: 1px solid #EDF2F7; }
     
-    /* أزرار الصف الواحد الموحدة المنسقة للقسم رقم 5 */
     .btn-row-single {
       display: flex;
       gap: 10px;
@@ -149,7 +148,6 @@
     }
     .modal-content { background: white; padding: 20px; border-radius: 8px; width: 95%; max-width: 600px; max-height: 85vh; overflow-y: auto; }
     
-    /* أسطر الأعمدة القابلة بالسحب مع المساحة الموسعة */
     .column-row {
       display: flex;
       justify-content: space-between;
@@ -162,10 +160,7 @@
       gap: 10px;
       width: 100%;
       box-sizing: border-box;
-      cursor: grab;
-      transition: background 0.2s;
     }
-    .column-row.dragging { opacity: 0.5; background: #E2E8F0; }
     .column-title {
       flex-grow: 1;
       overflow: hidden;
@@ -176,7 +171,7 @@
       align-items: center;
       gap: 8px;
     }
-    .drag-handle { cursor: grab; font-size: 1.2em; color: #A0AEC0; }
+    .drag-handle { cursor: grab; font-size: 1.3em; color: #A0AEC0; padding: 0 5px; user-select: none; }
     .column-actions {
       display: flex;
       justify-content: flex-end;
@@ -192,7 +187,6 @@
 </head>
 <body>
 
-<!-- 🔒 شاشة تسجيل الدخول -->
 <div id="loginOverlay">
   <div class="login-box">
     <h3 style="color:var(--primary); margin-top:0;">تسجيل الدخول للنظام</h3>
@@ -211,14 +205,12 @@
 <div class="container" id="mainContainer" style="display:none;">
   <h2>لوحة التحكم الهيكلية والتحكم بالأعمدة</h2>
 
-  <!-- 🔍 مربع البحث الذكي -->
   <div class="search-box-container">
     <label style="color:var(--primary); font-size:1em;">🔍 البحث السريع عن صفحة:</label>
     <input type="text" id="globalSearchInput" placeholder="سجل اسم أو جزء من اسم الصفحة..." oninput="onGlobalSearch()">
     <div class="search-results" id="searchResults"></div>
   </div>
 
-  <!-- 1. الحسابات -->
   <div class="section-block">
     <div class="section-title">🏢 الحسابات (إضافة مجلد)</div>
     <div class="form-group">
@@ -237,7 +229,6 @@
     </div>
   </div>
 
-  <!-- 2. الأقسام -->
   <div class="section-block">
     <div class="section-title">📊 الأقسام (إضافة جدول داخل مجلد الحساب)</div>
     <div class="form-group">
@@ -256,7 +247,6 @@
     </div>
   </div>
 
-  <!-- 3. الصفحات -->
   <div class="section-block">
     <div class="section-title">📄 الصفحات (إضافة ورقة داخل القسم)</div>
     <div class="form-group">
@@ -277,14 +267,12 @@
     </div>
   </div>
 
-  <!-- 4. إضافة وتنسيق الأعمدة (عريض يغطي الهامش) -->
   <div class="section-block col-section-full">
     <div class="section-title">⚙️ إضافة وتنسيق الأعمدة</div>
-    <p style="font-size:0.85em; color:#666;">الأعمدة المسجلة للصفحة المختارة (يمكنك السحب والإفلات لإعادة الترتيب):</p>
+    <p style="font-size:0.85em; color:#666;">الأعمدة المسجلة للصفحة المختارة (يمكنك السحب من أيقونة ☰ لإعادة الترتيب):</p>
     
     <div id="columnsListContainer"></div>
 
-    <!-- أزرار صف واحد موحدة المقاس -->
     <div class="btn-row-single">
       <button class="btn-secondary" onclick="openAddColModal()">+ إضافة عمود</button>
       <button class="btn-primary" onclick="saveAllColumnChanges()">💾 حفظ التغيرات</button>
@@ -293,7 +281,6 @@
   </div>
 </div>
 
-<!-- Modal نافذة إضافة/تعديل عمود -->
 <div class="modal" id="colModal">
   <div class="modal-content">
     <h3 style="color:var(--primary); margin-top:0;" id="colModalTitle">إضافة عمود جديد</h3>
@@ -337,7 +324,7 @@
 
     <div class="form-group" id="field_C27" style="display:none;">
       <label id="label_C27">بداية التسلسل:</label>
-      <input type="number" id="input_C27" value="1">
+      <input type="number" id="input_C27" value="1" min="1">
     </div>
 
     <div class="form-group" id="field_C28" style="display:none;">
@@ -384,6 +371,7 @@
   let fieldHeaders = {};
   let validationRules = {};
   let currentTempColumns = [];
+  let sortableInstance = null;
 
   function performLogin() {
     const user = document.getElementById("loginUser").value.trim();
@@ -503,19 +491,19 @@
       currentTempColumns = cols.map(c => ({
         originalOrder: parseInt(c.colOrder, 10),
         colOrder: parseInt(c.colOrder, 10),
-        colSymbol: c.colSymbol,
-        colName: c.colName,
-        colDataType: c.colDataType,
-        colDataSymbol: c.colDataSymbol,
-        colVisibility: c.colVisibility,
-        colRequired: c.colRequired,
-        colReadOnly: c.colReadOnly,
-        colSerial: c.colSerial,
-        colSearchKey: c.colSearchKey,
-        colSourceCol: c.colSourceCol,
+        colSymbol: c.colSymbol || "",
+        colName: c.colName || "",
+        colDataType: c.colDataType || "",
+        colDataSymbol: c.colDataSymbol || "",
+        colVisibility: c.colVisibility || "",
+        colRequired: c.colRequired || "",
+        colReadOnly: c.colReadOnly || "",
+        colSerial: c.colSerial || "",
+        colSearchKey: c.colSearchKey || "",
+        colSourceCol: c.colSourceCol || "",
         colStatus: c.colStatus || "مفعل",
-        colCodeScript: c.colCodeScript,
-        colCellTitle: c.colCellTitle
+        colCodeScript: c.colCodeScript || "",
+        colCellTitle: c.colCellTitle || ""
       }));
     }
     renderTempColumns();
@@ -536,7 +524,7 @@
       const toggleBtnClass = isDisabled ? "btn-success" : "btn-warning";
 
       container.innerHTML += `
-        <div class="column-row" draggable="true" data-index="${idx}" ondragstart="handleDragStart(event)" ondragover="handleDragOver(event)" ondrop="handleDrop(event)" ondragend="handleDragEnd(event)">
+        <div class="column-row" data-id="${idx}">
           <div class="column-title">
             <span class="drag-handle">☰</span>
             <strong>${idx + 1}. ${col.colName}</strong> 
@@ -550,41 +538,22 @@
         </div>
       `;
     });
-  }
 
-  /* معالجة السحب والإفلات التفاعلي Drag and Drop */
-  let dragSrcIndex = null;
-
-  function handleDragStart(e) {
-    dragSrcIndex = e.currentTarget.getAttribute("data-index");
-    e.currentTarget.classList.add("dragging");
-    e.dataTransfer.effectAllowed = "move";
-  }
-
-  function handleDragOver(e) {
-    if (e.preventDefault) e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
-    return false;
-  }
-
-  function handleDrop(e) {
-    if (e.stopPropagation) e.stopPropagation();
-    const targetIndex = e.currentTarget.getAttribute("data-index");
-    if (dragSrcIndex !== null && dragSrcIndex !== targetIndex) {
-      const movedItem = currentTempColumns.splice(dragSrcIndex, 1)[0];
-      currentTempColumns.splice(targetIndex, 0, movedItem);
-      
-      // تحديث الترتيب الداخلي تلقائياً
-      currentTempColumns.forEach((item, index) => {
-        item.colOrder = index + 1;
-      });
-      renderTempColumns();
-    }
-    return false;
-  }
-
-  function handleDragEnd(e) {
-    e.currentTarget.classList.remove("dragging");
+    // تفعيل مكتبة Sortable للسحب والإفلات التفاعلي
+    if (sortableInstance) sortableInstance.destroy();
+    sortableInstance = new Sortable(container, {
+      handle: '.drag-handle',
+      animation: 150,
+      onEnd: function (evt) {
+        const movedItem = currentTempColumns.splice(evt.oldIndex, 1)[0];
+        currentTempColumns.splice(evt.newIndex, 0, movedItem);
+        
+        currentTempColumns.forEach((item, index) => {
+          item.colOrder = index + 1;
+        });
+        renderTempColumns();
+      }
+    });
   }
 
   function toggleColumnStatus(idx) {
@@ -637,6 +606,7 @@
     document.getElementById("colModal").style.display = "flex";
   }
 
+  // تفعيل فتح وتأكيد تعديل الأعمدة المحفوظة مسبقاً
   function openEditColModal(idx) {
     const col = currentTempColumns[idx];
     document.getElementById("colModalTitle").innerText = "تعديل بيانات العمود";
@@ -652,7 +622,8 @@
 
     populateSearchKeysDropdown();
 
-    if(col.colSerial) document.getElementById("input_C27").value = col.colSerial.replace(/[\(\)]/g, '');
+    if(col.colSerial) document.getElementById("input_C27").value = Math.abs(parseInt(col.colSerial.replace(/[\(\)]/g, ''), 10)) || 1;
+    if(col.colSearchKey) document.getElementById("input_C28").value = col.colSearchKey || "";
     if(col.colSourceCol) document.getElementById("input_C29").value = col.colSourceCol.replace('/', '');
     if(col.colCodeScript) document.getElementById("input_C31").value = col.colCodeScript || "";
     if(col.colCellTitle) document.getElementById("input_C32").value = col.colCellTitle || "";
@@ -663,7 +634,7 @@
 
   function populateSearchKeysDropdown() {
     const sel = document.getElementById("input_C28");
-    sel.innerHTML = "";
+    sel.innerHTML = '<option value="">-- اختر مفتاح البحث --</option>';
     currentTempColumns.forEach((c, i) => {
       const sym = String.fromCharCode(65 + i);
       sel.innerHTML += `<option value="/${sym}">[${sym}] ${c.colName}</option>`;
@@ -672,6 +643,7 @@
 
   function closeColModal() { document.getElementById("colModal").style.display = "none"; }
 
+  // معالجة البيانات وتنقيتها الصارمة قبل الإضافة/التحديث
   function confirmColumnTemp() {
     const editIdx = document.getElementById("colEditIndex").value;
     const dataTypeSel = document.getElementById("input_C22");
@@ -704,11 +676,29 @@
       }
     }
 
-    let colSerial = "";
-    if(fieldInputs["C27"]) colSerial = `(${fieldInputs["C27"]})`;
+    // تنقية الحقول حسب الصلاحيات الصريحة H1, H15, H17
+    const isH1 = (hRef === "H1");
+    const isH15 = (hRef === "H15");
+    const isH17 = (hRef === "H17");
 
+    // 1. رقم تسلسلي C27 (موجب وبين أقواس لـ H1 فقط)
+    let colSerial = "";
+    if (isH1 && fieldInputs["C27"]) {
+      let numVal = Math.abs(parseInt(fieldInputs["C27"], 10) || 1);
+      colSerial = `(${numVal})`;
+    }
+
+    // 2. مفتاح البحث C28 (لـ H15 فقط)
+    let colSearchKey = isH15 ? fieldInputs["C28"] : "";
+
+    // 3. العمود المجلوب منه البيانات C29
     let colSourceCol = "";
-    if(fieldInputs["C29"]) colSourceCol = fieldInputs["C29"].startsWith("/") ? fieldInputs["C29"] : `/${fieldInputs["C29"]}`;
+    if (currentVisRules["C29"] === "Yes" && fieldInputs["C29"]) {
+      colSourceCol = fieldInputs["C29"].startsWith("/") ? fieldInputs["C29"] : `/${fieldInputs["C29"]}`;
+    }
+
+    // 4. تسجيل شفرة C31 (لـ H17 فقط)
+    let colCodeScript = isH17 ? fieldInputs["C31"] : "";
 
     const nextOrder = (editIdx === "") ? currentTempColumns.length + 1 : currentTempColumns[parseInt(editIdx)].colOrder;
 
@@ -720,14 +710,14 @@
       colDataType: fieldInputs["C22"],
       colDataSymbol: hRef,
       colVisibility: fieldInputs["C24"],
-      colRequired: fieldInputs["C25"],
-      colReadOnly: fieldInputs["C26"],
+      colRequired: (currentVisRules["C25"] === "Yes") ? fieldInputs["C25"] : "",
+      colReadOnly: (currentVisRules["C26"] === "Yes") ? fieldInputs["C26"] : "",
       colSerial: colSerial,
-      colSearchKey: fieldInputs["C28"],
+      colSearchKey: colSearchKey,
       colSourceCol: colSourceCol,
       colStatus: fieldInputs["C30"] || "مفعل",
-      colCodeScript: fieldInputs["C31"],
-      colCellTitle: fieldInputs["C32"]
+      colCodeScript: colCodeScript,
+      colCellTitle: (currentVisRules["C32"] === "Yes") ? fieldInputs["C32"] : ""
     };
 
     if(editIdx === "") {
